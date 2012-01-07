@@ -1,0 +1,10 @@
+int a;
+float b;
+void c[2];
+int main(int c)
+{
+	b = -3;
+	a = 2;
+	main(3);
+}
+
