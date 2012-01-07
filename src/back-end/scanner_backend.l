@@ -15,14 +15,14 @@ char inputline[1000];
 
 %%
 
-"/*"		{ comment(); }
-"//".*          { count(); }
- "float "	{ count(); return(FLOAT); }
- "goto "	{ count(); return(GOTO); }
- "if "		{ count(); return(IF); }
- "int "		{ count(); return(INT); }
+"/*"		    { comment(); }
+"//".*      { count(); }
+ "float "	  { count(); return(FLOAT); }
+ "goto "	  { count(); return(GOTO); }
+ "if "		  { count(); return(IF); }
+ "int "		  { count(); return(INT); }
  "return "	{ count(); return(RETURN); }
- "void "	{ count(); return(VOID); }
+ "void "	  { count(); return(VOID); }
 
 {L}({L}|{D})*	{ count(); yylval.str = strdup (yytext); return(IDENTIFIER); }
 {D}+    	{ count(); yylval.str=strdup(yytext); return(CONSTANT); }
@@ -36,24 +36,24 @@ char inputline[1000];
 ">="	{ count(); return(GE_OP); }
 "=="	{ count(); return(EQ_OP); }
 "!="	{ count(); return(NE_OP); }
-";"	{ count(); return(';'); }
-"{"	{ count(); return('{'); }
-"}"	{ count(); return('}'); }
-","	{ count(); return(','); }
-":"     { count(); return(':'); }
-"="	{ count(); return('='); }
-"("	{ count(); return('('); }
-")"	{ count(); return(')'); }
-"["	{ count(); return('['); }
-"]"	{ count(); return(']'); }
-"."	{ count(); return('.'); }
-"-"	{ count(); return('-'); }
-"+"	{ count(); return('+'); }
-"*"	{ count(); return('*'); }
-"<"	{ count(); return('<'); }
-">"	{ count(); return('>'); }
-"^"	{ count(); return('^'); }
-"|"	{ count(); return('|'); }
+";"	  { count(); return(';'); }
+"{"	  { count(); return('{'); }
+"}"	  { count(); return('}'); }
+","	  { count(); return(','); }
+":"   { count(); return(':'); }
+"="	  { count(); return('='); }
+"("	  { count(); return('('); }
+")"	  { count(); return(')'); }
+"["	  { count(); return('['); }
+"]"	  { count(); return(']'); }
+"."	  { count(); return('.'); }
+"-"	  { count(); return('-'); }
+"+"	  { count(); return('+'); }
+"*"	  { count(); return('*'); }
+"<"	  { count(); return('<'); }
+">"	  { count(); return('>'); }
+"^"	  { count(); return('^'); }
+"|"	  { count(); return('|'); }
 
 [ \t\v\n\f]	{ count(); }
 .	{ /* ignore bad characters */ }
