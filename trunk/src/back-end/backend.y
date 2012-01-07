@@ -18,6 +18,8 @@
 
 %token  IF ELSE GOTO RETURN
 
+%type <str> primary_expression postfix_expression argument_expression_list unary_expression comparison_expression expression assignment_operator
+%type <str> selection_statement statement
 %start program
 %%
 
@@ -44,7 +46,7 @@ unary_expression
 : postfix_expression
 | INC_OP unary_expression {PRINT("%s %s", "inc", $2); $$=$2++;}
 | DEC_OP unary_expression {PRINT("%s %s", "dec", $2); $$=$2--;}
-| unary_operator unary_expression
+| unary_operator unary_expression {PRINT("%s ", $2); $$=$2;}
 ;
 
 unary_operator
@@ -109,11 +111,11 @@ parameter_declaration
 ;
 
 statement
-: labeled_statement
-| compound_statement
-| expression_statement
-| selection_statement
-| jump_statement
+: labeled_statement {$$="1";}
+| compound_statement {$$="1";}
+| expression_statement {$$="1";}
+| selection_statement {$$="1";}
+| jump_statement {$$="1";}
 ;
 
 labeled_statement
@@ -142,7 +144,7 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' comparison_expression ')' statement {printf("\n"); PRINT("%s ", $3); int a = NEW_LABEL(); PRINT("%d ", a); printf("\n"); PRINT("%s ", $5); PRINT("%s : \n", a);}
+: IF '(' comparison_expression ')' statement //{printf("\n"); PRINT("%s ", $3); int a = NEW_LABEL(); PRINT("%d ", a); printf("\n"); PRINT("%s ", $5); PRINT("%s : \n", a); $$="3";}
 ;
 
 jump_statement
