@@ -5,6 +5,8 @@ int main(int c)
 {
 	b = -3;
 	a = 2;
+	c = a+b;
+	++c;
 	main(3);
 	if(b == 5){
 
