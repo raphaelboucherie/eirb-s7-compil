@@ -17,12 +17,12 @@ char inputline[1000];
 
 "/*"		    { comment(); }
 "//".*      { count(); }
- "float "	  { count(); return(FLOAT); }
- "goto "	  { count(); return(GOTO); }
- "if "		  { count(); return(IF); }
- "int "		  { count(); return(INT); }
- "return "	{ count(); return(RETURN); }
- "void "	  { count(); return(VOID); }
+"float "	  { count(); return(FLOAT); }
+"goto "	  { count(); return(GOTO); }
+"if "		  { count(); return(IF); }
+"int "		  { count(); return(INT); }
+"return "	{ count(); return(RETURN); }
+"void "	  { count(); return(VOID); }
 
 {L}({L}|{D})*	{ count(); yylval.str = strdup (yytext); return(IDENTIFIER); }
 {D}+    	{ count(); yylval.str=strdup(yytext); return(CONSTANT); }

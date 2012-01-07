@@ -45,9 +45,9 @@ argument_expression_list
 
 unary_expression
 : postfix_expression
-| INC_OP unary_expression {PRINT("%s %s", "inc", $2); $$=$2++;}
-| DEC_OP unary_expression {PRINT("%s %s", "dec", $2); $$=$2--;}
-| unary_operator unary_expression {PRINT("%s ", $2); $$=$2;}
+| INC_OP unary_expression {PRINT("%s %s \n", "inc", $2); $$=$2++;}
+| DEC_OP unary_expression {PRINT("%s %s \n", "dec", $2); $$=$2--;}
+| unary_operator unary_expression {PRINT("%s \n", $2); $$=$2;}
 ;
 
 unary_operator
@@ -57,16 +57,16 @@ unary_operator
 
 comparison_expression
 : unary_expression
-| primary_expression '<' primary_expression   {PRINT("%s %s %s", "cmp", $1, $3); $$="jge";} 
-| primary_expression '>' primary_expression   {PRINT("%s %s %s", "cmp", $1, $3); $$="jle";}
-| primary_expression LE_OP primary_expression {PRINT("%s %s %s", "cmp", $1, $3); $$="jg";}
-| primary_expression GE_OP primary_expression {PRINT("%s %s %s", "cmp", $1, $3); $$="jl";} 
-| primary_expression EQ_OP primary_expression {PRINT("%s %s %s", "cmp", $1, $3); $$="jne";} 
-| primary_expression NE_OP primary_expression {PRINT("%s %s %s", "cmp", $1, $3); $$="jeq";} 
+| primary_expression '<' primary_expression   {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jge";} 
+| primary_expression '>' primary_expression   {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jle";}
+| primary_expression LE_OP primary_expression {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jg";}
+| primary_expression GE_OP primary_expression {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jl";} 
+| primary_expression EQ_OP primary_expression {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jne";} 
+| primary_expression NE_OP primary_expression {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jeq";} 
 ;
 
 expression
-: unary_expression assignment_operator unary_expression {PRINT("%s %s %s", $2, $1, $3); $$=$1;}
+: unary_expression assignment_operator unary_expression {PRINT("%s %s %s \n", $2, $1, $3); $$=$1;}
 | unary_expression
 ;
 
@@ -145,20 +145,18 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' comparison_expression ')' statement 
-/*{printf("\n"); 
+: IF '(' comparison_expression ')'
+{ 
   PRINT("%s ", $3);   
   int a = newLabel(); 
-  PRINT("%d ", a); 
-  printf("\n"); 
-  PRINT("%s ", $5); 
-  PRINT("%d : \n", a); 
-  }*/
+  PRINT("%d \n", a); 
+} 
+statement {PRINT("%s ", $6); }
 ;
 
 jump_statement
 : GOTO IDENTIFIER ';' {PRINT("%s %s", "jump", $2);}
-| RETURN ';' {PRINT("%s", "pop");}
+| RETURN ';' 
 | RETURN expression ';'
 ;
 
