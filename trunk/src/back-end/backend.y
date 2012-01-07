@@ -1,6 +1,7 @@
 %{
     #include <stdio.h>
     #include <string.h>
+    #define PRINT(format, args ...) {printf(format, args);}
     int yylex ();
     int yyerror ();
 %}
@@ -21,28 +22,28 @@
 %%
 
 primary_expression
-: IDENTIFIER
-| CONSTANT
-| IDENTIFIER '(' ')'
-| IDENTIFIER '(' argument_expression_list ')'
-| IDENTIFIER INC_OP
-| IDENTIFIER DEC_OP
+: IDENTIFIER  
+| CONSTANT 
+| IDENTIFIER '(' ')' 
+| IDENTIFIER '(' argument_expression_list ')' 
+| IDENTIFIER INC_OP 
+| IDENTIFIER DEC_OP 
 ;
 
 postfix_expression
 : primary_expression
-| postfix_expression '[' expression ']'
+| postfix_expression '[' expression ']' 
 ;
 
 argument_expression_list
-: primary_expression
-| argument_expression_list ',' primary_expression
+: primary_expression 
+| argument_expression_list ',' primary_expression 
 ;
 
 unary_expression
 : postfix_expression
-| INC_OP unary_expression
-| DEC_OP unary_expression
+| INC_OP unary_expression {PRINT("inc" $2); $$=$2++;}
+| DEC_OP unary_expression {PRINT("dec" $2); $$=$2--;}
 | unary_operator unary_expression
 ;
 
@@ -53,28 +54,28 @@ unary_operator
 
 comparison_expression
 : unary_expression
-| primary_expression '<' primary_expression
-| primary_expression '>' primary_expression
-| primary_expression LE_OP primary_expression
-| primary_expression GE_OP primary_expression
-| primary_expression EQ_OP primary_expression
-| primary_expression NE_OP primary_expression
+| primary_expression '<' primary_expression   {PRINT("cmp" $1 $3); $$="jge";} 
+| primary_expression '>' primary_expression   {PRINT("cmp" $1 $3); $$="jle";}
+| primary_expression LE_OP primary_expression {PRINT("cmp" $1 $3); $$="jg";}
+| primary_expression GE_OP primary_expression {PRINT("cmp" $1 $3); $$="jl";} 
+| primary_expression EQ_OP primary_expression {PRINT("cmp" $1 $3); $$="jne";} 
+| primary_expression NE_OP primary_expression {PRINT("cmp" $1 $3); $$="jeq";} 
 ;
 
 expression
-: unary_expression assignment_operator unary_expression
+: unary_expression assignment_operator unary_expression {PRINT($2 $1 $3); $$=$1;}
 | unary_expression
 ;
 
 assignment_operator
-: '='
-| MUL_ASSIGN
-| ADD_ASSIGN
-| SUB_ASSIGN
+: '='        {$$="mov";}
+| MUL_ASSIGN {$$="mul";}
+| ADD_ASSIGN {$$="add";}
+| SUB_ASSIGN {$$="sub";}
 ;
 
 declaration
-: type_name declarator_list ';'
+: type_name declarator_list ';' 
 ;
 
 declarator_list
@@ -141,12 +142,12 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' comparison_expression ')' statement
+: IF '(' comparison_expression ')' statement {PRINT("\n"); PRINT($3); int a = NEW_LABEL(); PRINT(a); PRINT("\n"); PRINT($5); PRINT(a":");}
 ;
 
 jump_statement
-: GOTO IDENTIFIER ';'
-| RETURN ';'
+: GOTO IDENTIFIER ';' {PRINT("jump" $2);}
+| RETURN ';' {PRINT("pop");}
 | RETURN expression ';'
 ;
 
