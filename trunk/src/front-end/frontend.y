@@ -136,7 +136,7 @@ statement
 ;
 
 compound_statement
-: '{' '}'{PRINT("%s\n", "{}");}
+: '{' '}'
 | '{' statement_list '}' 
 | '{' declaration_list statement_list '}'
 ;
@@ -158,8 +158,8 @@ expression_statement
 
 selection_statement
 : IF '(' {PRINT("%s(", "if");} expression ')' {PRINT("%s\n", ") {");} statement {PRINT("%s\n", "}");}
-| IF '(' {PRINT("%s(", "if");} expression ')' {PRINT("%s\n", ") {");} statement {PRINT("%s\n", "}");} ELSE {PRINT("%s", "else");} statement {PRINT("%s\n", "}");}
 | FOR '(' {PRINT("%s(", "for");} expression_statement expression_statement expression ')' {PRINT("%s\n", ") {");} statement {PRINT("%s\n", "}");}
+| ELSE {PRINT("%s", "else {");} statement {PRINT("%s\n", "}");}
 ;
 
 iteration_statement
