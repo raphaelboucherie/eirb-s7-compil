@@ -32,7 +32,7 @@ primary_expression
 : IDENTIFIER												{PRINT("%s", $1);}
 | CONSTANT												{PRINT("%s", $1);}	
 | IDENTIFIER '(' ')'											{PRINT("%s()", $1);}											
-| IDENTIFIER '(' argument_expression_list ')'								{PRINT("%s", ")");}					
+| IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}					
 | IDENTIFIER INC_OP											
 | IDENTIFIER DEC_OP											
 ;
@@ -114,7 +114,7 @@ declarator
 | '(' declarator ')'						
 | declarator '[' CONSTANT ']'										{PRINT("[%s]", $3);}
 | declarator '[' ']'											{PRINT("%s", "[]");}
-| declarator '(' parameter_list ')'									{PRINT("%s\n", "{");}						
+| declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}									
 | declarator '(' ')'											{PRINT("%s", "()");}
 ;
 
@@ -136,9 +136,9 @@ statement
 ;
 
 compound_statement
-: '{' '}'												{PRINT("%s\n", "{}");}
-| '{' statement_list '}'										{PRINT("%s\n", "}");}
-| '{' declaration_list statement_list '}'								{PRINT("%s\n", "}");}
+: '{' '}'{PRINT("%s\n", "{}");}
+| '{' {PRINT("%s\n", "{");} statement_list '}'	{PRINT("%s\n", "}");}
+| '{' {PRINT("%s\n", "{");} declaration_list statement_list '}'	{PRINT("%s\n", "}");}
 ;
 
 declaration_list
