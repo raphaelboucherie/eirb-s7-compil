@@ -4,6 +4,7 @@
     #define PRINT(format, args ...) {printf(format, args);}
     int yylex ();
     int yyerror ();
+    int newLabel();
 %}
 
 %token<str> IDENTIFIER CONSTANT
@@ -86,7 +87,7 @@ declarator_list
 ;
 
 type_name
-: INT
+: INT 
 | VOID
 | FLOAT
 ;
@@ -144,7 +145,15 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' comparison_expression ')' statement //{printf("\n"); PRINT("%s ", $3); int a = NEW_LABEL(); PRINT("%d ", a); printf("\n"); PRINT("%s ", $5); PRINT("%s : \n", a); $$="3";}
+: IF '(' comparison_expression ')' statement 
+/*{printf("\n"); 
+  PRINT("%s ", $3);   
+  int a = newLabel(); 
+  PRINT("%d ", a); 
+  printf("\n"); 
+  PRINT("%s ", $5); 
+  PRINT("%d : \n", a); 
+  }*/
 ;
 
 jump_statement
@@ -183,6 +192,9 @@ int yyerror (char *s) {
     return 0;
 }
 
+int newLabel() {
+  return 1;
+}
 
 int main (int argc, char *argv[]) {
     FILE *input = NULL;
