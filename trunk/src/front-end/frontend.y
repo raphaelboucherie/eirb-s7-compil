@@ -1,5 +1,15 @@
 %{
-    #include <stdio.h>
+    	#include <stdio.h>
+	#include <stdarg.h>
+/*
+	Ajout d'une macro pour print
+*/
+	
+	#define PRINT(format, args...) printf(format, args)
+	
+/*
+	Fin d'ajout
+*/
     extern int yylineno;
     int yylex ();
     int yyerror ();
@@ -19,13 +29,13 @@
 %%
 
 primary_expression
-: IDENTIFIER
-| CONSTANT
-| '(' expression ')'
-| IDENTIFIER '(' ')'
-| IDENTIFIER '(' argument_expression_list ')'
-| IDENTIFIER INC_OP
-| IDENTIFIER DEC_OP
+: IDENTIFIER												{PRINT("%s", $1);}
+| CONSTANT												{PRINT("%s", $1);}		
+| '(' expression ')'															
+| IDENTIFIER '(' ')'											
+| IDENTIFIER '(' argument_expression_list ')'								
+| IDENTIFIER INC_OP											
+| IDENTIFIER DEC_OP											
 ;
 
 postfix_expression
@@ -79,14 +89,14 @@ expression
 ;
 
 assignment_operator
-: '='
-| MUL_ASSIGN
-| ADD_ASSIGN
-| SUB_ASSIGN
+: '='													{PRINT("%s", "= ");}
+| MUL_ASSIGN												{PRINT("%s", "*= ");}
+| ADD_ASSIGN												{PRINT("%s", "+= ");}
+| SUB_ASSIGN												{PRINT("%s", "-= ");}
 ;
 
 declaration
-: type_name declarator_list ';'
+: type_name declarator_list ';'										{PRINT("%s", ";\n");}
 ;
 
 declarator_list
@@ -95,27 +105,27 @@ declarator_list
 ;
 
 type_name
-: VOID  
-| INT   
-| FLOAT
+: VOID  												{PRINT("%s", "void ");}
+| INT   												{PRINT("%s", "int ");}
+| FLOAT													{PRINT("%s", "float ");}
 ;
 
 declarator
-: IDENTIFIER  
-| '(' declarator ')'
-| declarator '[' CONSTANT ']'
+: IDENTIFIER  												{PRINT("%s", $1);}
+| '(' declarator ')'						
+| declarator '[' CONSTANT ']'					
 | declarator '[' ']'
 | declarator '(' parameter_list ')'
 | declarator '(' ')'
 ;
 
 parameter_list
-: parameter_declaration
-| parameter_list ',' parameter_declaration
+: parameter_declaration						
+| parameter_list ',' parameter_declaration			
 ;
 
 parameter_declaration
-: type_name declarator
+: type_name declarator						
 ;
 
 statement
@@ -127,7 +137,7 @@ statement
 ;
 
 compound_statement
-: '{' '}'
+: '{' '}'												{PRINT("%s", "{ }");}
 | '{' statement_list '}'
 | '{' declaration_list statement_list '}'
 ;
@@ -143,7 +153,7 @@ statement_list
 ;
 
 expression_statement
-: ';'
+: ';'													{PRINT("%s\n", ";");}
 | expression ';'
 ;
 
@@ -158,8 +168,8 @@ iteration_statement
 ;
 
 jump_statement
-: RETURN ';'
-| RETURN expression ';'
+: RETURN ';'												{PRINT("%s\n", "return ;");}
+| RETURN expression ';'												
 ;
 
 program
