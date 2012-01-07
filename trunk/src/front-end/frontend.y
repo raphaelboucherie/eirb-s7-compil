@@ -30,10 +30,9 @@
 
 primary_expression
 : IDENTIFIER												{PRINT("%s", $1);}
-| CONSTANT												{PRINT("%s", $1);}		
-| '(' expression ')'															
-| IDENTIFIER '(' ')'											
-| IDENTIFIER '(' argument_expression_list ')'								
+| CONSTANT												{PRINT("%s", $1);}	
+| IDENTIFIER '(' ')'											{PRINT("%s()", $1);}											
+| IDENTIFIER '(' argument_expression_list ')'								{PRINT("%s", ")");}					
 | IDENTIFIER INC_OP											
 | IDENTIFIER DEC_OP											
 ;
@@ -44,7 +43,7 @@ postfix_expression
 ;
 
 argument_expression_list
-: expression
+: expression												
 | argument_expression_list ',' expression
 ;
 
@@ -56,9 +55,9 @@ unary_expression
 ;
 
 unary_operator
-: '*'
-| '+'
-| '-'
+: '*'													{PRINT("%s", "*");}
+| '+'													{PRINT("%s", "+");}
+| '-'													{PRINT("%s", "-");}
 ;
 
 multiplicative_expression
@@ -100,7 +99,7 @@ declaration
 ;
 
 declarator_list
-: declarator
+: declarator												 
 | declarator_list ',' declarator
 ;
 
@@ -113,10 +112,10 @@ type_name
 declarator
 : IDENTIFIER  												{PRINT("%s", $1);}
 | '(' declarator ')'						
-| declarator '[' CONSTANT ']'					
-| declarator '[' ']'
-| declarator '(' parameter_list ')'
-| declarator '(' ')'
+| declarator '[' CONSTANT ']'										{PRINT("[%s]", $3);}
+| declarator '[' ']'											{PRINT("%s", "[]");}
+| declarator '(' parameter_list ')'									{PRINT("%s\n", "{");}						
+| declarator '(' ')'											{PRINT("%s", "()");}
 ;
 
 parameter_list
@@ -129,7 +128,7 @@ parameter_declaration
 ;
 
 statement
-: compound_statement
+: compound_statement											
 | expression_statement 
 | selection_statement
 | iteration_statement
@@ -137,24 +136,24 @@ statement
 ;
 
 compound_statement
-: '{' '}'												{PRINT("%s", "{ }");}
-| '{' statement_list '}'
-| '{' declaration_list statement_list '}'
+: '{' '}'												{PRINT("%s\n", "{}");}
+| '{' statement_list '}'										{PRINT("%s\n", "}");}
+| '{' declaration_list statement_list '}'								{PRINT("%s\n", "}");}
 ;
 
 declaration_list
-: declaration
+: declaration																			
 | declaration_list declaration
 ;
 
 statement_list
-: statement
+: statement												
 | statement_list statement
 ;
 
 expression_statement
 : ';'													{PRINT("%s\n", ";");}
-| expression ';'
+| expression ';'											{PRINT("%s\n", ";");}
 ;
 
 selection_statement
