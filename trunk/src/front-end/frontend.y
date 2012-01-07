@@ -16,33 +16,42 @@
 
 %}
 
+%union {
+	char *str;
+	int num;
+	int compValue;
+	char* ch;
+}
+
 %token <str> IDENTIFIER CONSTANT
 %token INC_OP DEC_OP LE_OP GE_OP EQ_OP NE_OP
 %token SUB_ASSIGN MUL_ASSIGN ADD_ASSIGN
 %token TYPE_NAME
 %token INT FLOAT VOID
 %token IF ELSE WHILE RETURN FOR
-%union {
-	char *str;
-	int iValue;
-	float fValue;
-	int bValue;
-}
+
 %start program
 
-%type <bValue> comparison_expression
-%type <iValue> additive_expression
-%type <iValue> multiplicative_expression
+%type <compValue> comparison_expression
+%type <num> additive_expression
+%type <num> multiplicative_expression
+%type <num> primary_expression
+%type <num> unary_expression
+%type <num> postfix_expression;
+%type <ch> assignment_operator;
+%type <ch> type_name;
+%type <ch> declarator;
+%type <ch> unary_operator;
 
 %%
 
 primary_expression
-: IDENTIFIER												{PRINT("%s", $1); $$ = $1}
-| CONSTANT												{PRINT("%s", $1); $$ = $1}	
-| IDENTIFIER '(' ')'											{PRINT("%s()", $1); $$ = $1}										
-| IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		/* Quelque chose ici ? */					
-| IDENTIFIER INC_OP											{PRINT("%s++", $1); $$ = $1+1}
-| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $$ = $1-1}
+: IDENTIFIER												{PRINT("%s", $1); $$ = $1;}
+| CONSTANT												{PRINT("%s", $1); $$ = $1;}	
+| IDENTIFIER '(' ')'											{PRINT("%s()", $1); $$ = $1;}
+| IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		/* Quelque chose ici */					
+| IDENTIFIER INC_OP											{PRINT("%s++", $1); $$ = $1+1;}
+| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $$ = $1-1;}
 ;
 
 postfix_expression
@@ -51,43 +60,43 @@ postfix_expression
 ;
 
 argument_expression_list
-: expression	/* {printf("Result is : %d\n", $1);} */																		
+: expression						
 | argument_expression_list ',' {PRINT("%s", ",");} expression
 ;
 
 unary_expression
-: postfix_expression
-| INC_OP unary_expression
-| DEC_OP unary_expression
-| unary_operator unary_expression
+: postfix_expression											{$$ = $1;}
+| INC_OP unary_expression										{$$ = $2+1; printf("Result is %d\n", ($2.value+1));}
+| DEC_OP unary_expression										{$$ = $2-1;}
+| unary_operator unary_expression									{$$ = $1;}
 ;
 
 unary_operator
-: '*'													{PRINT("%s", "*"); MUL_ASSIGN}
-| '+'													{PRINT("%s", "+"); ADD_ASSIGN}
-| '-'													{PRINT("%s", "-"); SUB_ASSIGN}
+: '*'													{PRINT("%s", "*"); $$ = MUL_ASSIGN;}
+| '+'													{PRINT("%s", "+"); $$ = ADD_ASSIGN;}
+| '-'													{PRINT("%s", "-"); $$ = SUB_ASSIGN;}
 ;
 
 multiplicative_expression
-: unary_expression 											
-| multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					{$$ = $1 * $3}
-| multiplicative_expression '|' {PRINT("%s", "|");} unary_expression					{$$ = $1 | $3} 
+: unary_expression 											{$$ = $1;}
+| multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					{$$ = ($1 * $4);}
+| multiplicative_expression '|' {PRINT("%s", "|");} unary_expression					{$$ = ($1 | $4);} 
 ;
 
 additive_expression
-: multiplicative_expression	
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$$ = $1 + $3}
-| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{$$ = $1 - $3}			
+: multiplicative_expression										{$$ = $1;}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$$ = ($1 + $4);}
+| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{$$ = ($1 - $4);}			
 ;
 
 comparison_expression
-: additive_expression											{$$ = $1}
-| additive_expression '<' {PRINT("%s", "<");} additive_expression					{$$ = ($1 < $3);}
-| additive_expression '>' {PRINT("%s", ">");} additive_expression					{$$ = ($1 > $3);}
-| additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					{$$ = ($1 <= $3);}
-| additive_expression GE_OP {PRINT("%s", ">=");} additive_expression					{$$ = ($1 >= $3);}
-| additive_expression EQ_OP {PRINT("%s", "==");} additive_expression					{$$ = ($1 == $3);}
-| additive_expression NE_OP {PRINT("%s", "!=");} additive_expression					{$$ = ($1 != $3);}
+: additive_expression											{$$ = $1;}
+| additive_expression '<' {PRINT("%s", "<");} additive_expression					{$$ = ($1 < $4);}
+| additive_expression '>' {PRINT("%s", ">");} additive_expression					{$$ = ($1 > $4);}
+| additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					{$$ = ($1 <= $4);}
+| additive_expression GE_OP {PRINT("%s", ">=");} additive_expression					{$$ = ($1 >= $4);}
+| additive_expression EQ_OP {PRINT("%s", "==");} additive_expression					{$$ = ($1 == $4);}
+| additive_expression NE_OP {PRINT("%s", "!=");} additive_expression					{$$ = ($1 != $4);}
 ;
 
 expression
@@ -96,7 +105,7 @@ expression
 ;
 
 assignment_operator
-: '='													{PRINT("%s", "= "); $$ = $1;}
+: '='													{PRINT("%s", "= "); $$ = "=";}
 | MUL_ASSIGN												{PRINT("%s", "*= "); $$ = MUL_ASSIGN;}
 | ADD_ASSIGN												{PRINT("%s", "+= "); $$ = ADD_ASSIGN;}
 | SUB_ASSIGN												{PRINT("%s", "-= "); $$ = SUB_ASSIGN;}
@@ -119,7 +128,7 @@ type_name
 
 declarator
 : IDENTIFIER  												{PRINT("%s", $1); $$=$1;}
-| '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'						
+| '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'						{$$ = $3;}
 | declarator '[' CONSTANT ']'										{PRINT("[%s]", $3);}
 | declarator '[' ']'											{PRINT("%s", "[]");}
 | declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}									
