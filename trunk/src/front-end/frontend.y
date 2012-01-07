@@ -33,18 +33,18 @@ primary_expression
 | CONSTANT												{PRINT("%s", $1);}	
 | IDENTIFIER '(' ')'											{PRINT("%s()", $1);}											
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}					
-| IDENTIFIER INC_OP											
-| IDENTIFIER DEC_OP											
+| IDENTIFIER INC_OP	{PRINT("%s++", $1);}											
+| IDENTIFIER DEC_OP	{PRINT("%s--", $1);}										
 ;
 
 postfix_expression
 : primary_expression
-| postfix_expression '[' expression ']'
+| postfix_expression '[' {PRINT("%s", "[");} expression ']' {PRINT("%s", "]");}
 ;
 
 argument_expression_list
 : expression												
-| argument_expression_list ',' expression
+| argument_expression_list ',' {PRINT("%s", ",");} expression
 ;
 
 unary_expression
@@ -62,24 +62,24 @@ unary_operator
 
 multiplicative_expression
 : unary_expression
-| multiplicative_expression '*' unary_expression
-| multiplicative_expression '|' unary_expression
+| multiplicative_expression '*' {PRINT("%s", "*");} unary_expression
+| multiplicative_expression '|' {PRINT("%s", "|");} unary_expression
 ;
 
 additive_expression
 : multiplicative_expression
-| additive_expression '+' multiplicative_expression
-| additive_expression '-' multiplicative_expression
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression
+| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression
 ;
 
 comparison_expression
 : additive_expression
-| additive_expression '<' additive_expression
-| additive_expression '>' additive_expression
-| additive_expression LE_OP additive_expression
-| additive_expression GE_OP additive_expression
-| additive_expression EQ_OP additive_expression
-| additive_expression NE_OP additive_expression
+| additive_expression '<' {PRINT("%s", "<");} additive_expression
+| additive_expression '>' {PRINT("%s", ">");} additive_expression
+| additive_expression LE_OP {PRINT("%s", "<=");} additive_expression
+| additive_expression GE_OP {PRINT("%s", ">=");} additive_expression
+| additive_expression EQ_OP {PRINT("%s", "==");} additive_expression
+| additive_expression NE_OP {PRINT("%s", "!=");} additive_expression
 ;
 
 expression
@@ -100,7 +100,7 @@ declaration
 
 declarator_list
 : declarator												 
-| declarator_list ',' declarator
+| declarator_list ',' {PRINT("%s", ",");} declarator
 ;
 
 type_name
@@ -111,7 +111,7 @@ type_name
 
 declarator
 : IDENTIFIER  												{PRINT("%s", $1);}
-| '(' declarator ')'						
+| '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'						
 | declarator '[' CONSTANT ']'										{PRINT("[%s]", $3);}
 | declarator '[' ']'											{PRINT("%s", "[]");}
 | declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}									
@@ -120,16 +120,16 @@ declarator
 
 parameter_list
 : parameter_declaration						
-| parameter_list ',' parameter_declaration			
+| parameter_list ',' {PRINT("%s", ",");} parameter_declaration			
 ;
 
 parameter_declaration
-: type_name declarator						
+: type_name declarator 					
 ;
 
 statement
 : compound_statement											
-| expression_statement 
+| expression_statement {PRINT("%s", "\n");}
 | selection_statement
 | iteration_statement
 | jump_statement
@@ -137,8 +137,8 @@ statement
 
 compound_statement
 : '{' '}'{PRINT("%s\n", "{}");}
-| '{' {PRINT("%s\n", "{");} statement_list '}'	{PRINT("%s\n", "}");}
-| '{' {PRINT("%s\n", "{");} declaration_list statement_list '}'	{PRINT("%s\n", "}");}
+| '{' statement_list '}' 
+| '{' declaration_list statement_list '}'
 ;
 
 declaration_list
@@ -152,23 +152,23 @@ statement_list
 ;
 
 expression_statement
-: ';'													{PRINT("%s\n", ";");}
-| expression ';'											{PRINT("%s\n", ";");}
+: ';'													{PRINT("%s", ";");}
+| expression ';'											{PRINT("%s", ";");}
 ;
 
 selection_statement
-: IF '(' expression ')' statement
-| IF '(' expression ')' statement ELSE statement
-| FOR '(' expression_statement expression_statement expression ')' statement
+: IF '(' {PRINT("%s(", "if");} expression ')' {PRINT("%s\n", ") {");} statement {PRINT("%s\n", "}");}
+| IF '(' {PRINT("%s(", "if");} expression ')' {PRINT("%s\n", ") {");} statement {PRINT("%s\n", "}");} ELSE {PRINT("%s", "else");} statement {PRINT("%s\n", "}");}
+| FOR '(' {PRINT("%s(", "for");} expression_statement expression_statement expression ')' {PRINT("%s\n", ") {");} statement {PRINT("%s\n", "}");}
 ;
 
 iteration_statement
-: WHILE '(' expression ')' statement
+: WHILE '(' {PRINT("%s(", "while");} expression ')' {PRINT("%s", ")");} statement
 ;
 
 jump_statement
 : RETURN ';'												{PRINT("%s\n", "return ;");}
-| RETURN expression ';'												
+| RETURN {PRINT("%s", "return ");} expression ';' {PRINT("%s\n", ";");}												
 ;
 
 program
@@ -182,7 +182,7 @@ external_declaration
 ;
 
 function_definition
-: type_name declarator compound_statement
+: type_name declarator {PRINT("%s\n", "{");} compound_statement {PRINT("%s\n", "}");}
 ;
 
 %%
