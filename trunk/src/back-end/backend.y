@@ -4,7 +4,56 @@
     #define PRINT(format, args ...) {printf(format, args);}
     int yylex ();
     int yyerror ();
+
+    /* Symbol table part */
+
+    
+
+    int currentOffset = 0;
+    struct symT* symbolTable = NULL;    
+
+    const int type_UNDEFINED = -3;
+    const int type_FLOAT = -2
+    const int type_INT = -1;
+    // everything from 0 to n is a function with n parameters
+ 
+    struct symT
+    {
+      int offset;
+      char* name;
+      struct symT* next;
+      int type;
+    }
+
+    int getOffset()
+    {
+      offset+=4;
+      return offset;
+    }
+
+    int getSym(char* string)
+    {
+      
+    }
+
+    void addSym(char* string, int type)
+    {
+      struct symT* temp = malloc( sizeof( struct symT ) );
+      strcpy(temp->name,string);
+      temp->offset=getOffset();
+      temp->next = symbolTable;
+      symbolTable = next;
+      temp->type = type;
+    }
+
+
+    /* Symbol table END */ 
+
     int newLabel();
+    
+    
+    
+
 %}
 
 %token<str> IDENTIFIER CONSTANT
