@@ -9,7 +9,6 @@ int main(int c)
 	if(b == 5){
 
 	}else{
-
 	}
 	for(i=0; i<3; i){
 		int r;
