@@ -1,9 +1,10 @@
 %{
+    	#include <stdlib.h>
     	#include <stdio.h>
 	#include <stdarg.h>
 /*
 	Ajout d'une macro pour print
-	CA NE MARCHE PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAS MAIS CA MERITE UN PUTAIN DE COMMIT !
+	3 + 2 = 5 OUUUUAAAAIIII !
 */
 	
 	#define PRINT(format, args...) printf(format, args)
@@ -46,8 +47,8 @@
 %%
 
 primary_expression
-: IDENTIFIER												{PRINT("%s", $1); $<num>$ = $<num>1;}
-| CONSTANT												{PRINT("%s", $1); $<num>$ = $<num>1;}	
+: IDENTIFIER												{PRINT("%s", $1); $<num>$ = atoi($<str>1);}
+| CONSTANT												{PRINT("%s", $1); $<num>$ = atoi($<str>1);}	
 | IDENTIFIER '(' ')'											{PRINT("%s()", $1); $<num>$ = $<num>1;}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
 | IDENTIFIER INC_OP											{PRINT("%s++", $1); $<num>$ = $<num>1+1;}
@@ -85,7 +86,7 @@ multiplicative_expression
 
 additive_expression
 : multiplicative_expression										{$<num>$ = $<num>1;}
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$<num>$ = ($<num>1 + $<num>4); printf("\nResult is : %d\n", $<num>1 + $<num>4);}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$<num>$ = ($<num>1 + $<num>4); printf("\nResult is %d\n", $<num>$);}
 | additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{$<num>$ = ($<num>1 - $<num>4);}			
 ;
 
