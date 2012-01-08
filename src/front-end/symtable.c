@@ -5,7 +5,7 @@
 Node* add_to_symtable(Node n, Node* list){
 	Node* newNode = malloc(sizeof(Node));
 	newNode->type = n.type;
-	newNode->value = n.value;
+	newNode->value = n.value; /* Malloc la value selon le type */
 	newNode->name = strdup(n.name);
 	newNode->next = list;
 	return newNode;	
