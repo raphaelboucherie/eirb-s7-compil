@@ -1,77 +1,98 @@
 %{
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #define PRINT(format, args ...) {printf(format, args);}
-    int yylex ();
-    int yyerror ();
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define PRINT(format, args ...) {printf(format, args);}
+  int yylex ();
+  int yyerror ();
 
-    /* Symbol table part */
+  /* Symbol table part */
 
-    
 
-    int currentOffset = 0;
-    struct symT* symbolTable = NULL;    
 
-    const int type_UNDEFINED = -3;
-    const int type_FLOAT = -2;
-    const int type_INT = -1;
-    // everything from 0 to n is a function with n parameters
- 
-    struct symT
+  int currentOffset = 0;
+  struct symT* symbolTable = NULL;    
+
+  const int type_UNDEFINED = -3;
+  const int type_FLOAT = -2;
+  const int type_INT = -1;
+  // everything from 0 to n is a function with n parameters
+/*
+  struct declarator_info {
+    int value;
+    int size;
+  };
+*/
+  struct list_str{
+    int value;
+    struct list_str *next;
+  };
+
+  struct symT
+  {
+    int offset;
+    char* name;
+    struct symT* next;
+    int type;
+  };
+
+  int getOffset()
+  {
+    currentOffset+=4;
+    return currentOffset;
+  }
+
+  int getSym(char* string)
+  {
+    struct symT* temp = symbolTable;
+    while(temp != NULL)
     {
-      int offset;
-      char* name;
-      struct symT* next;
-      int type;
-    };
-
-    int getOffset()
-    {
-      currentOffset+=4;
-      return currentOffset;
+      if (strcmp(temp->name,string) == 0)
+      {
+        return temp->offset;
+      }
+      temp = temp->next;
     }
+    return -1;
+  }
 
-    int getSym(char* string)
-    {
-      struct symT* temp = symbolTable;
-      while(temp != NULL)
-	{
-	  if (strcmp(temp->name,string) == 0)
-	    {
-	      return temp->offset;
-	    }
-	  temp = temp->next;
-	}
-      return -1;
-    }
-
-    void addSym(char* string, int type)
-    {
-      struct symT* temp = malloc( sizeof( struct symT ) );
-      strcpy(temp->name,string);
-      temp->offset=getOffset();
-      temp->type = type;
-      temp->next = symbolTable;
-      symbolTable = temp->next;
-    }
+  void addSym(char* string, int type)
+  {
+    struct symT* temp = malloc(sizeof(struct symT ) );
+    strcpy(temp->name,string);
+    temp->offset=getOffset();
+    temp->type = type;
+    temp->next = symbolTable;
+    symbolTable = temp->next;
+  }
 
 
-    /* Symbol table END */ 
 
-    /* Label managament */
-    int labelNumber = 0;
+  int searchOffset(char * sym) {
+    int offset = getSym(sym);
+    while(offset == type_UNDEFINED && symbolTable != NULL)
+      symbolTable = symbolTable->next;
+    if(offset==type_UNDEFINED && symbolTable == NULL)
+      exit(1);
+    return offset;
+  }
 
-    int newLabel()
-    {
-      labelNumber++;
-      return labelNumber;
-    }
-    
-    /* Label management END */
-    
+  /* Symbol table END */ 
 
-%}
+  /* Label managament */
+  int labelNumber = 0;
+
+  int newLabel()
+  {
+    labelNumber++;
+    return labelNumber;
+  }
+
+  /* Label management END */
+  //global
+  struct list_str * list = NULL; 
+
+  %}
 
 %token<str> IDENTIFIER CONSTANT
 %token INC_OP DEC_OP LE_OP GE_OP EQ_OP NE_OP
@@ -79,14 +100,21 @@
 %token SUB_ASSIGN MUL_ASSIGN ADD_ASSIGN
 %token TYPE_NAME
 %union {
-	char *str;
+  char *str;
+  struct declarator_info{
+    int value;
+    int size;
+  }dinfo;
+  int integer;
 }
 %token INT FLOAT VOID
 
 %token  IF ELSE GOTO RETURN
 
 %type <str> primary_expression postfix_expression argument_expression_list unary_expression comparison_expression expression assignment_operator
-%type <str> selection_statement statement
+%type <str> selection_statement statement unary_operator type_name 
+%type<dinfo> declarator
+%type <integer> parameter_list
 %start program
 %%
 
@@ -117,8 +145,8 @@ unary_expression
 ;
 
 unary_operator
-: '+' {$$='+';}
-| '-' {$$='-';}
+: '+' {$$="+";}
+| '-' {$$="-";}
 ;
 
 comparison_expression
@@ -148,15 +176,18 @@ declaration
 ;
 
 declarator_list
-: declarator {$$=$1;}
+: declarator {
+  struct list_str *list_tmp = list;
+  list = list->next;
+  list->next = list_tmp;
+  list->value = $<dinfo.value>1; 
+}
 | declarator_list ',' declarator {
-  struct list_str *new_cell = malloc(sizeof(list_str)); 
-  new_cell->value = $3->value; 
-  list->cursor->next = new_cell; 
-  list->cursor = list->cursor->next;
-  list->cursor->next = NULL; 
-  $$ = list->head;
-  }
+  struct list_str *list_tmp = list;
+  list = list->next;
+  list->next = list_tmp;
+  list->value = $<dinfo.value>3; 
+}
 ;
 
 type_name
@@ -166,43 +197,48 @@ type_name
 ;
 
 declarator
-: IDENTIFIER {$$=$1;}
-| '(' declarator ')' {
-  struct declarator_info *di = malloc(sizeof(declarator_info));
+: IDENTIFIER {
+  struct declarator_info *di = malloc(sizeof(struct declarator_info));
   di->value=$1;
   di->size = 0;
-  $$=di;  
+  $$=*di;
+}
+| '(' declarator ')' {
+  struct declarator_info *di = malloc(sizeof(struct declarator_info));
+  di->value=$<dinfo.value>2;
+  di->size = 0;
+  $$=*di;  
 }
 | declarator '[' CONSTANT ']'{
-  struct declarator_info *di = malloc(sizeof(declarator_info));
-  di->value=$1;
-  di->size = $3;
-  $$=di;  
+struct declarator_info *di = malloc(sizeof(struct declarator_info));
+di->value=$<dinfo.value>1;
+di->size = $3;
+$$=*di;  
 }
 | declarator '[' ']'{
-  struct declarator_info *di = malloc(sizeof(declarator_info));
-  di->value=$1;
-  di->size = 0;
-  $$=di;  
+struct declarator_info *di = malloc(sizeof(struct declarator_info));
+di->value=$<dinfo.value>1;
+di->size = 0;
+$$=*di;  
 }
 | declarator '(' parameter_list ')' {
-  struct declarator_info *di = malloc(sizeof(declarator_info));
-  di->value=$1;
+  struct declarator_info *di = malloc(sizeof(struct declarator_info));
+  di->value=$<dinfo.value>1;
   di->size = $3;
-  $$=di;  
+  $$=*di;  
 }
 | declarator '(' ')'{
-  struct declarator_info *di = malloc(sizeof(declarator_info));
-  di->value=$1;
-  di->size = 0;
-  $$=di;  
+struct declarator_info *di = malloc(sizeof(struct declarator_info));
+di->value=$<dinfo.value>1;
+di->size = 0;
+$$=*di;  
 }
 ;
 
 
 parameter_list
-: parameter_declaration
-| parameter_list ',' parameter_declaration
+: parameter_declaration {$$=0;}
+| parameter_list ',' parameter_declaration {$$=0;}
 ;
 
 parameter_declaration
@@ -283,39 +319,29 @@ extern FILE *yyin;
 char *file_name = NULL;
 
 int yyerror (char *s) {
-    fflush (stdout);
-    fprintf (stderr, "%s:%d:%d: %s\n", file_name, yylineno, column, s);
-    return 0;
-}
-
-
-int searchOffset(char * sym) {
-  int offset = getSym(sym);
-  while(offset == type_UNDEFINED && ts != globale)
-    ts = ts.englobante;
-  if(offset==type_UNDEFINED && ts == globale)
-    exit("%s : variable non déclarée", sym);
-  return offset;
+  fflush (stdout);
+  fprintf (stderr, "%s:%d:%d: %s\n", file_name, yylineno, column, s);
+  return 0;
 }
 
 int main (int argc, char *argv[]) {
-    FILE *input = NULL;
-    if (argc==2) {
-	input = fopen (argv[1], "r");
-	file_name = strdup (argv[1]);
-	if (input) {
-	    yyin = input;
-	}
-	else {
-	    fprintf (stderr, "Could not open %s\n", argv[1]);
-	    return 1;
-	}
+  FILE *input = NULL;
+  if (argc==2) {
+    input = fopen (argv[1], "r");
+    file_name = strdup (argv[1]);
+    if (input) {
+      yyin = input;
     }
     else {
-	fprintf (stderr, "%s: error: no input file\n", *argv);
-	return 1;
+      fprintf (stderr, "Could not open %s\n", argv[1]);
+      return 1;
     }
-    yyparse ();
-    free (file_name);
-    return 0;
+  }
+  else {
+    fprintf (stderr, "%s: error: no input file\n", *argv);
+    return 1;
+  }
+  yyparse ();
+  free (file_name);
+  return 0;
 }
