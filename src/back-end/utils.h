@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+char* ASM_INIT();
+char* ASM_CLOSE();
 char* regOffset(char* string, int a);
 char* constToASMConst(char* string);
 

@@ -83,7 +83,7 @@ primary_expression
 
 | CONSTANT  {$$=constToASMConst($1);}
 
-| IDENTIFIER '(' ')' {PRINT("%s %s\n", "call", functionLabel($1));} 
+| IDENTIFIER '(' ')' {PRINT("%s %s\n", "\tcall\t", functionLabel($1));} 
 
 | IDENTIFIER '(' argument_expression_list ')' // EXPERIMENTAL /!\
 { 
@@ -91,7 +91,7 @@ primary_expression
   struct string_list* temp = NULL;
   do
     {
-      PRINT("%s %s\n", "pushl", strList->str);
+      PRINT("%s %s\n", "\tpushl\t", strList->str);
       temp=strList->next;
       free(strList->str);
       free(strList);
@@ -102,11 +102,11 @@ primary_expression
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1);
                       char* str = regOffset("%esp", o);
-                      PRINT("%s %s \n", "inc", str); $$=str;}
+                      PRINT("%s %s \n", "\tinc\t", str); $$=str;}
 
 | IDENTIFIER DEC_OP  {int o = searchOffset($1);
                       char* str = regOffset("%esp", o);
-                      PRINT("%s %s \n", "dec", str); $$=str;} 
+                      PRINT("%s %s \n", "\tdec\t", str); $$=str;} 
 ;
 
 postfix_expression
@@ -135,8 +135,8 @@ argument_expression_list
 
 unary_expression
 : postfix_expression {$$=$1;}
-| INC_OP unary_expression {PRINT("%s %s \n", "inc", $2); $$=$2;}
-| DEC_OP unary_expression {PRINT("%s %s \n", "dec", $2); $$=$2;}
+| INC_OP unary_expression {PRINT("%s %s \n", "\tinc\t", $2); $$=$2;}
+| DEC_OP unary_expression {PRINT("%s %s \n", "\tdec\t", $2); $$=$2;}
 | unary_operator unary_expression {PRINT("%s \n", $2); $$=$2;}
 ;
 
@@ -146,25 +146,25 @@ unary_operator
 ;
 
 comparison_expression
-: unary_expression                            {PRINT("%s $0 %s \n", "cmp", $1); $$="jeq";} // NOT SURE ABOUT THIS ONE ( IF ( var ) => IF ( var != 0 ) ?  )
-| primary_expression '<' primary_expression   {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jge";} 
-| primary_expression '>' primary_expression   {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jle";}
-| primary_expression LE_OP primary_expression {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jg";}
-| primary_expression GE_OP primary_expression {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jl";} 
-| primary_expression EQ_OP primary_expression {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jne";} 
-| primary_expression NE_OP primary_expression {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jeq";} 
+: unary_expression                            {PRINT("%s $0, %s \n", "\tcmpl\t", $1); $$="jeq";} // NOT SURE ABOUT THIS ONE ( IF ( var ) => IF ( var != 0 ) ?  )
+| primary_expression '<' primary_expression   {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjge\t";} 
+| primary_expression '>' primary_expression   {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjle\t";}
+| primary_expression LE_OP primary_expression {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjg\t";}
+| primary_expression GE_OP primary_expression {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjl\t";} 
+| primary_expression EQ_OP primary_expression {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjne\t";} 
+| primary_expression NE_OP primary_expression {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjeq\t";} 
 ;
 
 expression
-: unary_expression assignment_operator unary_expression {PRINT("%s %s %s \n", $2, $3, $1); $$=$1;}
+: unary_expression assignment_operator unary_expression {PRINT("%s %s, %s \n", $2, $3, $1); $$=$1;}
 | unary_expression {$$=$1;}
 ;
 
 assignment_operator
-: '='        {$$="mov";}
-| MUL_ASSIGN {$$="mul";}
-| ADD_ASSIGN {$$="add";}
-| SUB_ASSIGN {$$="sub";}
+: '='        {$$="\tmovl\t";}
+| MUL_ASSIGN {$$="\tmull\t";}
+| ADD_ASSIGN {$$="\taddl\t";}
+| SUB_ASSIGN {$$="\tsubl\t";}
 ;
 
 declaration
@@ -271,12 +271,12 @@ statement
 ;
 
 labeled_statement
-: IDENTIFIER ':' statement
+: IDENTIFIER ':' {PRINT("%s:\n", gotoLabel($1));} statement 
 ;
 
 compound_statement
 : '{' '}' {$$="";}
-| '{' statement_list '}' //{$$=$3;}
+| '{' statement_list '}' {$$=$2;}
 | '{' declaration_list statement_list '}' {$$=$2;}
 ;
 
@@ -306,8 +306,8 @@ statement
 ;
 
 jump_statement
-: GOTO IDENTIFIER ';' {PRINT("%s %s", "jump", $2);}
-| RETURN ';' 
+: GOTO IDENTIFIER ';' {PRINT("%s %s\n", "\tjump\t", gotoLabel($2));}
+| RETURN ';' {PRINT("%s\n", "ret");}
 | RETURN expression ';'
 ;
 
@@ -361,12 +361,13 @@ int main (int argc, char *argv[]) {
   /****** INIT ***************/
 
   labelPile = createPile(100);
-
+  PRINT("%s",ASM_INIT());
   /***************************/
   yyparse ();
   free (file_name);
   /****** /INIT *************/
   
+  PRINT("%s",ASM_CLOSE());
   freePile(labelPile);
 
   /**************************/
