@@ -3,12 +3,17 @@
     	#include <stdio.h>
 	#include <stdarg.h>
 	#include <string.h>
+	#include "symtable.h"
 	
 	#define PRINT(format, args...) printf(format, args)
 
 	extern int yylineno;
 	int yylex();
 	int yyerror();
+	
+	//The symbol table
+	Node* add_to_symtable(Node, Node*);
+	Node* symTable;
 %}
 
 %union {
@@ -40,12 +45,16 @@
 %%
 
 primary_expression
-: IDENTIFIER												{PRINT("%s", $1); $<str>$ = $<str>1;}
+: IDENTIFIER												{	PRINT("%s", $1);
+														Node newNode;
+														newNode.name = $1;
+														symTable = add_to_symtable(newNode, symTable);
+													}
 | CONSTANT												{PRINT("%s", $1); $<num>$ = atoi($<str>1);}	
-| IDENTIFIER '(' ')'											{PRINT("%s()", $1); $<num>$ = $<num>1;}
+| IDENTIFIER '(' ')'											{PRINT("%s()", $1);}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
 | IDENTIFIER INC_OP											{PRINT("%s++", $1); $<num>$ = ($<num>1 + 1);}
-| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $<num>$ = ($<num>1 - 1);printf("\nResult is %d\n", $<num>$);}
+| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $<num>$ = ($<num>1 - 1);}
 ;
 
 postfix_expression
@@ -61,9 +70,9 @@ argument_expression_list
 unary_expression
 : postfix_expression											{$<num>$ = $<num>1;}
 | INC_OP unary_expression										{$<num>$ = ($<num>2 + 1);}
-| DEC_OP unary_expression										{$<num>$ = ($<num>2 - 1); printf("\nResult is %d\n", $<num>$);}
+| DEC_OP unary_expression										{$<num>$ = ($<num>2 - 1);}
 | unary_operator unary_expression									{	switch($<ch>1[0]){
-														case '*': $<num>$ = 1*($<num>2); break;
+														case '*': $<num>$ = 1*($<num>2); break; //Weird ?
 														case '+': $<num>$ = +($<num>2); break;
 														case '-': $<num>$ = -($<num>2); break;
 														}
@@ -100,14 +109,15 @@ comparison_expression
 
 expression
 : unary_expression assignment_operator comparison_expression 						{	if(strcmp($<ch>2, "=") == 0){
-															$<num>$ = $<num>2;
+															$<num>$ = $<num>3;
 														}else if(strcmp($<ch>2, "*=") == 0){
-															$<num>$ *= $<num>2;
+															$<num>$ *= $<num>3;
 														}else if(strcmp($<ch>2, "+=") == 0){
-															$<num>$ += $<num>2;
+															$<num>$ += $<num>3;
 														}else if(strcmp($<ch>2, "-=") == 0){
-															$<num>$ -= $<num>2;
+															$<num>$ -= $<num>3;
 														}
+														printf("\nExpression is %s%s%d\n", $<ch>1, $<ch>2, $<num>$);
 													}
 | comparison_expression											
 ;
@@ -249,5 +259,11 @@ int main (int argc, char *argv[]) {
     }
     yyparse ();
     free (file_name);
+    
+    //SymTable Memory Free
+    if(symTable != NULL){
+	    printf("\nSYMTABLE : %d, %d, %d\n", find_in_symtable("a", symTable), find_in_symtable("b", symTable),find_in_symtable("c", symTable));
+	    free_symtable(symTable);    
+    }
     return 0;
 }
