@@ -1,8 +1,17 @@
 int a;
 int b;
-int f() { if (a<b) 
-a = 3;
-if (a>b)
-b=3;
-  return ;
+void main();
+
+void main() 
+{ 
+  if (a<b) 
+     {
+     if (a>3)
+     	{
+	a=3;
+	}
+     a+=3;	
+     }
+  if (a>b)
+     {b=3;}
 }

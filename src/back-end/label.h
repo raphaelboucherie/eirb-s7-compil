@@ -10,6 +10,6 @@
 
 
 char* newLabel(char* string);
-
+char* functionLabel(char* string);
 
 #endif // LABEL_H

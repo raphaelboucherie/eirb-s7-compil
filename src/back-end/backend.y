@@ -7,6 +7,8 @@
 #include <string.h>
 #include "utils.h"
 #include "symT.h"
+#include "label.h"
+#include "pile.h"
 
 #define PRINT(format, args ...) {printf(format, args);}
   int yylex ();
@@ -26,6 +28,12 @@
     struct list_str *next;
   };
   
+  struct string_list
+  {
+    char* str;
+    struct string_list* next;
+  };
+
   struct declarator_list
   {
     char* name;
@@ -55,18 +63,18 @@
 %token<int> TYPE_NAME
 %union {
   char *str;
-  int* dinfo;
+  int* list;
   int integer;
 }
 %token INT FLOAT VOID
 
 %token  IF ELSE GOTO RETURN
 
-%type <str> primary_expression postfix_expression argument_expression_list unary_expression 
-%type <str> selection_statement statement unary_operator type_name comparison_expression
-%type <str> expression assignment_operator
-%type <dinfo> declarator declarator_list
-%type <integer> parameter_list
+%type <str> primary_expression postfix_expression unary_expression expression_statement declaration_list
+%type <str> selection_statement unary_operator type_name comparison_expression jump_statement
+%type <str> expression assignment_operator statement compound_statement labeled_statement statement_list
+%type <list> declarator declarator_list argument_expression_list
+%type <integer> parameter_list parameter_declaration
 %start program
 %%
 
@@ -75,9 +83,22 @@ primary_expression
 
 | CONSTANT  {$$=constToASMConst($1);}
 
-| IDENTIFIER '(' ')' //{int o = searchOffset($1); $$="";} 
+| IDENTIFIER '(' ')' {PRINT("%s %s\n", "call", functionLabel($1));} 
 
-| IDENTIFIER '(' argument_expression_list ')' //{int o = searchOffset($1); $$="";} 
+| IDENTIFIER '(' argument_expression_list ')' // EXPERIMENTAL /!\
+{ 
+  struct string_list* strList = (struct string_list*)$1;
+  struct string_list* temp = NULL;
+  do
+    {
+      PRINT("%s %s\n", "pushl", strList->str);
+      temp=strList->next;
+      free(strList->str);
+      free(strList);
+      strList = temp;
+    }
+    while(temp!=NULL); 
+}
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1);
                       char* str = regOffset("%esp", o);
@@ -90,12 +111,26 @@ primary_expression
 
 postfix_expression
 : primary_expression {$$=$1;}
-| postfix_expression '[' expression ']' 
+| postfix_expression '[' expression ']' {/* acces à une case du tableau t[i] ( calcul de l'offset *t + i )*/} 
 ;
 
-argument_expression_list
+argument_expression_list 
+// String list ( register + offset list ) 
 : primary_expression 
+{ 
+  struct string_list* strList = malloc( sizeof ( struct string_list ) );
+  strList->str = strdup($1);
+  strList->next = NULL;
+  $$=(int*)strList; 
+}
 | argument_expression_list ',' primary_expression 
+{ 
+  struct string_list* strList = (struct string_list*)$1;
+  struct string_list* strElement = malloc( sizeof ( struct string_list ) );
+  strElement->str = strdup($3);
+  strElement->next = strList;
+  $$=(int*)strElement;
+}
 ;
 
 unary_expression
@@ -139,7 +174,10 @@ declaration
   struct declarator_list *temp = NULL;
   do
     {
-      addSym(declaratorList->name, $1);
+      if (declaratorList->size < 0)
+	addSym(declaratorList->name, $1);
+      else
+	addSym(declaratorList->name, declaratorList->size);
       temp = declaratorList->next;
       free(declaratorList->name);
       free(declaratorList);
@@ -168,61 +206,68 @@ type_name
 ;
 
 declarator
-: IDENTIFIER {} //*/
+: IDENTIFIER {} //*
 {
   struct declarator_list *di = malloc(sizeof(struct declarator_list));
   di->name = strdup($1);
-  di->size=0;
+  di->size=-1;
   $$=(int*)di;
 } //*/
-| '(' declarator ')' /*{
-  struct declarator_info *di = malloc(sizeof(struct declarator_info));
-  di->value=$<dinfo.value>2;
-  di->size = 0;
-  $$=*di;  
-  }*/
-| declarator '[' CONSTANT ']'/*{
+| '(' declarator ')' 
+{ //*
+  struct declarator_list *di = malloc(sizeof(struct declarator_list));
+  struct declarator_list *di2 = (struct declarator_list*)$2;
+  di->name = strdup(di2->name);
+  di->size = di2->size;
+  $$=(int*)di;  //*/
+} // ARRAY NOT HANDLED YET
+| declarator '[' CONSTANT ']'
+{ /*
 struct declarator_info *di = malloc(sizeof(struct declarator_info));
 di->value=$<dinfo.value>1;
 di->size = $3;
-$$=*di;  
-}*/
-| declarator '[' ']' /*{
+$$=*di; */  
+} 
+| declarator '[' ']' { /*
 struct declarator_info *di = malloc(sizeof(struct declarator_info));
 di->value=$<dinfo.value>1;
 di->size = 0;
-$$=*di;  
-}*/
-| declarator '(' parameter_list ')'/* {
-  struct declarator_info *di = malloc(sizeof(struct declarator_info));
-  di->value=$<dinfo.value>1;
+$$=*di;  //*/
+}
+| declarator '(' parameter_list ')'
+{ //*
+  struct declarator_list *di = malloc(sizeof(struct declarator_list));
+  struct declarator_list *di2 = (struct declarator_list*)$1;
+  di->name=strdup(di2->name);
   di->size = $3;
-  $$=*di;  
-  }*/
-| declarator '(' ')' /*{
-struct declarator_info *di = malloc(sizeof(struct declarator_info));
-di->value=$<dinfo.value>1;
-di->size = 0;
-$$=*di;  
-}*/
+  $$=(int*)di;  //*/
+ }
+| declarator '(' ')' 
+{ //*
+  struct declarator_list *di = malloc(sizeof(struct declarator_list));
+  struct declarator_list *di2 = (struct declarator_list*)$1;
+  di->name= strdup(di2->name);
+  di->size = 0;
+  $$=(int*)di;  //*/
+}
 ;
 
 
 parameter_list
-: parameter_declaration {$$=0;}
-| parameter_list ',' parameter_declaration {$$=0;}
+: parameter_declaration {$$=$1;}
+| parameter_list ',' parameter_declaration {$$=$1+$3;}
 ;
 
 parameter_declaration
-: type_name declarator
+: type_name declarator {$$=1;}
 ;
 
 statement
-: labeled_statement {$$="1";}
-| compound_statement {$$="1";}
-| expression_statement {$$="1";}
-| selection_statement {$$="1";}
-| jump_statement {$$="1";}
+: labeled_statement {$$=$1;}
+| compound_statement {$$=$1;}
+| expression_statement {$$=$1;}
+| selection_statement {$$=$1;}
+| jump_statement {$$=$1;}
 ;
 
 labeled_statement
@@ -230,9 +275,9 @@ labeled_statement
 ;
 
 compound_statement
-: '{' '}'
-| '{' statement_list '}'
-| '{' declaration_list statement_list '}'
+: '{' '}' {$$="";}
+| '{' statement_list '}' //{$$=$3;}
+| '{' declaration_list statement_list '}' {$$=$2;}
 ;
 
 declaration_list
@@ -251,8 +296,13 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' comparison_expression ')' statement
- {char* lbl = newLabel("IF"); PRINT("%s %s\n", $3, lbl); PRINT("%s\n%s:\n", $5, lbl );}
+: IF '(' comparison_expression ')' 
+  {char* lbl = newLabel("IF");
+  PRINT("%s %s\n", $3, lbl);
+  push(lbl,labelPile);}
+statement
+  {char* lbl = pop(labelPile);
+   PRINT("%s:\n",lbl);}
 ;
 
 jump_statement
@@ -308,7 +358,17 @@ int main (int argc, char *argv[]) {
     fprintf (stderr, "%s: error: no input file\n", *argv);
     return 1;
   }
+  /****** INIT ***************/
+
+  labelPile = createPile(100);
+
+  /***************************/
   yyparse ();
   free (file_name);
+  /****** /INIT *************/
+  
+  freePile(labelPile);
+
+  /**************************/
   return 0;
 }
