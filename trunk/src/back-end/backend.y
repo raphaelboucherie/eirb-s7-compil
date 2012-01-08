@@ -90,13 +90,13 @@
 %start program
 %%
 
-primary_expression
-: IDENTIFIER  
-| CONSTANT 
-| IDENTIFIER '(' ')' 
-| IDENTIFIER '(' argument_expression_list ')' 
-| IDENTIFIER INC_OP 
-| IDENTIFIER DEC_OP 
+primary_expression /*OULALAH (penser à renvoyer la valeur du registre)*/
+: IDENTIFIER {int o = searchOffset($1); $$=o;} 
+| CONSTANT  {int o = searchOffset($1); $$=o;} 
+| IDENTIFIER '(' ')' {int o = searchOffset($1); $$=o;} 
+| IDENTIFIER '(' argument_expression_list ')' {int o = searchOffset($1); $$=o;} 
+| IDENTIFIER INC_OP  {int o = searchOffset($1); $$=o;} 
+| IDENTIFIER DEC_OP  {int o = searchOffset($1); $$=o;} 
 ;
 
 postfix_expression
@@ -117,8 +117,8 @@ unary_expression
 ;
 
 unary_operator
-: '+'
-| '-'
+: '+' {$$='+';}
+| '-' {$$='-';}
 ;
 
 comparison_expression
@@ -153,8 +153,8 @@ declarator_list
 ;
 
 type_name
-: INT 
-| VOID
+: INT {$$=type_INT;} 
+| VOID {$$=type_name}
 | FLOAT
 ;
 
@@ -256,6 +256,15 @@ int yyerror (char *s) {
     return 0;
 }
 
+
+int searchOffset(char * sym) {
+  int offset = getSym(sym);
+  while(offset == type_UNDEFINED && ts != globale)
+    ts = ts.englobante;
+  if(offset==type_UNDEFINED && ts == globale)
+    exit("%s : variable non déclarée", sym);
+  return offset;
+}
 
 int main (int argc, char *argv[]) {
     FILE *input = NULL;
