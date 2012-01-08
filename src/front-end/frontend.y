@@ -3,20 +3,12 @@
     	#include <stdio.h>
 	#include <stdarg.h>
 	#include <string.h>
-/*
-	Ajout d'une macro pour print
-	3 + 2 = 5 OUUUUAAAAIIII !
-*/
 	
 	#define PRINT(format, args...) printf(format, args)
-	
-/*
-	Fin d'ajout
-*/
-    extern int yylineno;
-    int yylex ();
-    int yyerror ();
 
+	extern int yylineno;
+	int yylex();
+	int yyerror();
 %}
 
 %union {
@@ -48,12 +40,12 @@
 %%
 
 primary_expression
-: IDENTIFIER												{PRINT("%s", $1); $<num>$ = atoi($<str>1);}
+: IDENTIFIER												{PRINT("%s", $1); $<str>$ = $<str>1;}
 | CONSTANT												{PRINT("%s", $1); $<num>$ = atoi($<str>1);}	
 | IDENTIFIER '(' ')'											{PRINT("%s()", $1); $<num>$ = $<num>1;}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
 | IDENTIFIER INC_OP											{PRINT("%s++", $1); $<num>$ = ($<num>1 + 1);}
-| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $<num>$ = ($<num>1 - 1);}
+| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $<num>$ = ($<num>1 - 1);printf("\nResult is %d\n", $<num>$);}
 ;
 
 postfix_expression
