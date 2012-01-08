@@ -62,10 +62,12 @@
     /* Label managament */
     int labelNumber = 0;
 
-    int newLabel()
+    char* newLabel(char* string)
     {
       labelNumber++;
-      return labelNumber;
+      char* str = malloc(sizeof(char)*256);
+      sprintf(str,"%s%d",string,labelNumber);
+      return str;
     }
     
     /* Label management END */
@@ -214,8 +216,8 @@ selection_statement
 : IF '(' comparison_expression ')'
 { 
   PRINT("%s ", $3);   
-  int a = newLabel(); 
-  PRINT("%d \n", a); 
+  char* str = newLabel("IF"); 
+  PRINT("%s \n", str); 
 } 
 statement {PRINT("%s ", $6); }
 ;
