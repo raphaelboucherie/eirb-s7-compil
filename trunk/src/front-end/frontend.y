@@ -3,6 +3,7 @@
 	#include <stdarg.h>
 /*
 	Ajout d'une macro pour print
+	CA NE MARCHE PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAS MAIS CA MERITE UN PUTAIN DE COMMIT !
 */
 	
 	#define PRINT(format, args...) printf(format, args)
