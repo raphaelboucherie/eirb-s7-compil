@@ -75,8 +75,7 @@ unary_expression
 														case '+': $<num>$ = +($<num>2); break;
 														case '-': $<num>$ = -($<num>2); break;
 														}
-													}
-													
+													}											
 ;
 
 unary_operator
