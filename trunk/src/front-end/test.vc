@@ -5,8 +5,7 @@ int main(int c)
 {
 	b = -3;
 	a = 2;
-	c = a+b;
-	++c;
+	c = a + b;
 	main(3);
 	if(b == 5){
 
