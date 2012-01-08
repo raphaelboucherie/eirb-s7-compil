@@ -52,8 +52,8 @@ primary_expression
 | CONSTANT												{PRINT("%s", $1); $<num>$ = atoi($<str>1);}	
 | IDENTIFIER '(' ')'											{PRINT("%s()", $1); $<num>$ = $<num>1;}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
-| IDENTIFIER INC_OP											{PRINT("%s++", $1); $<num>$ = $<num>1 + 1;}
-| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $<num>$ = $<num>1 - 1;}
+| IDENTIFIER INC_OP											{PRINT("%s++", $1); $<num>$ = ($<num>1 + 1);}
+| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $<num>$ = ($<num>1 - 1);}
 ;
 
 postfix_expression
