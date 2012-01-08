@@ -1,5 +1,6 @@
 %{
     #include <stdio.h>
+    #include <stdlib.h>
     #include <string.h>
     #define PRINT(format, args ...) {printf(format, args);}
     int yylex ();
@@ -13,7 +14,7 @@
     struct symT* symbolTable = NULL;    
 
     const int type_UNDEFINED = -3;
-    const int type_FLOAT = -2
+    const int type_FLOAT = -2;
     const int type_INT = -1;
     // everything from 0 to n is a function with n parameters
  
@@ -23,17 +24,26 @@
       char* name;
       struct symT* next;
       int type;
-    }
+    };
 
     int getOffset()
     {
-      offset+=4;
-      return offset;
+      currentOffset+=4;
+      return currentOffset;
     }
 
     int getSym(char* string)
     {
-      
+      struct symT* temp = symbolTable;
+      while(temp != NULL)
+	{
+	  if (strcmp(temp->name,string) == 0)
+	    {
+	      return temp->offset;
+	    }
+	  temp = temp->next;
+	}
+      return -1;
     }
 
     void addSym(char* string, int type)
@@ -41,17 +51,24 @@
       struct symT* temp = malloc( sizeof( struct symT ) );
       strcpy(temp->name,string);
       temp->offset=getOffset();
-      temp->next = symbolTable;
-      symbolTable = next;
       temp->type = type;
+      temp->next = symbolTable;
+      symbolTable = temp->next;
     }
 
 
     /* Symbol table END */ 
 
-    int newLabel();
+    /* Label managament */
+    int labelNumber = 0;
+
+    int newLabel()
+    {
+      labelNumber++;
+      return labelNumber;
+    }
     
-    
+    /* Label management END */
     
 
 %}
@@ -239,9 +256,6 @@ int yyerror (char *s) {
     return 0;
 }
 
-int newLabel() {
-  return 1;
-}
 
 int main (int argc, char *argv[]) {
     FILE *input = NULL;
