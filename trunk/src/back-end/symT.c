@@ -30,7 +30,10 @@ void addSym(char* string, int type)
   fprintf(stderr,"CREATING SYMT ELEMENT\n");
   temp->name = strdup(string);
   fprintf(stderr,"name = %s\n", temp->name);
-  temp->offset=getOffset();
+  if (type < 0)
+    temp->offset=getOffset();
+  else
+    temp->offset=-1;
   fprintf(stderr,"offset = %d\n", temp->offset);
   temp->type = type;
   fprintf(stderr,"type = %d\n", temp->type);

@@ -1,6 +1,8 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+#include "pile.h"
+
 /* SYMBOL TABLE PART */
 
 static int currentOffset = 0;
@@ -16,12 +18,13 @@ static const int type_INT = -1;
 /* LABEL MANAGEMENT PART */
 
 static int labelNumber = 0; // might change
+static struct pile* labelPile = NULL;
 
 /************************/
 
 /* DECLARATOR LIST MANAGEMENT PART */
 
-//static struct delarator_list* dlist = NULL;
+
 
 /**********************************/
 
