@@ -2,5 +2,7 @@ int a;
 int b;
 int f() { if (a<b) 
 a = 3;
+if (a>b)
+b=3;
   return ;
 }

@@ -8,7 +8,7 @@ all:backend
 frontend:frontend.c scanner_frontend.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-backend:backend.c scanner_backend.c
+backend:backend.c scanner_backend.c utils.c symT.c label.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 frontend.c:frontend.y

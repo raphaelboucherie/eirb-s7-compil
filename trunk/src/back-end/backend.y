@@ -1,86 +1,39 @@
 %{
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "utils.h"
+#include "symT.h"
+
 #define PRINT(format, args ...) {printf(format, args);}
   int yylex ();
   int yyerror ();
 
-    /* UTILS */
+  
 
-    char* regOffset(char* string, int a)
-    {
-      char* str = malloc( sizeof ( char ) * 256 );
-      sprintf(str,"%d(%s)", a, string);
-      return str;
-    }
-
-    /* UTILS END */
-
-
-    /* Symbol table part */
-
-
-
-  int currentOffset = 0;
-  struct symT* symbolTable = NULL;    
-
-  const int type_UNDEFINED = -3;
-  const int type_FLOAT = -2;
-  const int type_INT = -1;
-  // everything from 0 to n is a function with n parameters
 /*
   struct declarator_info {
     int value;
     int size;
   };
 */
-  struct list_str{
+  struct list_str
+  {
     int value;
     struct list_str *next;
   };
-
-  struct symT
+  
+  struct declarator_list
   {
-    int offset;
     char* name;
-    struct symT* next;
-    int type;
+    int size;
+    struct delarator_list* next;
   };
 
-  int getOffset()
-  {
-    currentOffset+=4;
-    return currentOffset;
-  }
-
-  int getSym(char* string)
-  {
-    struct symT* temp = symbolTable;
-    while(temp != NULL)
-    {
-      if (strcmp(temp->name,string) == 0)
-      {
-        return temp->offset;
-      }
-      temp = temp->next;
-    }
-    return -1;
-  }
-
-  void addSym(char* string, int type)
-  {
-    struct symT* temp = malloc(sizeof(struct symT ) );
-    strcpy(temp->name,string);
-    temp->offset=getOffset();
-    temp->type = type;
-    temp->next = symbolTable;
-    symbolTable = temp->next;
-  }
-
-
-
-  int searchOffset(char * sym) {
+ int searchOffset(char* sym) {
     int offset = getSym(sym);
     while(offset == type_UNDEFINED && symbolTable != NULL)
       symbolTable = symbolTable->next;
@@ -89,18 +42,7 @@
     return offset;
   }
 
-  /* Symbol table END */ 
 
-  /* Label managament */
-  int labelNumber = 0;
-
-  int newLabel()
-  {
-    labelNumber++;
-    return labelNumber;
-  }
-
-  /* Label management END */
   //global
   struct list_str * list = NULL; 
 
@@ -110,34 +52,32 @@
 %token INC_OP DEC_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP
 %token SUB_ASSIGN MUL_ASSIGN ADD_ASSIGN
-%token TYPE_NAME
+%token<int> TYPE_NAME
 %union {
   char *str;
-  struct declarator_info{
-    int value;
-    int size;
-  }dinfo;
+  int* dinfo;
   int integer;
 }
 %token INT FLOAT VOID
 
 %token  IF ELSE GOTO RETURN
 
-%type <str> primary_expression postfix_expression argument_expression_list unary_expression comparison_expression expression assignment_operator
-%type <str> selection_statement statement unary_operator type_name 
-%type<dinfo> declarator
+%type <str> primary_expression postfix_expression argument_expression_list unary_expression 
+%type <str> selection_statement statement unary_operator type_name comparison_expression
+%type <str> expression assignment_operator
+%type <dinfo> declarator declarator_list
 %type <integer> parameter_list
 %start program
 %%
 
-primary_expression /*OULALAH (penser à renvoyer la valeur du registre)*/
+primary_expression
 : IDENTIFIER {int o = searchOffset($1); $$=regOffset("%esp",o);} 
 
-| CONSTANT  {$$=$1;}
+| CONSTANT  {$$=constToASMConst($1);}
 
-| IDENTIFIER '(' ')' {int o = searchOffset($1); $$="";} 
+| IDENTIFIER '(' ')' //{int o = searchOffset($1); $$="";} 
 
-| IDENTIFIER '(' argument_expression_list ')' {int o = searchOffset($1); $$="";} 
+| IDENTIFIER '(' argument_expression_list ')' //{int o = searchOffset($1); $$="";} 
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1);
                       char* str = regOffset("%esp", o);
@@ -149,7 +89,7 @@ primary_expression /*OULALAH (penser à renvoyer la valeur du registre)*/
 ;
 
 postfix_expression
-: primary_expression 
+: primary_expression {$$=$1;}
 | postfix_expression '[' expression ']' 
 ;
 
@@ -159,9 +99,9 @@ argument_expression_list
 ;
 
 unary_expression
-: postfix_expression
-| INC_OP unary_expression {PRINT("%s %s \n", "inc", $2); $$=$2++;}
-| DEC_OP unary_expression {PRINT("%s %s \n", "dec", $2); $$=$2--;}
+: postfix_expression {$$=$1;}
+| INC_OP unary_expression {PRINT("%s %s \n", "inc", $2); $$=$2;}
+| DEC_OP unary_expression {PRINT("%s %s \n", "dec", $2); $$=$2;}
 | unary_operator unary_expression {PRINT("%s \n", $2); $$=$2;}
 ;
 
@@ -171,7 +111,7 @@ unary_operator
 ;
 
 comparison_expression
-: unary_expression
+: unary_expression                            {PRINT("%s $0 %s \n", "cmp", $1); $$="jeq";} // NOT SURE ABOUT THIS ONE ( IF ( var ) => IF ( var != 0 ) ?  )
 | primary_expression '<' primary_expression   {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jge";} 
 | primary_expression '>' primary_expression   {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jle";}
 | primary_expression LE_OP primary_expression {PRINT("%s %s %s \n", "cmp", $1, $3); $$="jg";}
@@ -181,8 +121,8 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator unary_expression {PRINT("%s %s %s \n", $2, $1, $3); $$=$1;}
-| unary_expression
+: unary_expression assignment_operator unary_expression {PRINT("%s %s %s \n", $2, $3, $1); $$=$1;}
+| unary_expression {$$=$1;}
 ;
 
 assignment_operator
@@ -194,66 +134,77 @@ assignment_operator
 
 declaration
 : type_name declarator_list ';' 
+{
+  struct declarator_list *declaratorList = (struct declarator_list*)$2;
+  struct declarator_list *temp = NULL;
+  do
+    {
+      addSym(declaratorList->name, $1);
+      temp = declaratorList->next;
+      free(declaratorList->name);
+      free(declaratorList);
+      declaratorList = temp;
+    }
+  while(temp != NULL);
+}
 ;
 
 declarator_list
-: declarator {
-  struct list_str *list_tmp = list;
-  list = list->next;
-  list->next = list_tmp;
-  list->value = $<dinfo.value>1; 
-}
-| declarator_list ',' declarator {
-  struct list_str *list_tmp = list;
-  list = list->next;
-  list->next = list_tmp;
-  list->value = $<dinfo.value>3; 
+: declarator {$$ = $1;}
+
+| declarator_list ',' declarator 
+{
+  struct declarator_list *declaratorInfo = (struct declarator_list*)$3;
+  struct declarator_list *declaratorList = (struct declarator_list*)$1;
+  declaratorInfo->next = declaratorList;
+  $$ = (int*) declaratorInfo; 
 }
 ;
 
 type_name
-: INT {$$=type_INT;} 
-| VOID 
-| FLOAT
+: INT     { $$ = type_INT; }
+| VOID    { $$ = 0; } // Function
+| FLOAT   { $$ = type_FLOAT; }
 ;
 
 declarator
-: IDENTIFIER {
-  struct declarator_info *di = malloc(sizeof(struct declarator_info));
-  di->value=$1;
-  di->size = 0;
-  $$=*di;
-}
-| '(' declarator ')' {
+: IDENTIFIER {} //*/
+{
+  struct declarator_list *di = malloc(sizeof(struct declarator_list));
+  di->name = strdup($1);
+  di->size=0;
+  $$=(int*)di;
+} //*/
+| '(' declarator ')' /*{
   struct declarator_info *di = malloc(sizeof(struct declarator_info));
   di->value=$<dinfo.value>2;
   di->size = 0;
   $$=*di;  
-}
-| declarator '[' CONSTANT ']'{
+  }*/
+| declarator '[' CONSTANT ']'/*{
 struct declarator_info *di = malloc(sizeof(struct declarator_info));
 di->value=$<dinfo.value>1;
 di->size = $3;
 $$=*di;  
-}
-| declarator '[' ']'{
+}*/
+| declarator '[' ']' /*{
 struct declarator_info *di = malloc(sizeof(struct declarator_info));
 di->value=$<dinfo.value>1;
 di->size = 0;
 $$=*di;  
-}
-| declarator '(' parameter_list ')' {
+}*/
+| declarator '(' parameter_list ')'/* {
   struct declarator_info *di = malloc(sizeof(struct declarator_info));
   di->value=$<dinfo.value>1;
   di->size = $3;
   $$=*di;  
-}
-| declarator '(' ')'{
+  }*/
+| declarator '(' ')' /*{
 struct declarator_info *di = malloc(sizeof(struct declarator_info));
 di->value=$<dinfo.value>1;
 di->size = 0;
 $$=*di;  
-}
+}*/
 ;
 
 
@@ -300,13 +251,8 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' comparison_expression ')'
-{ 
-  PRINT("%s ", $3);   
-  int a = newLabel(); 
-  PRINT("%d \n", a); 
-} 
-statement {PRINT("%s ", $6); }
+: IF '(' comparison_expression ')' statement
+ {char* lbl = newLabel("IF"); PRINT("%s %s\n", $3, lbl); PRINT("%s\n%s:\n", $5, lbl );}
 ;
 
 jump_statement
