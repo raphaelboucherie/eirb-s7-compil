@@ -62,12 +62,10 @@
     /* Label managament */
     int labelNumber = 0;
 
-    char* newLabel(char* string)
+    int newLabel()
     {
       labelNumber++;
-      char* str = malloc(sizeof(char)*256);
-      sprintf(str,"%s%d",string,labelNumber);
-      return str;
+      return labelNumber;
     }
     
     /* Label management END */
@@ -94,7 +92,7 @@
 
 primary_expression /*OULALAH (penser à renvoyer la valeur du registre)*/
 : IDENTIFIER {int o = searchOffset($1); $$=o;} 
-| CONSTANT  {int o = searchOffset($1); $$=o;} 
+| CONSTANT  
 | IDENTIFIER '(' ')' {int o = searchOffset($1); $$=o;} 
 | IDENTIFIER '(' argument_expression_list ')' {int o = searchOffset($1); $$=o;} 
 | IDENTIFIER INC_OP  {int o = searchOffset($1); $$=o;} 
@@ -150,23 +148,55 @@ declaration
 ;
 
 declarator_list
-: declarator
-| declarator_list ',' declarator
+: declarator {$$=$1;}
+| declarator_list ',' declarator {
+  struct list_str *new_cell = malloc(sizeof(list_str)); 
+  new_cell->value = $3->value; 
+  list->cursor->next = new_cell; 
+  list->cursor = list->cursor->next;
+  list->cursor->next = NULL; 
+  $$ = list->head;
+  }
 ;
 
 type_name
 : INT {$$=type_INT;} 
-| VOID {$$=type_name}
+| VOID 
 | FLOAT
 ;
 
 declarator
-: IDENTIFIER
-| '(' declarator ')'
-| declarator '[' CONSTANT ']'
-| declarator '[' ']'
-| declarator '(' parameter_list ')'
-| declarator '(' ')'
+: IDENTIFIER {$$=$1;}
+| '(' declarator ')' {
+  struct declarator_info *di = malloc(sizeof(declarator_info));
+  di->value=$1;
+  di->size = 0;
+  $$=di;  
+}
+| declarator '[' CONSTANT ']'{
+  struct declarator_info *di = malloc(sizeof(declarator_info));
+  di->value=$1;
+  di->size = $3;
+  $$=di;  
+}
+| declarator '[' ']'{
+  struct declarator_info *di = malloc(sizeof(declarator_info));
+  di->value=$1;
+  di->size = 0;
+  $$=di;  
+}
+| declarator '(' parameter_list ')' {
+  struct declarator_info *di = malloc(sizeof(declarator_info));
+  di->value=$1;
+  di->size = $3;
+  $$=di;  
+}
+| declarator '(' ')'{
+  struct declarator_info *di = malloc(sizeof(declarator_info));
+  di->value=$1;
+  di->size = 0;
+  $$=di;  
+}
 ;
 
 
@@ -216,8 +246,8 @@ selection_statement
 : IF '(' comparison_expression ')'
 { 
   PRINT("%s ", $3);   
-  char* str = newLabel("IF"); 
-  PRINT("%s \n", str); 
+  int a = newLabel(); 
+  PRINT("%d \n", a); 
 } 
 statement {PRINT("%s ", $6); }
 ;
