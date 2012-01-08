@@ -6,7 +6,7 @@ int main(int c)
 	b = -3;
 	a = 2;
 	a--;
-	//c = 3 + 2;
+	a+=10;
 	main(3);
 	if(b == 5){
 
