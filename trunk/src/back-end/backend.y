@@ -6,7 +6,19 @@
   int yylex ();
   int yyerror ();
 
-  /* Symbol table part */
+    /* UTILS */
+
+    char* regOffset(char* string, int a)
+    {
+      char* str = malloc( sizeof ( char ) * 256 );
+      sprintf(str,"%d(%s)", a, string);
+      return str;
+    }
+
+    /* UTILS END */
+
+
+    /* Symbol table part */
 
 
 
@@ -119,16 +131,25 @@
 %%
 
 primary_expression /*OULALAH (penser à renvoyer la valeur du registre)*/
-: IDENTIFIER {int o = searchOffset($1); $$=o;} 
-| CONSTANT  
-| IDENTIFIER '(' ')' {int o = searchOffset($1); $$=o;} 
-| IDENTIFIER '(' argument_expression_list ')' {int o = searchOffset($1); $$=o;} 
-| IDENTIFIER INC_OP  {int o = searchOffset($1); $$=o;} 
-| IDENTIFIER DEC_OP  {int o = searchOffset($1); $$=o;} 
+: IDENTIFIER {int o = searchOffset($1); $$=regOffset("%esp",o);} 
+
+| CONSTANT  {$$=$1;}
+
+| IDENTIFIER '(' ')' {int o = searchOffset($1); $$="";} 
+
+| IDENTIFIER '(' argument_expression_list ')' {int o = searchOffset($1); $$="";} 
+
+| IDENTIFIER INC_OP  {int o = searchOffset($1);
+                      char* str = regOffset("%esp", o);
+                      PRINT("%s %s \n", "inc", str); $$=str;}
+
+| IDENTIFIER DEC_OP  {int o = searchOffset($1);
+                      char* str = regOffset("%esp", o);
+                      PRINT("%s %s \n", "dec", str); $$=str;} 
 ;
 
 postfix_expression
-: primary_expression
+: primary_expression 
 | postfix_expression '[' expression ']' 
 ;
 
