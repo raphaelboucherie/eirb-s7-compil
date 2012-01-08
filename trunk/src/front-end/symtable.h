@@ -20,6 +20,7 @@ typedef struct Node{
 Node* create_symtable(Node n);
 Node* add_start_to_symtable(Node n, Node* list);
 Node* add_end_to_symtable(Node n, Node* list);
-int find_in_symtable(char* n,const Node* ln);
+int find_in_symtable(char* n, const Node* ln);
+Node* get_node_from_symtable(char* n, const Node* list);
 void free_symtable(Node* ln);
 #endif

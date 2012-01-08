@@ -52,13 +52,26 @@ Node* add_end_to_symtable(Node n, Node* ln){
 
 /* Cherche l'élément de nom n dans la liste */
 int find_in_symtable(char* n, const Node* ln){
-	while(ln != NULL && ln->next != NULL){
-		if(strcmp(ln->name, n) == 0){
+	Node* list_tmp = ln;
+	while(list_tmp != NULL && list_tmp->next != NULL){
+		if(strcmp(list_tmp->name, n) == 0){
 			return 1;
 		}
-		ln = ln->next;
+		list_tmp = list_tmp->next;
 	}
 	return 0;
+}
+
+/* Retourne un pointeur vers le noeud de nom n s'il est présent dans la table des symboles, NULL sinon */
+Node* get_node_from_symtable(char* n, const Node* list){
+	Node* list_tmp = list;
+	while(list_tmp != NULL){
+		if(!strcmp(n, list_tmp->name)){
+			return list_tmp;
+		}
+		list_tmp = list_tmp->next;
+	}
+	return NULL;
 }
 
 /* destruction de la table des symbole */
