@@ -1,4 +1,4 @@
-int a;
+int a, z;
 float b;
 void c[2];
 int main(int c)
