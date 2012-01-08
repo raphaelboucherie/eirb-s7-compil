@@ -67,7 +67,7 @@ argument_expression_list
 
 unary_expression
 : postfix_expression											{$<num>$ = $<num>1;}
-| INC_OP unary_expression										{$<num>$ = $<num>2+1;}
+| INC_OP unary_expression										{$<num>$ = $<num>2+1; printf("\nResult is %d\n", $<num>$);}
 | DEC_OP unary_expression										{$<num>$ = $<num>2-1;}
 | unary_operator unary_expression									{$<num>$ = $<num>1;}
 ;
