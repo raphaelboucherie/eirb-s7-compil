@@ -19,7 +19,6 @@
 %union {
 	char *str;
 	int num;
-	int compValue;
 	char* ch;
 }
 
@@ -32,7 +31,7 @@
 
 %start program
 
-%type <compValue> comparison_expression
+%type <num> comparison_expression
 %type <num> additive_expression
 %type <num> multiplicative_expression
 %type <num> primary_expression
@@ -46,12 +45,12 @@
 %%
 
 primary_expression
-: IDENTIFIER												{PRINT("%s", $1); $$ = $1;}
-| CONSTANT												{PRINT("%s", $1); $$ = $1;}	
-| IDENTIFIER '(' ')'											{PRINT("%s()", $1); $$ = $1;}
-| IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		/* Quelque chose ici */					
-| IDENTIFIER INC_OP											{PRINT("%s++", $1); $$ = $1+1;}
-| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $$ = $1-1;}
+: IDENTIFIER												{PRINT("%s", $1); $<num>$ = $<num>1;}
+| CONSTANT												{PRINT("%s", $1); $<num>$ = $<num>1;}	
+| IDENTIFIER '(' ')'											{PRINT("%s()", $1); $<num>$ = $<num>1;}
+| IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
+| IDENTIFIER INC_OP											{PRINT("%s++", $1); $<num>$ = $<num>1+1;}
+| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $<num>$ = $<num>1-1;}
 ;
 
 postfix_expression
@@ -65,38 +64,38 @@ argument_expression_list
 ;
 
 unary_expression
-: postfix_expression											{$$ = $1;}
-| INC_OP unary_expression										{$$ = $2+1; printf("Result is %d\n", ($2.value+1));}
-| DEC_OP unary_expression										{$$ = $2-1;}
-| unary_operator unary_expression									{$$ = $1;}
+: postfix_expression											{$<num>$ = $<num>1;}
+| INC_OP unary_expression										{$<num>$ = $<num>2+1;}
+| DEC_OP unary_expression										{$<num>$ = $<num>2-1;}
+| unary_operator unary_expression									{$<num>$ = $<num>1;}
 ;
 
 unary_operator
-: '*'													{PRINT("%s", "*"); $$ = MUL_ASSIGN;}
-| '+'													{PRINT("%s", "+"); $$ = ADD_ASSIGN;}
-| '-'													{PRINT("%s", "-"); $$ = SUB_ASSIGN;}
+: '*'													{PRINT("%s", "*"); $<ch>$ = "*";}
+| '+'													{PRINT("%s", "+"); $<ch>$ = "+";}
+| '-'													{PRINT("%s", "-"); $<ch>$ = "-";}
 ;
 
 multiplicative_expression
-: unary_expression 											{$$ = $1;}
-| multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					{$$ = ($1 * $4);}
-| multiplicative_expression '|' {PRINT("%s", "|");} unary_expression					{$$ = ($1 | $4);} 
+: unary_expression 											{$<num>$ = $<num>1;}
+| multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					{$<num>$ = ($<num>1 * $<num>4);}
+| multiplicative_expression '|' {PRINT("%s", "|");} unary_expression					{$<num>$ = ($<num>1 | $<num>4);} 
 ;
 
 additive_expression
-: multiplicative_expression										{$$ = $1;}
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$$ = ($1 + $4);}
-| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{$$ = ($1 - $4);}			
+: multiplicative_expression										{$<num>$ = $<num>1;}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$<num>$ = ($<num>1 + $<num>4); printf("\nResult is : %d\n", $<num>1 + $<num>4);}
+| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{$<num>$ = ($<num>1 - $<num>4);}			
 ;
 
 comparison_expression
-: additive_expression											{$$ = $1;}
-| additive_expression '<' {PRINT("%s", "<");} additive_expression					{$$ = ($1 < $4);}
-| additive_expression '>' {PRINT("%s", ">");} additive_expression					{$$ = ($1 > $4);}
-| additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					{$$ = ($1 <= $4);}
-| additive_expression GE_OP {PRINT("%s", ">=");} additive_expression					{$$ = ($1 >= $4);}
-| additive_expression EQ_OP {PRINT("%s", "==");} additive_expression					{$$ = ($1 == $4);}
-| additive_expression NE_OP {PRINT("%s", "!=");} additive_expression					{$$ = ($1 != $4);}
+: additive_expression											{$<num>$ = $<num>1;}
+| additive_expression '<' {PRINT("%s", "<");} additive_expression					{$<num>$ = ($<num>1 < $<num>4);}
+| additive_expression '>' {PRINT("%s", ">");} additive_expression					{$<num>$ = ($<num>1 > $<num>4);}
+| additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					{$<num>$ = ($<num>1 <= $<num>4);}
+| additive_expression GE_OP {PRINT("%s", ">=");} additive_expression					{$<num>$ = ($<num>1 >= $<num>4);}
+| additive_expression EQ_OP {PRINT("%s", "==");} additive_expression					{$<num>$ = ($<num>1 == $<num>4);}
+| additive_expression NE_OP {PRINT("%s", "!=");} additive_expression					{$<num>$ = ($<num>1 != $<num>4);}
 ;
 
 expression
@@ -105,10 +104,10 @@ expression
 ;
 
 assignment_operator
-: '='													{PRINT("%s", "= "); $$ = "=";}
-| MUL_ASSIGN												{PRINT("%s", "*= "); $$ = MUL_ASSIGN;}
-| ADD_ASSIGN												{PRINT("%s", "+= "); $$ = ADD_ASSIGN;}
-| SUB_ASSIGN												{PRINT("%s", "-= "); $$ = SUB_ASSIGN;}
+: '='													{PRINT("%s", "= "); $<ch>$ = "=";}
+| MUL_ASSIGN												{PRINT("%s", "*= "); $<ch>$ = "*=";}
+| ADD_ASSIGN												{PRINT("%s", "+= "); $<ch>$ = "+=";}
+| SUB_ASSIGN												{PRINT("%s", "-= "); $<ch>$ = "-=";}
 ;
 
 declaration
@@ -121,17 +120,17 @@ declarator_list
 ;
 
 type_name
-: VOID  												{PRINT("%s", "void "); $$=VOID;}
-| INT   												{PRINT("%s", "int "); $$=INT;}
-| FLOAT													{PRINT("%s", "float "); $$=FLOAT;}
+: VOID  												{PRINT("%s", "void "); $<ch>$="void";}
+| INT   												{PRINT("%s", "int "); $<ch>$="int";}
+| FLOAT													{PRINT("%s", "float "); $<ch>$="float";}
 ;
 
 declarator
-: IDENTIFIER  												{PRINT("%s", $1); $$=$1;}
-| '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'						{$$ = $3;}
+: IDENTIFIER  												{PRINT("%s", $1); $<ch>$=$<ch>1;}
+| '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'						{$<ch>$ = $<ch>3;}
 | declarator '[' CONSTANT ']'										{PRINT("[%s]", $3);}
 | declarator '[' ']'											{PRINT("%s", "[]");}
-| declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}									
+| declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}				
 | declarator '(' ')'											{PRINT("%s", "()");}
 ;
 
