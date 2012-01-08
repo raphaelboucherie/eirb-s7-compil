@@ -167,14 +167,14 @@ declaration
 															Node newNode;
 															newNode.name = $<ch>2;
 															newNode.type = type;
-															symTable = add_to_symtable(newNode, symTable);
+															symTable = add_start_to_symtable(newNode, symTable);
 														}else{
 														//Param list
 															while(param != NULL){
 																Node newNode;
 																newNode.name = param;
 																newNode.type = type;
-																symTable = add_to_symtable(newNode, symTable);
+																symTable = add_start_to_symtable(newNode, symTable);
 																param = strtok(NULL, ",");
 															}
 														}
@@ -292,6 +292,11 @@ int yyerror (char *s) {
 
 int main (int argc, char *argv[]) {
     FILE *input = NULL;
+    
+    //SymTable Creation
+    Node n;
+    symTable = create_symtable(n);
+    
     if (argc==2) {
 	input = fopen (argv[1], "r");
 	file_name = strdup (argv[1]);
@@ -312,7 +317,12 @@ int main (int argc, char *argv[]) {
     
     //SymTable Memory Free
     if(symTable != NULL){
-	    printf("\nSYMTABLE : %d, %d, %d, %d, %d\n", find_in_symtable("a", symTable), find_in_symtable("b", symTable), find_in_symtable("c", symTable), find_in_symtable("r", symTable), find_in_symtable("z", symTable));
+	    printf("\nSYMTABLE : %s:%d, %s:%d, %s:%d, %s:%d, %s:%d\n", 
+	    "a", find_in_symtable("a", symTable),
+   	    "b", find_in_symtable("b", symTable),
+    	    "c", find_in_symtable("c", symTable),
+    	    "r", find_in_symtable("r", symTable),
+   	    "z", find_in_symtable("z", symTable));
 	    free_symtable(symTable);    
     }
     return 0;
