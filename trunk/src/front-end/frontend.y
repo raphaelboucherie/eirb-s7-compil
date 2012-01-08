@@ -106,7 +106,7 @@ multiplicative_expression
 
 additive_expression
 : multiplicative_expression										{$<num>$ = $<num>1;/*PAREIL*/}
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$<num>$ = ($<num>1 + $<num>4); /*AREIL*/}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$<num>$ = ($<num>1 + $<num>4); /*PAREIL*/}
 | additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{$<num>$ = ($<num>1 - $<num>4); /*PAREIL*/}			
 ;
 
