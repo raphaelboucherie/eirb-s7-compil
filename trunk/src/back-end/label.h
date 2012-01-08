@@ -8,7 +8,7 @@
 #include "globals.h"
 
 
-
+char* gotoLabel(char* string);
 char* newLabel(char* string);
 char* functionLabel(char* string);
 
