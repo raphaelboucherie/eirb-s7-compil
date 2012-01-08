@@ -3,7 +3,7 @@ YACC=yacc
 CFLAGS=-Wall
 CC=gcc
 
-all:frontend backend
+all:backend
 
 frontend:frontend.c scanner_frontend.c
 	$(CC) $(CFLAGS) -o $@ $^
