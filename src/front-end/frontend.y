@@ -2,6 +2,7 @@
     	#include <stdlib.h>
     	#include <stdio.h>
 	#include <stdarg.h>
+	#include <string.h>
 /*
 	Ajout d'une macro pour print
 	3 + 2 = 5 OUUUUAAAAIIII !
@@ -51,8 +52,8 @@ primary_expression
 | CONSTANT												{PRINT("%s", $1); $<num>$ = atoi($<str>1);}	
 | IDENTIFIER '(' ')'											{PRINT("%s()", $1); $<num>$ = $<num>1;}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
-| IDENTIFIER INC_OP											{PRINT("%s++", $1); $<num>$ = $<num>1+1;}
-| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $<num>$ = $<num>1-1;}
+| IDENTIFIER INC_OP											{PRINT("%s++", $1); $<num>$ = $<num>1 + 1;}
+| IDENTIFIER DEC_OP											{PRINT("%s--", $1); $<num>$ = $<num>1 - 1;}
 ;
 
 postfix_expression
@@ -67,9 +68,15 @@ argument_expression_list
 
 unary_expression
 : postfix_expression											{$<num>$ = $<num>1;}
-| INC_OP unary_expression										{$<num>$ = $<num>2+1; printf("\nResult is %d\n", $<num>$);}
-| DEC_OP unary_expression										{$<num>$ = $<num>2-1;}
-| unary_operator unary_expression									{$<num>$ = $<num>1;}
+| INC_OP unary_expression										{$<num>$ = ($<num>2 + 1);}
+| DEC_OP unary_expression										{$<num>$ = ($<num>2 - 1); printf("\nResult is %d\n", $<num>$);}
+| unary_operator unary_expression									{	switch($<ch>1[0]){
+														case '*': $<num>$ = 1*($<num>2); break;
+														case '+': $<num>$ = +($<num>2); break;
+														case '-': $<num>$ = -($<num>2); break;
+														}
+													}
+													
 ;
 
 unary_operator
@@ -86,7 +93,7 @@ multiplicative_expression
 
 additive_expression
 : multiplicative_expression										{$<num>$ = $<num>1;}
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$<num>$ = ($<num>1 + $<num>4); printf("\nResult is %d\n", $<num>$);}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$<num>$ = ($<num>1 + $<num>4);}
 | additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{$<num>$ = ($<num>1 - $<num>4);}			
 ;
 
@@ -101,7 +108,16 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator comparison_expression 						
+: unary_expression assignment_operator comparison_expression 						{	if(strcmp($<ch>2, "=") == 0){
+															$<num>$ = $<num>2;
+														}else if(strcmp($<ch>2, "*=") == 0){
+															$<num>$ *= $<num>2;
+														}else if(strcmp($<ch>2, "+=") == 0){
+															$<num>$ += $<num>2;
+														}else if(strcmp($<ch>2, "-=") == 0){
+															$<num>$ -= $<num>2;
+														}
+													}
 | comparison_expression											
 ;
 
