@@ -45,22 +45,21 @@
 
 primary_expression
 : IDENTIFIER												{	PRINT("%s", $1);
-														if(find_in_symtable($<ch>1, symTable) == 1){
-															// Le symbole doit être trouvé
-															// Sinon erreur ?
+														if(find_in_symtable($<ch>1, symTable) == 0){
+															printf("Indentificateur introuvable !\n");
 														}
-														$<ch>$ = $<ch>1;
+														$<ch>$ = $<str>1;
 													}
 | CONSTANT												{PRINT("%s", $1); $<ch>$ = $<str>1;}	
 | IDENTIFIER '(' ')'											{PRINT("%s()", $1);}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
 | IDENTIFIER INC_OP											{	PRINT("%s++", $1); $<ch>$ = $<ch>1;
-														// On recupère le noeud grace au nom d'identifieur dans la table des
-														// symboles et on change sa valeur (++)
+											// On recupère le noeud grace au nom d'identifieur dans la table des
+											// symboles et on change sa valeur (++)
 													}
 | IDENTIFIER DEC_OP											{	PRINT("%s--", $1); $<ch>$ = $<ch>1;
-														// On recupère le noeud grace au nom d'identifieur dans la table des
-														// symboles et on change sa valeur (--)
+											// On recupère le noeud grace au nom d'identifieur dans la table des
+											// symboles et on change sa valeur (--)
 													}
 ;
 
@@ -76,20 +75,9 @@ argument_expression_list
 
 unary_expression
 : postfix_expression											{$<num>$ = $<num>1;}
-| INC_OP unary_expression										{	$<num>$ = ($<num>2 + 1);
-														// On recupère le noeud grace au nom d'identifieur dans la table des
-														// symboles et on change sa valeur (++)
-													}
-| DEC_OP unary_expression										{	$<num>$ = ($<num>2 - 1);
-														// On recupère le noeud grace au nom d'identifieur dans la table des
-														// symboles et on change sa valeur (--)
-													}
-| unary_operator unary_expression									{	switch($<ch>1[0]){
-														case '*': $<num>$ = 1*($<num>2); break; //Weird ?
-														case '+': $<num>$ = +($<num>2); break;
-														case '-': $<num>$ = -($<num>2); break;
-														}
-													}											
+| INC_OP unary_expression										{PRINT("%s", "++");}
+| DEC_OP unary_expression										{PRINT("%s", "--");}
+| unary_operator unary_expression									
 ;
 
 unary_operator
@@ -105,9 +93,9 @@ multiplicative_expression
 ;
 
 additive_expression
-: multiplicative_expression										{$<num>$ = $<num>1;/*PAREIL*/}
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{$<num>$ = ($<num>1 + $<num>4); /*PAREIL*/}
-| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{$<num>$ = ($<num>1 - $<num>4); /*PAREIL*/}			
+: multiplicative_expression										{$<num>$ = $<num>1;}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					
+| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression								
 ;
 
 comparison_expression
@@ -123,43 +111,44 @@ comparison_expression
 expression
 : unary_expression assignment_operator comparison_expression 						{	if(strcmp($<ch>2, "=") == 0){
 															$<num>$ = $<num>3;
-														// On recupère le noeud grace au nom d'identifieur dans la table des
-														// symboles et on change sa valeur (assignation)
+											// On recupère le noeud grace au nom d'identifieur dans la table des
+											// symboles et on change sa valeur (assignation)
 														}else if(strcmp($<ch>2, "*=") == 0){
 															$<num>$ *= $<num>3;
-														// On recupère le noeud grace au nom d'identifieur dans la table des
-														// symboles et on change sa valeur (*=)
+											// On recupère le noeud grace au nom d'identifieur dans la table des
+											// symboles et on change sa valeur (*=)
 														}else if(strcmp($<ch>2, "+=") == 0){
 															$<num>$ += $<num>3;
-														// On recupère le noeud grace au nom d'identifieur dans la table des
-														// symboles et on change sa valeur (+=)
+											// On recupère le noeud grace au nom d'identifieur dans la table des
+											// symboles et on change sa valeur (+=)
 														}else if(strcmp($<ch>2, "-=") == 0){
 															$<num>$ -= $<num>3;
-														// On recupère le noeud grace au nom d'identifieur dans la table des
-														// symboles et on change sa valeur (-=)
+											// On recupère le noeud grace au nom d'identifieur dans la table des
+											// symboles et on change sa valeur (-=)
 														}
+														//PRINT("\n%s %s %s\n", $<ch>1, $<ch>2, ""); 
 													}
 | comparison_expression											
 ;
 
 assignment_operator
-: '='													{PRINT("%s", "= "); $<ch>$ = "=";}
-| MUL_ASSIGN												{PRINT("%s", "*= "); $<ch>$ = "*=";}
-| ADD_ASSIGN												{PRINT("%s", "+= "); $<ch>$ = "+=";}
-| SUB_ASSIGN												{PRINT("%s", "-= "); $<ch>$ = "-=";}
+: '='													{PRINT("%s", " = "); $<ch>$ = "=";}
+| MUL_ASSIGN												{PRINT("%s", " *= "); $<ch>$ = "*=";}
+| ADD_ASSIGN												{PRINT("%s", " += "); $<ch>$ = "+=";}
+| SUB_ASSIGN												{PRINT("%s", " -= "); $<ch>$ = "-=";}
 ;
 
 declaration
 : type_name declarator_list ';'										{	PRINT("%s", ";\n");
-														// On insère un noeud dans la table des symboles
-														// S'il s'agit d'un paramètre seul ou d'une liste de paramètres
+												// On insère un noeud dans la table des symboles
+												// S'il s'agit d'un paramètre seul ou d'une liste de paramètres
 														int type;
 														if(strcmp($<ch>1, "void") == 0){
-															type = 1;	
+															type = TYPE_VOID;	
 														}else if(strcmp($<ch>1, "int") == 0){
-															type = 2;	
+															type = TYPE_INT;	
 														}else if(strcmp($<ch>1, "float") == 0){
-															type = 3;
+															type = TYPE_FLOAT;
 														}
 														char* param = strtok($<ch>2, ",");
 														//Single param
@@ -182,9 +171,10 @@ declaration
 ;
 
 declarator_list
-: declarator												{$<ch>$ = $<ch>1;}							 
-| declarator_list ',' {PRINT("%s", ",");} declarator							{	sprintf($<ch>$, "%s,%s", $<ch>1, $<ch>4);
-														// On construit la liste de paramètre récupérée plus haut dans l'arbre
+: declarator												{$<ch>$ =$<ch>1;}
+| declarator_list ',' {PRINT("%s", ",");} declarator							{	
+											// On construit la liste de paramètre récupérée plus haut dans l'arbre
+														sprintf($<ch>$, "%s,%s", $<ch>1, $<ch>4);
 													}
 ;
 
@@ -199,7 +189,7 @@ declarator
 | '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'						{$<ch>$ = $<ch>3;}			// ?
 | declarator '[' CONSTANT ']'										{PRINT("[%s]", $3); $<ch>$ = $<ch>1;}
 | declarator '[' ']'											{PRINT("%s", "[]"); $<ch>$ = $<ch>1;}
-| declarator '(' {PRINT("%s", "");} parameter_list ')' {PRINT("%s", ")");}				{$<ch>$ = $<ch>1;}			// ?
+| declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}				{$<ch>$ = $<ch>1;}			// ?
 | declarator '(' ')'											{PRINT("%s", "()"); $<ch>$ = $<ch>1;}
 ;
 
@@ -209,7 +199,7 @@ parameter_list
 ;
 
 parameter_declaration
-: type_name declarator 											{}				
+: type_name declarator 															
 ;
 
 statement
@@ -317,12 +307,19 @@ int main (int argc, char *argv[]) {
     
     //SymTable Memory Free
     if(symTable != NULL){
+	    Node* n_a = get_node_from_symtable("a", symTable);
+	    Node* n_b = get_node_from_symtable("b", symTable);
+	    Node* n_c = get_node_from_symtable("c", symTable);
+	    Node* n_r = get_node_from_symtable("r", symTable);
+	    Node* n_z = get_node_from_symtable("z", symTable);
+
 	    printf("\nSYMTABLE : %s:%d, %s:%d, %s:%d, %s:%d, %s:%d\n", 
-	    "a", find_in_symtable("a", symTable),
-   	    "b", find_in_symtable("b", symTable),
-    	    "c", find_in_symtable("c", symTable),
-    	    "r", find_in_symtable("r", symTable),
-   	    "z", find_in_symtable("z", symTable));
+	    n_a->name, n_a != NULL,
+   	    n_b->name, n_b != NULL,
+  	    n_c->name, n_c != NULL, 
+    	    n_r->name, n_r != NULL, 
+   	    n_z->name, n_z != NULL);
+
 	    free_symtable(symTable);    
     }
     return 0;
