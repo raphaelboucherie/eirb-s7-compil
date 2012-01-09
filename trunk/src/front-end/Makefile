@@ -1,6 +1,6 @@
 LEX=lex
 YACC=yacc
-CFLAGS=-Wall
+CFLAGS=-Wall -ggdb
 CC=gcc
 
 all:frontend backend

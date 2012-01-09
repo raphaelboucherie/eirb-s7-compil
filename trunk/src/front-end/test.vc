@@ -3,15 +3,16 @@ float b;
 void c[2];
 int main(int c)
 {
+	int i;
 	b = -3;
 	a = 2;
 	a--;
 	a+=10;
-	main(3);
+	func2(3);
 	if(b == 5){
 
 	}else{}
-	for(i=0; i<3; i){
+	for(i=0; i<3; i++){
 		int r;
 		r = 2;
 	}
