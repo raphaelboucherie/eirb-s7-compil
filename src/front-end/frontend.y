@@ -46,17 +46,16 @@
 primary_expression
 : IDENTIFIER												{	PRINT("%s", $1);
 														if(find_in_symtable($<ch>1, symTable) == 0){
-															printf("Indentificateur introuvable !\n");
+															yyerror("Indentificateur introuvable ! \n");
+															exit(1);
 														}
 														$<ch>$ = $<str>1;
 													}
 | CONSTANT												{PRINT("%s", $1); $<ch>$ = $<str>1;}	
 | IDENTIFIER '(' ')'											{PRINT("%s()", $1);}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
-| IDENTIFIER INC_OP											{	PRINT("%s++", $1); $<ch>$ = $<ch>1;
-													}
-| IDENTIFIER DEC_OP											{	PRINT("%s--", $1); $<ch>$ = $<ch>1;
-													}
+| IDENTIFIER INC_OP											{	PRINT("%s++", $1); $<ch>$ = $<ch>1;	}
+| IDENTIFIER DEC_OP											{	PRINT("%s--", $1); $<ch>$ = $<ch>1;	}
 ;
 
 postfix_expression
@@ -83,39 +82,30 @@ unary_operator
 ;
 
 multiplicative_expression
-: unary_expression 											{$<num>$ = $<num>1;}
-| multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					{$<num>$ = ($<num>1 * $<num>4);}
-| multiplicative_expression '|' {PRINT("%s", "|");} unary_expression					{$<num>$ = ($<num>1 | $<num>4);} 
+: unary_expression 											{/*Génération de code 2 adresses*/}
+| multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					{/*Génération de code 2 adresses*/}
+| multiplicative_expression '|' {PRINT("%s", "|");} unary_expression					{/*Génération de code 2 adresses*/} 
 ;
 
 additive_expression
-: multiplicative_expression										{$<num>$ = $<num>1;}
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					
-| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression								
+: multiplicative_expression										{/*Génération de code 2 adresses*/}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{/*Génération de code 2 adresses*/}				
+| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{/*Génération de code 2 adresses*/}
 ;
 
 comparison_expression
-: additive_expression											{$<num>$ = $<num>1;}
-| additive_expression '<' {PRINT("%s", "<");} additive_expression					{$<num>$ = ($<num>1 < $<num>4);}
-| additive_expression '>' {PRINT("%s", ">");} additive_expression					{$<num>$ = ($<num>1 > $<num>4);}
-| additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					{$<num>$ = ($<num>1 <= $<num>4);}
-| additive_expression GE_OP {PRINT("%s", ">=");} additive_expression					{$<num>$ = ($<num>1 >= $<num>4);}
-| additive_expression EQ_OP {PRINT("%s", "==");} additive_expression					{$<num>$ = ($<num>1 == $<num>4);}
-| additive_expression NE_OP {PRINT("%s", "!=");} additive_expression					{$<num>$ = ($<num>1 != $<num>4);}
+: additive_expression											{/*Génération de code 2 adresses*/}
+| additive_expression '<' {PRINT("%s", "<");} additive_expression					{/*Génération de code 2 adresses*/}
+| additive_expression '>' {PRINT("%s", ">");} additive_expression					{/*Génération de code 2 adresses*/}
+| additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					{/*Génération de code 2 adresses*/}
+| additive_expression GE_OP {PRINT("%s", ">=");} additive_expression					{/*Génération de code 2 adresses*/}
+| additive_expression EQ_OP {PRINT("%s", "==");} additive_expression					{/*Génération de code 2 adresses*/}
+| additive_expression NE_OP {PRINT("%s", "!=");} additive_expression					{/*Génération de code 2 adresses*/}
 ;
 
 expression
-: unary_expression assignment_operator comparison_expression 						{	if(strcmp($<ch>2, "=") == 0){
-															$<num>$ = $<num>3;
-														}else if(strcmp($<ch>2, "*=") == 0){
-															$<num>$ *= $<num>3;
-														}else if(strcmp($<ch>2, "+=") == 0){
-															$<num>$ += $<num>3;
-														}else if(strcmp($<ch>2, "-=") == 0){
-															$<num>$ -= $<num>3;
-														}
-													}
-| comparison_expression											
+: unary_expression assignment_operator comparison_expression 						{/*Génération de code 2 adresses*/}
+| comparison_expression										
 ;
 
 assignment_operator
@@ -126,7 +116,7 @@ assignment_operator
 ;
 
 declaration
-: type_name declarator_list ';'										{	PRINT("%s", ";\n");
+: type_name declarator_list ';' {PRINT("%s", ";\n");}						{	
 												// On insère un noeud dans la table des symboles
 												// S'il s'agit d'un paramètre seul ou d'une liste de paramètres
 														int type;
@@ -175,21 +165,20 @@ type_name
 
 declarator
 : IDENTIFIER  												{PRINT("%s", $1); $<ch>$ = $<ch>1;}
-| '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'						{$<ch>$ = $<ch>3;}			// ?
-| declarator '[' CONSTANT ']'										{PRINT("[%s]", $1); $<ch>$ = $<ch>1;}
+| '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'									
+| declarator '[' CONSTANT ']'										{PRINT("[%s]", $3); $<ch>$ = $<ch>1;}
 | declarator '[' ']'											{PRINT("%s", "[]"); $<ch>$ = $<ch>1;}
-| declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}				{$<ch>$ = $<ch>1;}			// ?
+| declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}							
 | declarator '(' ')'											{PRINT("%s", "()"); $<ch>$ = $<ch>1;}
 ;
 
 parameter_list
 : parameter_declaration														
-| parameter_list ',' {PRINT("%s", ",");} parameter_declaration			
+| parameter_list ',' {PRINT("%s", ",");} parameter_declaration						
 ;
 
 parameter_declaration
-: type_name declarator 											{	
-														int type;
+: type_name declarator 											{	int type;
 														if(strcmp($<ch>1, "void") == 0){
 															type = TYPE_VOID;	
 														}else if(strcmp($<ch>1, "int") == 0){
