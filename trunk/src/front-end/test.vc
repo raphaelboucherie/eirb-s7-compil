@@ -1,16 +1,16 @@
 int a, z;
 float b;
 void u[2];
+int i;
 int main(int c)
 {
-	int i;
-	b = -3;
 	a = 2;
-	a--;
-	a+=10;
+	b = -3;
+	z = 2;
+	c = a + b - z;
 	func2(3);
 	if(b == 5){
-
+		u[1] = 2;
 	}else{}
 	for(i=0; i<3; i++){
 		int r;

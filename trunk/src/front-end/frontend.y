@@ -69,7 +69,7 @@ argument_expression_list
 ;
 
 unary_expression
-: postfix_expression											{$<num>$ = $<num>1;}
+: postfix_expression											
 | INC_OP unary_expression										{PRINT("%s", "++");}
 | DEC_OP unary_expression										{PRINT("%s", "--");}
 | unary_operator unary_expression									
