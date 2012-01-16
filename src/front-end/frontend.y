@@ -3,6 +3,7 @@
     	#include <stdio.h>
 	#include <stdarg.h>
 	#include <string.h>
+	#include <sys/time.h>
 	#include "symtable.h"
 	
 	#define PRINT(format, args...) printf(format, args)
@@ -13,6 +14,28 @@
 	
 	//The symbol table
 	Node* symTable;
+	
+	void displaySymTable(const Node* list){
+		Node* list_tmp = (Node*) list;
+		while(list_tmp != NULL){
+			char* type;
+			switch(list_tmp->type){
+				case TYPE_UNDEF: type = "UNDEF"; break;
+				case TYPE_VOID: type = "VOID"; break;
+				case TYPE_INT: type = "INT"; break;
+				case TYPE_FLOAT: type = "FLOAT"; break;
+				default : list_tmp = list_tmp->next; continue;
+			}
+			printf("Symbol : %s ", list_tmp->name);
+			printf("(%s)\n", type);
+			list_tmp = list_tmp->next;
+		}
+	}
+	
+	int getNewId(){
+		int id_gen;
+		return abs((int)(&id_gen));
+	}
 %}
 
 %union {
@@ -51,8 +74,8 @@ primary_expression
 														}
 														$<ch>$ = $<str>1;
 													}
-| CONSTANT												{PRINT("%s", $1); $<ch>$ = $<str>1;}	
-| IDENTIFIER '(' ')'											{PRINT("%s()", $1);}
+| CONSTANT												{	PRINT("%s", $1); $<ch>$ = $<str>1;	}	
+| IDENTIFIER '(' ')'											{	PRINT("%s()", $1);	}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
 | IDENTIFIER INC_OP											{	PRINT("%s++", $1); $<ch>$ = $<ch>1;	}
 | IDENTIFIER DEC_OP											{	PRINT("%s--", $1); $<ch>$ = $<ch>1;	}
@@ -70,8 +93,8 @@ argument_expression_list
 
 unary_expression
 : postfix_expression											
-| INC_OP unary_expression										{PRINT("%s", "++");}
-| DEC_OP unary_expression										{PRINT("%s", "--");}
+| INC_OP unary_expression										{PRINT("%s", "+=1");}
+| DEC_OP unary_expression										{PRINT("%s", "-=1");}
 | unary_operator unary_expression									
 ;
 
@@ -89,8 +112,12 @@ multiplicative_expression
 
 additive_expression
 : multiplicative_expression										{/*Génération de code 2 adresses*/}
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{/*Génération de code 2 adresses*/}				
-| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{/*Génération de code 2 adresses*/}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{/*Génération de code 2 adresses*/
+														PRINT("id_%d=", getNewId());
+													}				
+| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{/*Génération de code 2 adresses*/
+														PRINT("id_%d=", getNewId());
+													}
 ;
 
 comparison_expression
@@ -109,10 +136,10 @@ expression
 ;
 
 assignment_operator
-: '='													{PRINT("%s", " = "); $<ch>$ = "=";}
-| MUL_ASSIGN												{PRINT("%s", " *= "); $<ch>$ = "*=";}
-| ADD_ASSIGN												{PRINT("%s", " += "); $<ch>$ = "+=";}
-| SUB_ASSIGN												{PRINT("%s", " -= "); $<ch>$ = "-=";}
+: '='													{PRINT("%s", "="); $<ch>$ = "=";}
+| MUL_ASSIGN												{PRINT("%s", "*="); $<ch>$ = "*=";}
+| ADD_ASSIGN												{PRINT("%s", "+="); $<ch>$ = "+=";}
+| SUB_ASSIGN												{PRINT("%s", "-="); $<ch>$ = "-=";}
 ;
 
 declaration
@@ -270,23 +297,6 @@ int yyerror (char *s) {
     fflush (stdout);
     fprintf (stderr, "%s:%d:%d: %s\n", file_name, yylineno, column, s);
     return 0;
-}
-
-void displaySymTable(const Node* list){
-	Node* list_tmp = (Node*) list;
-	while(list_tmp != NULL){
-		char* type;
-		switch(list_tmp->type){
-			case TYPE_UNDEF: type = "UNDEF"; break;
-			case TYPE_VOID: type = "VOID"; break;
-			case TYPE_INT: type = "INT"; break;
-			case TYPE_FLOAT: type = "FLOAT"; break;
-			default : list_tmp = list_tmp->next; continue;
-		}
-		printf("Symbol : %s ", list_tmp->name);
-		printf("(%s)\n", type);
-		list_tmp = list_tmp->next;
-	}
 }
 
 int main (int argc, char *argv[]) {
