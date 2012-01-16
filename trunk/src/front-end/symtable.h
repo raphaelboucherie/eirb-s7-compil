@@ -14,6 +14,7 @@ typedef struct Node{
 	void* addr;
 	char* name;
 	struct Node* next;
+	struct Node* parent;
 } Node;
 
 
