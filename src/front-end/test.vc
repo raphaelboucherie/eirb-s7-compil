@@ -1,6 +1,6 @@
 int a, z;
 float b;
-void c[2];
+void u[2];
 int main(int c)
 {
 	int i;
