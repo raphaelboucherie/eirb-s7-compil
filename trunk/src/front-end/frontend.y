@@ -54,12 +54,8 @@ primary_expression
 | IDENTIFIER '(' ')'											{PRINT("%s()", $1);}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
 | IDENTIFIER INC_OP											{	PRINT("%s++", $1); $<ch>$ = $<ch>1;
-											// On recupère le noeud grace au nom d'identifieur dans la table des
-											// symboles et on change sa valeur (++)
 													}
 | IDENTIFIER DEC_OP											{	PRINT("%s--", $1); $<ch>$ = $<ch>1;
-											// On recupère le noeud grace au nom d'identifieur dans la table des
-											// symboles et on change sa valeur (--)
 													}
 ;
 
@@ -111,22 +107,13 @@ comparison_expression
 expression
 : unary_expression assignment_operator comparison_expression 						{	if(strcmp($<ch>2, "=") == 0){
 															$<num>$ = $<num>3;
-											// On recupère le noeud grace au nom d'identifieur dans la table des
-											// symboles et on change sa valeur (assignation)
 														}else if(strcmp($<ch>2, "*=") == 0){
 															$<num>$ *= $<num>3;
-											// On recupère le noeud grace au nom d'identifieur dans la table des
-											// symboles et on change sa valeur (*=)
 														}else if(strcmp($<ch>2, "+=") == 0){
 															$<num>$ += $<num>3;
-											// On recupère le noeud grace au nom d'identifieur dans la table des
-											// symboles et on change sa valeur (+=)
 														}else if(strcmp($<ch>2, "-=") == 0){
 															$<num>$ -= $<num>3;
-											// On recupère le noeud grace au nom d'identifieur dans la table des
-											// symboles et on change sa valeur (-=)
 														}
-														//PRINT("\n%s %s %s\n", $<ch>1, $<ch>2, ""); 
 													}
 | comparison_expression											
 ;
@@ -149,6 +136,8 @@ declaration
 															type = TYPE_INT;	
 														}else if(strcmp($<ch>1, "float") == 0){
 															type = TYPE_FLOAT;
+														}else{
+															type = TYPE_UNDEF;
 														}
 														char* param = strtok($<ch>2, ",");
 														//Single param
@@ -187,7 +176,7 @@ type_name
 declarator
 : IDENTIFIER  												{PRINT("%s", $1); $<ch>$ = $<ch>1;}
 | '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'						{$<ch>$ = $<ch>3;}			// ?
-| declarator '[' CONSTANT ']'										{PRINT("[%s]", $3); $<ch>$ = $<ch>1;}
+| declarator '[' CONSTANT ']'										{PRINT("[%s]", $1); $<ch>$ = $<ch>1;}
 | declarator '[' ']'											{PRINT("%s", "[]"); $<ch>$ = $<ch>1;}
 | declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}				{$<ch>$ = $<ch>1;}			// ?
 | declarator '(' ')'											{PRINT("%s", "()"); $<ch>$ = $<ch>1;}
@@ -199,7 +188,22 @@ parameter_list
 ;
 
 parameter_declaration
-: type_name declarator 															
+: type_name declarator 											{	
+														int type;
+														if(strcmp($<ch>1, "void") == 0){
+															type = TYPE_VOID;	
+														}else if(strcmp($<ch>1, "int") == 0){
+															type = TYPE_INT;	
+														}else if(strcmp($<ch>1, "float") == 0){
+															type = TYPE_FLOAT;
+														}else{
+															type = TYPE_UNDEF;
+														}
+														Node newNode;
+														newNode.name = $<ch>2;
+														newNode.type = type;
+														symTable = add_start_to_symtable(newNode, symTable);
+													}
 ;
 
 statement
@@ -279,6 +283,22 @@ int yyerror (char *s) {
     return 0;
 }
 
+void displaySymTable(const Node* list){
+	Node* list_tmp = (Node*) list;
+	while(list_tmp != NULL){
+		char* type;
+		switch(list_tmp->type){
+			case TYPE_UNDEF: type = "UNDEF"; break;
+			case TYPE_VOID: type = "VOID"; break;
+			case TYPE_INT: type = "INT"; break;
+			case TYPE_FLOAT: type = "FLOAT"; break;
+			default : list_tmp = list_tmp->next; continue;
+		}
+		printf("Symbol : %s ", list_tmp->name);
+		printf("(%s)\n", type);
+		list_tmp = list_tmp->next;
+	}
+}
 
 int main (int argc, char *argv[]) {
     FILE *input = NULL;
@@ -307,19 +327,7 @@ int main (int argc, char *argv[]) {
     
     //SymTable Memory Free
     if(symTable != NULL){
-	    Node* n_a = get_node_from_symtable("a", symTable);
-	    Node* n_b = get_node_from_symtable("b", symTable);
-	    Node* n_c = get_node_from_symtable("c", symTable);
-	    Node* n_r = get_node_from_symtable("r", symTable);
-	    Node* n_z = get_node_from_symtable("z", symTable);
-
-	    printf("\nSYMTABLE : %s:%d, %s:%d, %s:%d, %s:%d, %s:%d\n", 
-	    n_a->name, n_a != NULL,
-   	    n_b->name, n_b != NULL,
-  	    n_c->name, n_c != NULL, 
-    	    n_r->name, n_r != NULL, 
-   	    n_z->name, n_z != NULL);
-
+	    displaySymTable(symTable);
 	    free_symtable(symTable);    
     }
     return 0;
