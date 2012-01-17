@@ -2,8 +2,10 @@ void main()
 { 
   int a;
   int b;
+  float c;
   a=2;
   b=5;
+  c=1;
   if (a<b) 
      {
      if (a>3)
