@@ -15,6 +15,8 @@
 	
 	//The symbol table
 	Node* symTable;
+	// The derivation tree
+	TreeNode* dt;
 	
 	void displaySymTable(const Node* list){
 		Node* list_tmp = (Node*) list;
@@ -69,27 +71,47 @@
 %%
 
 primary_expression
-: IDENTIFIER												{	PRINT("%s", $1);
-														if(find_in_symtable($<ch>1, symTable) == 0){
-															yyerror("Indentificateur introuvable ! \n");
-															exit(1);
-														}
-														
-$$ = (void*) create_tree_node($<ch>1);
-
-													}
-| CONSTANT												{	PRINT("%s", $1); $<ch>$ = $<str>1;	
-	$$ = (void*) create_tree_node($<ch>1);
-}	
-| IDENTIFIER '(' ')'											{	PRINT("%s()", $1);	}
-| IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
-| IDENTIFIER INC_OP											{	PRINT("%s++", $1); $<ch>$ = $<ch>1;	}
-| IDENTIFIER DEC_OP											{	PRINT("%s--", $1); $<ch>$ = $<ch>1;	}
+: IDENTIFIER												
+	{
+		PRINT("%s", $1);
+		if(find_in_symtable($<ch>1, symTable) == 0){
+			yyerror("Indentificateur introuvable ! \n");
+			exit(1);
+		}														
+		$$ = (void*) create_tree_node($<ch>1);
+	}
+| CONSTANT
+	{	
+		PRINT("%s", $1); $<ch>$ = $<str>1;	
+		$$ = (void*) create_tree_node($<ch>1);
+	}	
+| IDENTIFIER '(' ')'											
+	{
+		PRINT("%s()", $1);	
+	}
+| IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'
+	{
+		PRINT("%s", ")");
+	}		
+| IDENTIFIER INC_OP											
+	{
+		PRINT("%s++", $1); $<ch>$ = $<ch>1;	
+	}
+| IDENTIFIER DEC_OP											
+	{
+		PRINT("%s--", $1); $<ch>$ = $<ch>1;
+	}
 ;
 
 postfix_expression
-: primary_expression	{$$ = $<tn>1;}
-| postfix_expression '[' {PRINT("%s", "[");} expression ']' {PRINT("%s", "]");} /* A Voir ? */
+: primary_expression	
+	{
+		$$ = $<tn>1;
+	}
+| postfix_expression '[' {PRINT("%s", "[");} expression ']' 
+	{	/* A Voir ? */
+		PRINT("%s", "]");
+	} 
 ;
 
 argument_expression_list
@@ -98,204 +120,239 @@ argument_expression_list
 ;
 
 unary_expression
-: postfix_expression		{$$ = $<tn>1;}				
+: postfix_expression		
+	{
+		$$ = $<tn>1;
+	}				
 | INC_OP unary_expression										
-{
-TreeNode* op = create_tree_node("++"); 
-set_left(op, (TreeNode*) $<tn>2);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node("++"); 
+		set_left(op, (TreeNode*) $<tn>2);
+		$$ = (void*) op;
+	}
 
 | DEC_OP unary_expression										
-{TreeNode* op = create_tree_node("--"); 
-set_left(op, (TreeNode*) $<tn>2);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node("--"); 
+		set_left(op, (TreeNode*) $<tn>2);
+		$$ = (void*) op;
+	}
 | unary_operator unary_expression
-{
-TreeNode* op = create_tree_node($<ch>1); 
-set_left(op, (TreeNode*) $<tn>2);
-$$ = (void*) op;									
-}
+	{
+		TreeNode* op = create_tree_node($<ch>1); 
+		set_left(op, (TreeNode*) $<tn>2);
+		$$ = (void*) op;									
+	}
 ;
 
 unary_operator
-: '*'													{PRINT("%s", "*"); $<ch>$ = "*";}
-| '+'													{PRINT("%s", "+"); $<ch>$ = "+";}
-| '-'													{PRINT("%s", "-"); $<ch>$ = "-";}
+: '*'			{PRINT("%s", "*"); $<ch>$ = "*";}
+| '+'			{PRINT("%s", "+"); $<ch>$ = "+";}
+| '-'			{PRINT("%s", "-"); $<ch>$ = "-";}
 ;
 
 multiplicative_expression
-: unary_expression 			{$$ = $<tn>1;}
+: unary_expression 			
+	{
+		$$ = $<tn>1;
+	}
 | multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					
-{
-TreeNode* op = create_tree_node("*"); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node("*"); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}
 
 | multiplicative_expression '|' {PRINT("%s", "|");} unary_expression
-{
-TreeNode* op = create_tree_node("|"); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node("|"); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}
 
 ;
 
 additive_expression
-: multiplicative_expression	{$$ = $<tn>1;}
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression		{														
-//PRINT("id_%d=", getNewId());
-TreeNode* op = create_tree_node("+"); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}				
+: multiplicative_expression	
+	{
+		$$ = $<tn>1;
+	}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression		
+	{		
+		//PRINT("id_%d=", getNewId());
+		TreeNode* op = create_tree_node("+"); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}				
 | additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					
-{
-TreeNode* op = create_tree_node("-"); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}													
+	{
+		TreeNode* op = create_tree_node("-"); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}													
 ;
 
 comparison_expression
-: additive_expression	{$$ = $<tn>1;}
+: additive_expression	
+	{
+		$$ = $<tn>1;
+	}
 | additive_expression '<' {PRINT("%s", "<");} additive_expression
-{
-TreeNode* op = create_tree_node("<"); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node("<"); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}
 | additive_expression '>' {PRINT("%s", ">");} additive_expression
-{
-TreeNode* op = create_tree_node(">"); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node(">"); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}
 | additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					
-{
-TreeNode* op = create_tree_node("<="); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node("<="); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}
 
 | additive_expression GE_OP {PRINT("%s", ">=");} additive_expression					
-{
-TreeNode* op = create_tree_node(">="); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node(">="); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}
 
 | additive_expression EQ_OP {PRINT("%s", "==");} additive_expression				
-{
-TreeNode* op = create_tree_node("=="); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node("=="); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}
 
 | additive_expression NE_OP {PRINT("%s", "!=");} additive_expression					
-{
-TreeNode* op = create_tree_node("!="); 
-set_right(op, (TreeNode*) $<tn>4);
-set_left(op, (TreeNode*) $<tn>1);
-$$ = (void*) op;
-}
+	{
+		TreeNode* op = create_tree_node("!="); 
+		set_right(op, (TreeNode*) $<tn>4);
+		set_left(op, (TreeNode*) $<tn>1);
+		$$ = (void*) op;
+	}
 
 ;
 
 expression
 : unary_expression assignment_operator comparison_expression 	
-{
-TreeNode* dt = (TreeNode*) $<tn>1;  
-
-TreeNode* op = create_tree_node($<ch>2); 
-
-set_left(dt, op);
-
-set_right(op, (TreeNode*) $3); 
-
-printf("\n----- TREE ------ \n"); 
-	print_tree_node(dt, 0); 
-printf("\n----- END TREE ------ \n");
-
-free_tree_node(dt); 
-
-}
+	{
+		TreeNode* dt = (TreeNode*) $<tn>1;  
+		TreeNode* op = create_tree_node($<ch>2); 
+		set_left(dt, op);
+		set_right(op, (TreeNode*) $3); 
+		printf("\n----- TREE ------ \n"); 
+		print_tree_node(dt, 0); 
+		printf("\n----- END TREE ------ \n");
+		free_tree_node(dt); 
+	}
 | comparison_expression										
 ;
 
 assignment_operator
-: '='													{PRINT("%s", "="); $<ch>$ = "=";}
-| MUL_ASSIGN												{PRINT("%s", "*="); $<ch>$ = "*=";}
-| ADD_ASSIGN												{PRINT("%s", "+="); $<ch>$ = "+=";}
-| SUB_ASSIGN												{PRINT("%s", "-="); $<ch>$ = "-=";}
+: '='					{PRINT("%s", "="); $<ch>$ = "=";}
+| MUL_ASSIGN			{PRINT("%s", "*="); $<ch>$ = "*=";}
+| ADD_ASSIGN			{PRINT("%s", "+="); $<ch>$ = "+=";}
+| SUB_ASSIGN			{PRINT("%s", "-="); $<ch>$ = "-=";}
 ;
 
 declaration
-: type_name declarator_list ';' {PRINT("%s", ";\n");}						{	
-												// On insère un noeud dans la table des symboles
-												// S'il s'agit d'un paramètre seul ou d'une liste de paramètres
-														int type;
-														if(strcmp($<ch>1, "void") == 0){
-															type = TYPE_VOID;	
-														}else if(strcmp($<ch>1, "int") == 0){
-															type = TYPE_INT;	
-														}else if(strcmp($<ch>1, "float") == 0){
-															type = TYPE_FLOAT;
-														}else{
-															type = TYPE_UNDEF;
-														}
-														char* param = strtok($<ch>2, ",");
-														//Single param
-														if(param == NULL){
-															Node newNode;
-															newNode.name = $<ch>2;
-															newNode.type = type;
-															symTable = add_start_to_symtable(newNode, symTable);
-														}else{
-														//Param list
-															while(param != NULL){
-																Node newNode;
-																newNode.name = param;
-																newNode.type = type;
-																symTable = add_start_to_symtable(newNode, symTable);
-																param = strtok(NULL, ",");
-															}
-														}
-													}
+: type_name declarator_list ';'						
+	{	PRINT("%s", ";\n");
+		// On insère un noeud dans la table des symboles
+		// S'il s'agit d'un paramètre seul ou d'une liste de paramètres
+		int type;
+		if(strcmp($<ch>1, "void") == 0){
+			type = TYPE_VOID;	
+		}
+		else if(strcmp($<ch>1, "int") == 0){
+			type = TYPE_INT;	
+		}
+		else if(strcmp($<ch>1, "float") == 0){
+			type = TYPE_FLOAT;
+		}
+		else{
+			type = TYPE_UNDEF;
+		}
+		char* param = strtok($<ch>2, ",");
+		//Single param
+		if(param == NULL){
+			Node newNode;
+			newNode.name = $<ch>2;
+			newNode.type = type;
+			symTable = add_start_to_symtable(newNode, symTable);
+		}
+		else{
+			//Param list
+			while(param != NULL){
+				Node newNode;
+				newNode.name = param;
+						newNode.type = type;
+						symTable = add_start_to_symtable(newNode, symTable);
+						param = strtok(NULL, ",");
+			}
+		}
+	}
 ;
 
 declarator_list
-: declarator												{$<ch>$ =$<ch>1;}
-| declarator_list ',' {PRINT("%s", ",");} declarator							{	
-											// On construit la liste de paramètre récupérée plus haut dans l'arbre
-														sprintf($<ch>$, "%s,%s", $<ch>1, $<ch>4);
-													}
+: declarator												
+	{
+		$<ch>$ =$<ch>1;
+	}
+| declarator_list ',' {PRINT("%s", ",");} declarator							
+	{	// On construit la liste de paramètre récupérée plus haut dans l'arbre
+		sprintf($<ch>$, "%s,%s", $<ch>1, $<ch>4);
+	}
 ;
 
 type_name
-: VOID  												{PRINT("%s", "void "); $<ch>$="void";}
-| INT   												{PRINT("%s", "int "); $<ch>$="int";}
-| FLOAT													{PRINT("%s", "float "); $<ch>$="float";}
+: VOID					{PRINT("%s", "void "); $<ch>$="void";}
+| INT 					{PRINT("%s", "int "); $<ch>$="int";}
+| FLOAT					{PRINT("%s", "float "); $<ch>$="float";}
 ;
 
 declarator
-: IDENTIFIER  												{PRINT("%s", $1); $<ch>$ = $<ch>1;}
+: IDENTIFIER  												
+	{
+		PRINT("%s", $1); 
+		$<ch>$ = $<ch>1;
+	}
 | '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'									
-| declarator '[' CONSTANT ']'										{PRINT("[%s]", $3); $<ch>$ = $<ch>1;}
-| declarator '[' ']'											{PRINT("%s", "[]"); $<ch>$ = $<ch>1;}
-| declarator '(' {PRINT("%s", "(");} parameter_list ')' {PRINT("%s", ")");}							
-| declarator '(' ')'											{PRINT("%s", "()"); $<ch>$ = $<ch>1;}
+| declarator '[' CONSTANT ']'			
+	{
+		PRINT("[%s]", $3); 
+		$<ch>$ = $<ch>1;
+	}
+| declarator '[' ']'											
+	{
+		PRINT("%s", "[]"); 
+		$<ch>$ = $<ch>1;
+	}
+| declarator '(' {PRINT("%s", "(");} parameter_list ')' 
+	{
+		PRINT("%s", ")");
+	}							
+| declarator '(' ')'											
+	{
+		PRINT("%s", "()"); 
+		$<ch>$ = $<ch>1;
+	}
 ;
 
 parameter_list
@@ -304,21 +361,26 @@ parameter_list
 ;
 
 parameter_declaration
-: type_name declarator 											{	int type;
-														if(strcmp($<ch>1, "void") == 0){
-															type = TYPE_VOID;	
-														}else if(strcmp($<ch>1, "int") == 0){
-															type = TYPE_INT;	
-														}else if(strcmp($<ch>1, "float") == 0){
-															type = TYPE_FLOAT;
-														}else{
-															type = TYPE_UNDEF;
-														}
-														Node newNode;
-														newNode.name = $<ch>2;
-														newNode.type = type;
-														symTable = add_start_to_symtable(newNode, symTable);
-													}
+: type_name declarator 											
+	{	
+		int type;
+		if(strcmp($<ch>1, "void") == 0){
+			type = TYPE_VOID;	
+		}
+		else if(strcmp($<ch>1, "int") == 0){
+			type = TYPE_INT;
+		}
+		else if(strcmp($<ch>1, "float") == 0){
+			type = TYPE_FLOAT;
+		}
+		else{
+			type = TYPE_UNDEF;
+		}
+		Node newNode;
+		newNode.name = $<ch>2;
+		newNode.type = type;
+		symTable = add_start_to_symtable(newNode, symTable);
+	}
 ;
 
 statement
@@ -346,8 +408,8 @@ statement_list
 ;
 
 expression_statement
-: ';'													{PRINT("%s", ";");}
-| expression ';'											{PRINT("%s", ";");}
+: ';'					{PRINT("%s", ";");}
+| expression ';'		{PRINT("%s", ";");}
 ;
 
 /*Fonctionnement GCC : Les blocs if et else sont gérés séparément. Quand un bloc else est évalué, il est rattaché au bloc if le plus proche*/
@@ -363,8 +425,14 @@ iteration_statement
 ;
 
 jump_statement
-: RETURN ';'												{PRINT("%s\n", "return ;");}
-| RETURN {PRINT("%s", "return ");} expression ';' {PRINT("%s\n", ";");}												
+: RETURN ';'												
+	{
+		PRINT("%s\n", "return ;");
+	}
+| RETURN {PRINT("%s", "return ");} expression ';' 
+	{
+		PRINT("%s\n", ";");
+	}
 ;
 
 program
@@ -406,20 +474,20 @@ int main (int argc, char *argv[]) {
 	n.name = "";
     symTable = create_symtable(n);
     
-    if (argc==2) {
-	input = fopen (argv[1], "r");
-	file_name = strdup (argv[1]);
-	if (input) {
-	    yyin = input;
-	}
-	else {
-	    fprintf (stderr, "Could not open %s\n", argv[1]);
-	    return 1;
-	}
+    if(argc==2) {
+		input = fopen (argv[1], "r");
+		file_name = strdup (argv[1]);
+		if (input) {
+	    	yyin = input;
+		}
+		else {
+	    	fprintf (stderr, "Could not open %s\n", argv[1]);
+	    	return 1;
+		}
     }
-    else {
-	fprintf (stderr, "%s: error: no input file\n", *argv);
-	return 1;
+    else{
+		fprintf (stderr, "%s: error: no input file\n", *argv);
+		return 1;
     }
     yyparse ();
     free (file_name);
