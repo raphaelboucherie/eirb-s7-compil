@@ -6,10 +6,10 @@ CC=gcc
 all:backend
 
 program:asm
-	as test.asm
+	gcc -m32 test.s
 
 asm:backend exemple.c
-	clear && ./backend exemple.c 1>test.asm 2>log && gcc -S -O0 exemple.c && cat test.asm
+	clear && ./backend exemple.c 1>test.s 2>log && gcc -S -O0 exemple.c && cat test.s
 
 frontend:frontend.c scanner_frontend.c
 	$(CC) $(CFLAGS) -o $@ $^
