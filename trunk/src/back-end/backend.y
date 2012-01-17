@@ -360,7 +360,7 @@ int main (int argc, char *argv[]) {
   }
   /****** INIT ***************/
 
-  labelPile = createPile(100);
+  globalInit();
   PRINT("%s",ASM_INIT());
   /***************************/
   yyparse ();
@@ -368,7 +368,7 @@ int main (int argc, char *argv[]) {
   /****** /INIT *************/
   
   PRINT("%s",ASM_CLOSE());
-  freePile(labelPile);
+  globalFree();
 
   /**************************/
   return 0;
