@@ -40,7 +40,7 @@ struct symbolTableIdentifierList* getIdentifier(char* name)
 	  return result;
 	}
       // sinon remonter dans l'arbre
-      asser(node->father!=NULL);
+      assert(node->father!=NULL);
       node = node->father;
     }
   // dernière vérification dans les variables globales
