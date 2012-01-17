@@ -255,13 +255,16 @@ expression
 		TreeNode* dt = (TreeNode*) $<tn>1;  
 		TreeNode* op = create_tree_node($<ch>2); 
 		set_left(dt, op);
-		set_right(op, (TreeNode*) $3); 
+		set_right(op, (TreeNode*) $<tn>3); 
 		printf("\n----- TREE ------ \n"); 
 		print_tree_node(dt, 0); 
 		printf("\n----- END TREE ------ \n");
 		free_tree_node(dt); 
 	}
-| comparison_expression										
+| comparison_expression
+	{
+		//TODO
+	}		
 ;
 
 assignment_operator
