@@ -15,8 +15,8 @@ static const int type_INT = -1;
 // everything from 0 to n is a function with n parameter
 
 
-struct symbolTableTreeNode *symbolTableRoot = NULL;
-struct symbolTableTreeNode *symbolTableCurrentNode = NULL;
+static struct symbolTableTreeNode *symbolTableRoot = NULL;
+static struct symbolTableTreeNode *symbolTableCurrentNode = NULL;
 
 
 /***********************/
