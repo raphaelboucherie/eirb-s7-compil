@@ -9,6 +9,7 @@
 #include "symT.h"
 #include "label.h"
 #include "pile.h"
+#include "globals.h"
 
 #define PRINT(format, args ...) {printf(format, args);}
   int yylex ();
@@ -359,8 +360,8 @@ int main (int argc, char *argv[]) {
     return 1;
   }
   /****** INIT ***************/
-
-  globalInit();
+  labelPile = createPile(100);
+  //  globalInit();
   PRINT("%s",ASM_INIT());
   /***************************/
   yyparse ();
@@ -368,7 +369,7 @@ int main (int argc, char *argv[]) {
   /****** /INIT *************/
   
   PRINT("%s",ASM_CLOSE());
-  globalFree();
+  //globalFree();
 
   /**************************/
   return 0;
