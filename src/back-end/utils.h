@@ -9,5 +9,7 @@ char* ASM_INIT();
 char* ASM_CLOSE();
 char* regOffset(char* string, int a);
 char* constToASMConst(char* string);
+void globalInit();
+void globalFree();
 
 #endif // UTILS_H

@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
+#include "globals.h"
 
 struct symbolTableIdentifierList
 {
@@ -31,6 +33,6 @@ struct symbolTableTreeNodeList* createTreeNodeList(struct symbolTableTreeNode* d
 struct symbolTableTreeNode* createTreeNode(struct symbolTableTreeNode* father);
 
 struct symbolTableIdentifierList* getIdentifier(char* name);
-
+struct symbolTableIdentifierList* getIdentifierInList(char* name, struct symbolTableIdentifierList* list);
 
 #endif // SYMBOL_TABLE_H

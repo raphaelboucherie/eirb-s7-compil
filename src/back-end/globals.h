@@ -2,6 +2,7 @@
 #define GLOBALS_H
 
 #include "pile.h"
+#include "symbolTable.h"
 
 /* SYMBOL TABLE PART */
 
@@ -12,6 +13,11 @@ static const int type_UNDEFINED = -3;
 static const int type_FLOAT = -2;
 static const int type_INT = -1;
 // everything from 0 to n is a function with n parameter
+
+
+struct symbolTableTreeNode *symbolTableRoot = NULL;
+struct symbolTableTreeNode *symbolTableCurrentNode = NULL;
+
 
 /***********************/
 

@@ -29,6 +29,32 @@ struct symbolTableTreeNode* createTreeNode(struct symbolTableTreeNode* father)
 
 struct symbolTableIdentifierList* getIdentifier(char* name)
 {
-  // TODO
-  return (void*)0;
+  assert(symbolTableCurrentNode!=NULL);
+  assert(symbolTableRoot!=NULL);
+  struct symbolTableTreeNode* node = symbolTableCurrentNode; // récupération du noeud courant
+  while(node!=symbolTableRoot)
+    {
+      struct symbolTableIdentifierList *result = getIdentifierInList(name, node->identifierList); // recherche de l'identifiant dans le noeud
+      if (result != NULL) // si l'on trouve quelque chose
+	{
+	  return result;
+	}
+      // sinon remonter dans l'arbre
+      asser(node->father!=NULL);
+      node = node->father;
+    }
+  // dernière vérification dans les variables globales
+  assert(node==symbolTableRoot);
+  return getIdentifierInList(name,symbolTableRoot->identifierList);
+}
+
+struct symbolTableIdentifierList* getIdentifierInList(char* name, struct symbolTableIdentifierList* list)
+{
+  while(list!=NULL)
+    {
+      if (strcmp(list->name,name)==0)
+	return list;
+      list=list->next;
+    }
+  return NULL;
 }
