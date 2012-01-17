@@ -78,7 +78,9 @@ primary_expression
 $$ = (void*) create_tree_node($<ch>1);
 
 													}
-| CONSTANT												{	PRINT("%s", $1); $<ch>$ = $<str>1;	}	
+| CONSTANT												{	PRINT("%s", $1); $<ch>$ = $<str>1;	
+	$$ = (void*) create_tree_node($<ch>1);
+}	
 | IDENTIFIER '(' ')'											{	PRINT("%s()", $1);	}
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'{PRINT("%s", ")");}		
 | IDENTIFIER INC_OP											{	PRINT("%s++", $1); $<ch>$ = $<ch>1;	}
@@ -87,7 +89,7 @@ $$ = (void*) create_tree_node($<ch>1);
 
 postfix_expression
 : primary_expression	{$$ = $<tn>1;}
-| postfix_expression '[' {PRINT("%s", "[");} expression ']' {PRINT("%s", "]");}
+| postfix_expression '[' {PRINT("%s", "[");} expression ']' {PRINT("%s", "]");} /* A Voir ? */
 ;
 
 argument_expression_list
@@ -97,9 +99,24 @@ argument_expression_list
 
 unary_expression
 : postfix_expression		{$$ = $<tn>1;}				
-| INC_OP unary_expression										{PRINT("%s", "+=1");}
-| DEC_OP unary_expression										{PRINT("%s", "-=1");}
-| unary_operator unary_expression									
+| INC_OP unary_expression										
+{
+TreeNode* op = create_tree_node("++"); 
+set_left(op, (TreeNode*) $<tn>2);
+$$ = (void*) op;
+}
+
+| DEC_OP unary_expression										
+{TreeNode* op = create_tree_node("--"); 
+set_left(op, (TreeNode*) $<tn>2);
+$$ = (void*) op;
+}
+| unary_operator unary_expression
+{
+TreeNode* op = create_tree_node($<ch>1); 
+set_left(op, (TreeNode*) $<tn>2);
+$$ = (void*) op;									
+}
 ;
 
 unary_operator
@@ -110,8 +127,22 @@ unary_operator
 
 multiplicative_expression
 : unary_expression 			{$$ = $<tn>1;}
-| multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					{/*Génération de code 2 adresses*/}
-| multiplicative_expression '|' {PRINT("%s", "|");} unary_expression					{/*Génération de code 2 adresses*/} 
+| multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					
+{
+TreeNode* op = create_tree_node("*"); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}
+
+| multiplicative_expression '|' {PRINT("%s", "|");} unary_expression
+{
+TreeNode* op = create_tree_node("|"); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}
+
 ;
 
 additive_expression
@@ -123,19 +154,63 @@ set_right(op, (TreeNode*) $<tn>4);
 set_left(op, (TreeNode*) $<tn>1);
 $$ = (void*) op;
 }				
-| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{/*Génération de code 2 adresses*/
-														PRINT("id_%d=", getNewId());
-													}
+| additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					
+{
+TreeNode* op = create_tree_node("-"); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}													
 ;
 
 comparison_expression
 : additive_expression	{$$ = $<tn>1;}
-| additive_expression '<' {PRINT("%s", "<");} additive_expression					{/*Génération de code 2 adresses*/}
-| additive_expression '>' {PRINT("%s", ">");} additive_expression					{/*Génération de code 2 adresses*/}
-| additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					{/*Génération de code 2 adresses*/}
-| additive_expression GE_OP {PRINT("%s", ">=");} additive_expression					{/*Génération de code 2 adresses*/}
-| additive_expression EQ_OP {PRINT("%s", "==");} additive_expression					{/*Génération de code 2 adresses*/}
-| additive_expression NE_OP {PRINT("%s", "!=");} additive_expression					{/*Génération de code 2 adresses*/}
+| additive_expression '<' {PRINT("%s", "<");} additive_expression
+{
+TreeNode* op = create_tree_node("<"); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}
+| additive_expression '>' {PRINT("%s", ">");} additive_expression
+{
+TreeNode* op = create_tree_node(">"); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}
+| additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					
+{
+TreeNode* op = create_tree_node("<="); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}
+
+| additive_expression GE_OP {PRINT("%s", ">=");} additive_expression					
+{
+TreeNode* op = create_tree_node(">="); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}
+
+| additive_expression EQ_OP {PRINT("%s", "==");} additive_expression				
+{
+TreeNode* op = create_tree_node("=="); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}
+
+| additive_expression NE_OP {PRINT("%s", "!=");} additive_expression					
+{
+TreeNode* op = create_tree_node("!="); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}
+
 ;
 
 expression
