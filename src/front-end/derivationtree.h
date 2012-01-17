@@ -14,6 +14,7 @@ void set_left(TreeNode* tn, TreeNode* tleft);
 void set_right(TreeNode* tn, TreeNode* tright);
 TreeNode* get_right(const TreeNode* tn);
 TreeNode* get_left(const TreeNode* tn);
-void print_tree_node(const TreeNode* tn);
+void print_tree_node(const TreeNode* tn, int spaces);
 void free_tree_node(TreeNode* tn);
+void add_to_left(TreeNode* newNode, TreeNode* tn);
 #endif /* __DERIVATION_TREE_H__ */
