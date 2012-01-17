@@ -102,11 +102,11 @@ primary_expression
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1);
                       char* str = regOffset("%esp", o);
-                      PRINT("%s %s \n", "\tinc\t", str); $$=str;}
+                      PRINT("%s %s, %s\n", "\taddl\t", "$1", str); $$=str;}
 
 | IDENTIFIER DEC_OP  {int o = searchOffset($1);
                       char* str = regOffset("%esp", o);
-                      PRINT("%s %s \n", "\tdec\t", str); $$=str;} 
+                      PRINT("%s %s, %s\n", "\tsubl\t", "$1", str); $$=str;} 
 ;
 
 postfix_expression
@@ -146,13 +146,13 @@ unary_operator
 ;
 
 comparison_expression
-: unary_expression                            {PRINT("%s $0, %s \n", "\tcmpl\t", $1); $$="jeq";} // NOT SURE ABOUT THIS ONE ( IF ( var ) => IF ( var != 0 ) ?  )
-| primary_expression '<' primary_expression   {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjge\t";} 
-| primary_expression '>' primary_expression   {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjle\t";}
-| primary_expression LE_OP primary_expression {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjg\t";}
-| primary_expression GE_OP primary_expression {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjl\t";} 
-| primary_expression EQ_OP primary_expression {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjne\t";} 
-| primary_expression NE_OP primary_expression {PRINT("%s %s, %s \n", "\tcmpl\t", $1, $3); $$="\tjeq\t";} 
+: unary_expression                            {PRINT("%s $0, %s \n", "\tcmpl\t", $1); $$="jeq";}
+| primary_expression '<' primary_expression   {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjge\t";} 
+| primary_expression '>' primary_expression   {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjle\t";}
+| primary_expression LE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjg\t";}
+| primary_expression GE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjl\t";} 
+| primary_expression EQ_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjne\t";} 
+| primary_expression NE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjeq\t";} 
 ;
 
 expression
@@ -306,7 +306,7 @@ statement
 ;
 
 jump_statement
-: GOTO IDENTIFIER ';' {PRINT("%s %s\n", "\tjump\t", gotoLabel($2));}
+: GOTO IDENTIFIER ';' {PRINT("%s %s\n", "\tjmp\t", gotoLabel($2));}
 | RETURN ';' {PRINT("%s\n", "ret");}
 | RETURN expression ';'
 ;
