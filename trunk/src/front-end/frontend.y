@@ -5,6 +5,7 @@
 	#include <string.h>
 	#include <sys/time.h>
 	#include "symtable.h"
+	#include "derivationtree.h"
 	
 	#define PRINT(format, args...) printf(format, args)
 
@@ -40,6 +41,7 @@
 
 %union {
 	char *str;
+	void* tn;
 	int num;
 	char* ch;
 }
@@ -53,12 +55,12 @@
 
 %start program
 
-%type <num> comparison_expression
-%type <num> additive_expression
-%type <num> multiplicative_expression
-%type <num> unary_expression
-%type <num> postfix_expression;
-%type <ch> primary_expression
+%type <tn> comparison_expression
+%type <tn> additive_expression
+%type <tn> multiplicative_expression
+%type <tn> unary_expression
+%type <tn> postfix_expression;
+%type <tn> primary_expression
 %type <ch> assignment_operator;
 %type <ch> type_name;
 %type <ch> declarator;
@@ -72,7 +74,9 @@ primary_expression
 															yyerror("Indentificateur introuvable ! \n");
 															exit(1);
 														}
-														$<ch>$ = $<str>1;
+														
+$$ = (void*) create_tree_node($<ch>1);
+
 													}
 | CONSTANT												{	PRINT("%s", $1); $<ch>$ = $<str>1;	}	
 | IDENTIFIER '(' ')'											{	PRINT("%s()", $1);	}
@@ -82,7 +86,7 @@ primary_expression
 ;
 
 postfix_expression
-: primary_expression											
+: primary_expression	{$$ = $<tn>1;}
 | postfix_expression '[' {PRINT("%s", "[");} expression ']' {PRINT("%s", "]");}
 ;
 
@@ -92,7 +96,7 @@ argument_expression_list
 ;
 
 unary_expression
-: postfix_expression											
+: postfix_expression		{$$ = $<tn>1;}				
 | INC_OP unary_expression										{PRINT("%s", "+=1");}
 | DEC_OP unary_expression										{PRINT("%s", "-=1");}
 | unary_operator unary_expression									
@@ -105,23 +109,27 @@ unary_operator
 ;
 
 multiplicative_expression
-: unary_expression 											{/*Génération de code 2 adresses*/}
+: unary_expression 			{$$ = $<tn>1;}
 | multiplicative_expression '*' {PRINT("%s", "*");} unary_expression					{/*Génération de code 2 adresses*/}
 | multiplicative_expression '|' {PRINT("%s", "|");} unary_expression					{/*Génération de code 2 adresses*/} 
 ;
 
 additive_expression
-: multiplicative_expression										{/*Génération de code 2 adresses*/}
-| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression					{/*Génération de code 2 adresses*/
-														PRINT("id_%d=", getNewId());
-													}				
+: multiplicative_expression	{$$ = $<tn>1;}
+| additive_expression '+' {PRINT("%s", "+");} multiplicative_expression		{														
+//PRINT("id_%d=", getNewId());
+TreeNode* op = create_tree_node("+"); 
+set_right(op, (TreeNode*) $<tn>4);
+set_left(op, (TreeNode*) $<tn>1);
+$$ = (void*) op;
+}				
 | additive_expression '-' {PRINT("%s", "-");} multiplicative_expression					{/*Génération de code 2 adresses*/
 														PRINT("id_%d=", getNewId());
 													}
 ;
 
 comparison_expression
-: additive_expression											{/*Génération de code 2 adresses*/}
+: additive_expression	{$$ = $<tn>1;}
 | additive_expression '<' {PRINT("%s", "<");} additive_expression					{/*Génération de code 2 adresses*/}
 | additive_expression '>' {PRINT("%s", ">");} additive_expression					{/*Génération de code 2 adresses*/}
 | additive_expression LE_OP {PRINT("%s", "<=");} additive_expression					{/*Génération de code 2 adresses*/}
@@ -131,7 +139,23 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator comparison_expression 						{/*Génération de code 2 adresses*/}
+: unary_expression assignment_operator comparison_expression 	
+{
+TreeNode* dt = (TreeNode*) $<tn>1;  
+
+TreeNode* op = create_tree_node($<ch>2); 
+
+set_left(dt, op);
+
+set_right(op, (TreeNode*) $3); 
+
+printf("\n----- TREE ------ \n"); 
+	print_tree_node(dt, 0); 
+printf("\n----- END TREE ------ \n");
+
+free_tree_node(dt); 
+
+}
 | comparison_expression										
 ;
 
@@ -304,6 +328,7 @@ int main (int argc, char *argv[]) {
     
     //SymTable Creation
     Node n;
+	n.name = "";
     symTable = create_symtable(n);
     
     if (argc==2) {

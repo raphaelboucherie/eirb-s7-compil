@@ -27,13 +27,16 @@ TreeNode* get_left(const TreeNode* tn){
 	return tn->left;	
 }
 
-void print_tree_node(const TreeNode* tn){
-	if(tn->left != NULL){
-		print_tree_node(tn->left);
-	}
+void print_tree_node(const TreeNode* tn, int spaces){
+	int i;
+	for(i = 0; i < spaces; i++)
+		printf("  ");
 	printf("%s\n", tn->content);
+	if(tn->left != NULL){
+		print_tree_node(tn->left, spaces+1);
+	}
 	if(tn->right != NULL){
-		print_tree_node(tn->right);
+		print_tree_node(tn->right, spaces+1);
 	}
 }
 
@@ -46,4 +49,11 @@ void free_tree_node(TreeNode* tn){
 	}
 	free(tn->content);
 	free(tn);
+}
+
+void add_to_left(TreeNode* newNode, TreeNode* tn){
+	while(tn->left != NULL)	
+		tn = tn->left;
+
+	tn->left = newNode;
 }
