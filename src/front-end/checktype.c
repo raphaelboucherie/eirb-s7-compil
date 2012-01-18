@@ -30,13 +30,13 @@ int check_type(TreeNode* tn, const Node* symtable){
 	int i = 0;
 	Node* operand;
 	if(type_left == TYPE_UNDEF || type_right == TYPE_UNDEF){
-		exit(0);
-	}
-	if(tn->left != NULL){
-		type_left = check_type(tn->left, symtable);
+		return TYPE_UNDEF;
 	}
 	if(tn->right != NULL){
 		type_right = check_type(tn->right, symtable);
+	}
+	if(tn->left != NULL){
+		type_left = check_type(tn->left, symtable);
 	}
 	/* Validation du type */
 	while(i < NB_OP && strcmp(tn->content, operator[i]))
