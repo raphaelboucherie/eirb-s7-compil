@@ -140,12 +140,12 @@ unary_operator
 
 comparison_expression
 : unary_expression                            {PRINT("%s $0, %s \n", "\tcmpl\t", $1); $$="jeq";}
-| primary_expression '<' primary_expression   {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjge\t";} 
-| primary_expression '>' primary_expression   {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjle\t";}
-| primary_expression LE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjg\t";}
-| primary_expression GE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjl\t";} 
-| primary_expression EQ_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjne\t";} 
-| primary_expression NE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", $1, "%eax"); $$="\tjeq\t";} 
+| primary_expression '<' primary_expression   {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjge\t";} 
+| primary_expression '>' primary_expression   {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjle\t";}
+| primary_expression LE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjg\t";}
+| primary_expression GE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjl\t";} 
+| primary_expression EQ_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjne\t";} 
+| primary_expression NE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjeq\t";} 
 ;
 
 expression
@@ -319,8 +319,8 @@ statement
 
 jump_statement
 : GOTO IDENTIFIER ';' {PRINT("%s %s\n", "\tjmp\t", gotoLabel($2));}
-| RETURN ';' {PRINT("%s\n", "ret");}
-| RETURN expression ';' {PRINT("%s\n", "ret");}
+| RETURN ';' {PRINT("%s\n %s\n", "leave", "ret");}
+| RETURN expression ';' {PRINT("%s\n %s\n", "leave", "ret");}
 ;
 
 program
