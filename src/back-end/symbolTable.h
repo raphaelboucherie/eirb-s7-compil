@@ -50,12 +50,21 @@ getIdentifierInList(char* name,
 
 void 
 addIdentifier (char* identifier, int size, 
-		    struct symbolTableTreeNode* symbolTableCurrentNode);
+	       struct symbolTableTreeNode* symbolTableCurrentNode);
 
 int getOffset();
 
 int searchOffset(char* identifier,
 		 struct symbolTableTreeNode* symbolTableCurrentNode, 
 		 struct symbolTableTreeNode* symbolTableRoot);
+
+void addSon(struct symbolTableTreeNode* node, 
+	    struct symbolTableTreeNode* son);
+
+void dumpSymbolTable(struct symbolTableTreeNode* root, int i);
+
+void dumpSymbolTableTreeNodeList(struct symbolTableTreeNodeList* list);
+
+void dumpSymbolTableIdentifierList(struct symbolTableIdentifierList* list);
 
 #endif // SYMBOL_TABLE_H

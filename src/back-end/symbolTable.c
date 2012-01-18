@@ -63,14 +63,15 @@ struct symbolTableIdentifierList* getIdentifierInList(char* name, struct symbolT
 void addIdentifier (char* identifier, int type, 
 		    struct symbolTableTreeNode* symbolTableCurrentNode)
 {
-  struct symbolTableIdentifierList* identifierData = 
-    malloc(sizeof(struct symbolTableIdentifierList));
-  identifierData->name = strdup(identifier);
-  identifierData->type = type;
+  fprintf(stderr,"Ajout de l'identifier : %s\n", identifier);
+  int offset;
   if (type < 0)
-    identifierData->offset = getOffset();
+    offset = getOffset();
   else
-    identifierData->offset = -1; // fontion
+    offset = -1; // fontion
+  struct symbolTableIdentifierList* identifierData = 
+    createIdentifierList(identifier,type,offset);
+			 
   identifierData->next = symbolTableCurrentNode->identifierList;
   symbolTableCurrentNode->identifierList = identifierData;
 }
@@ -98,3 +99,49 @@ int searchOffset(char* identifier,
     }
 }
 
+void addSon(struct symbolTableTreeNode* node, 
+	    struct symbolTableTreeNode* son)
+{
+  struct symbolTableTreeNodeList *nodeList = 
+    createTreeNodeList(son);
+  nodeList->next = node->sons;
+  node->sons = nodeList;
+  fprintf(stderr,"Adding son to %p\n", node);
+}
+
+void dumpSymbolTable(struct symbolTableTreeNode* root, int i)
+{
+  fprintf(stderr,"Node %p informations : \n", root);
+  fprintf(stderr,"Current level : %d\n",i);
+  fprintf(stderr,"father = %p\n",root->father);
+  fprintf(stderr,"Symbol table informations : \n");
+  dumpSymbolTableIdentifierList(root->identifierList);
+  fprintf(stderr,"Sons list : \n");
+  dumpSymbolTableTreeNodeList(root->sons);
+  fprintf(stderr,"\n\n\n");
+  struct symbolTableTreeNodeList* list = root->sons;
+  while ( list != NULL )
+    {
+      dumpSymbolTable(list->data, i+1);
+      list = list->next;
+    }
+}
+
+void dumpSymbolTableTreeNodeList(struct symbolTableTreeNodeList* list)
+{
+  while(list != NULL)
+    {
+      fprintf(stderr,"\tnode : %p", list->data);
+      list = list->next;
+    }
+}
+
+void dumpSymbolTableIdentifierList(struct symbolTableIdentifierList* list)
+{
+  while(list != NULL)
+    {
+      fprintf(stderr,"\tname : %s, type : %d, offset : %d\n",
+	      list->name, list->type, list->offset);
+      list = list->next;
+    }
+}
