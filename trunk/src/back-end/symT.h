@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "globals.h"
+static int currentOffset = 0;
 
 struct symT
 {
@@ -16,7 +16,8 @@ struct symT
 };
 
 int getOffset();
-int getSym(char* string);
-void addSym(char* string, int type);
+int getSym(char* string, struct symT* symbolTable);
+void addSym(char* string, int type, struct symT* symbolTable);
+
 
 #endif // SYMT_H

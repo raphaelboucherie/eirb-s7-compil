@@ -6,7 +6,6 @@
 
 /* SYMBOL TABLE PART */
 
-static int currentOffset = 0;
 static struct symT* symbolTable = NULL;    
 
 static const int type_UNDEFINED = -3;
@@ -23,7 +22,6 @@ static struct symbolTableTreeNode *symbolTableCurrentNode = NULL;
 
 /* LABEL MANAGEMENT PART */
 
-static int labelNumber = 0; // might change
 static struct pile* labelPile = NULL;
 
 /************************/

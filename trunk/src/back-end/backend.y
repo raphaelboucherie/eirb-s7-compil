@@ -15,7 +15,9 @@
   int yylex ();
   int yyerror ();
 
-  
+
+  void globalInit();
+  void globalFree();
 
 /*
   struct declarator_info {
@@ -43,7 +45,7 @@
   };
 
  int searchOffset(char* sym) {
-    int offset = getSym(sym);
+   int offset = getSym(sym, symbolTable);
     while(offset == type_UNDEFINED && symbolTable != NULL)
       symbolTable = symbolTable->next;
     if(offset==type_UNDEFINED && symbolTable == NULL)
@@ -176,9 +178,9 @@ declaration
   do
     {
       if (declaratorList->size < 0)
-	addSym(declaratorList->name, $1);
+	addSym(declaratorList->name, $1, symbolTable);
       else
-	addSym(declaratorList->name, declaratorList->size);
+	addSym(declaratorList->name, declaratorList->size, symbolTable);
       temp = declaratorList->next;
       free(declaratorList->name);
       free(declaratorList);
@@ -360,8 +362,7 @@ int main (int argc, char *argv[]) {
     return 1;
   }
   /****** INIT ***************/
-  labelPile = createPile(100);
-  //  globalInit();
+  globalInit();
   PRINT("%s",ASM_INIT());
   /***************************/
   yyparse ();
@@ -369,8 +370,21 @@ int main (int argc, char *argv[]) {
   /****** /INIT *************/
   
   PRINT("%s",ASM_CLOSE());
-  //globalFree();
+  globalFree();
 
   /**************************/
   return 0;
+}
+
+void globalInit()
+{
+  labelPile = createPile(100);
+  symbolTableRoot = createTreeNode(NULL); // la racine n'a pas de père (father = NULL)
+  symbolTableCurrentNode = symbolTableRoot; 
+}
+
+void globalFree()
+{
+  freePile(labelPile);
+  // TOTO free ROOT !
 }
