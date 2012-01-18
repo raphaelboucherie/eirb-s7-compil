@@ -6,7 +6,7 @@
 
 /* SYMBOL TABLE PART */
 
-static struct symT* symbolTable = NULL;    
+struct symT* symbolTable = NULL;    
 
 static const int type_UNDEFINED = -3;
 static const int type_FLOAT = -2;
@@ -14,8 +14,8 @@ static const int type_INT = -1;
 // everything from 0 to n is a function with n parameter
 
 
-static struct symbolTableTreeNode *symbolTableRoot = NULL;
-static struct symbolTableTreeNode *symbolTableCurrentNode = NULL;
+struct symbolTableTreeNode *symbolTableRoot = NULL;
+struct symbolTableTreeNode *symbolTableCurrentNode = NULL;
 
 
 /***********************/

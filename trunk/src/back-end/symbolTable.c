@@ -27,7 +27,8 @@ struct symbolTableTreeNode* createTreeNode(struct symbolTableTreeNode* father)
   return node;
 }
 
-struct symbolTableIdentifierList* getIdentifier(char* name)
+struct symbolTableIdentifierList* getIdentifier(char* name, struct symbolTableTreeNode* symbolTableCurrentNode,
+						struct symbolTableTreeNode* symbolTableRoot )
 {
   assert(symbolTableCurrentNode!=NULL);
   assert(symbolTableRoot!=NULL);
@@ -58,3 +59,42 @@ struct symbolTableIdentifierList* getIdentifierInList(char* name, struct symbolT
     }
   return NULL;
 }
+
+void addIdentifier (char* identifier, int type, 
+		    struct symbolTableTreeNode* symbolTableCurrentNode)
+{
+  struct symbolTableIdentifierList* identifierData = 
+    malloc(sizeof(struct symbolTableIdentifierList));
+  identifierData->name = strdup(identifier);
+  identifierData->type = type;
+  if (type < 0)
+    identifierData->offset = getOffset();
+  else
+    identifierData->offset = -1; // fontion
+  identifierData->next = symbolTableCurrentNode->identifierList;
+  symbolTableCurrentNode->identifierList = identifierData;
+}
+
+int getOffset()
+{
+  static int currentOffset = 0;
+  currentOffset+=4;
+  return currentOffset;
+}
+
+int searchOffset(char* identifier,
+		 struct symbolTableTreeNode* symbolTableCurrentNode, 
+		 struct symbolTableTreeNode* symbolTableRoot)
+{
+  struct symbolTableIdentifierList* identifierData = 
+    getIdentifier(identifier, symbolTableCurrentNode, symbolTableRoot);
+  if (identifierData != NULL)
+    {
+      return identifierData->offset;
+    }
+  else
+    {
+      assert(0 && "No identifier found !");
+    }
+}
+
