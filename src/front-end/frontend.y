@@ -252,10 +252,10 @@ comparison_expression
 expression
 : unary_expression assignment_operator comparison_expression 	
 	{
-		TreeNode* dt = (TreeNode*) $<tn>1;  
-		TreeNode* op = create_tree_node($<ch>2); 
-		set_left(dt, op);
-		set_right(op, (TreeNode*) $<tn>3); 
+		TreeNode* dt = create_tree_node($<ch>2);  
+		TreeNode* var = $<tn>1; 
+		set_left(dt, var);
+		set_right(dt, (TreeNode*) $<tn>3); 
 		printf("\n----- TREE ------ \n"); 
 		print_tree_node(dt, 0); 
 		printf("\n----- END TREE ------ \n");

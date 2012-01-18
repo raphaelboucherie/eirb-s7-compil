@@ -6,7 +6,7 @@
 #define TYPE_VOID -3
 #define TYPE_INT -2
 #define TYPE_FLOAT -1
-//Every type >= 0 is a function with n parameters
+/* Every type >= 0 is a function with n parameters */
 
 
 typedef struct Node{
