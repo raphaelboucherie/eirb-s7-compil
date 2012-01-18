@@ -319,8 +319,8 @@ statement
 
 jump_statement
 : GOTO IDENTIFIER ';' {PRINT("%s %s\n", "\tjmp\t", gotoLabel($2));}
-| RETURN ';' {PRINT("%s\n %s\n", "leave", "ret");}
-| RETURN expression ';' {PRINT("%s\n %s\n", "leave", "ret");}
+| RETURN ';' {PRINT("\t%s\n \t%s\n", "leave", "ret");}
+| RETURN expression ';' {PRINT("\t%s\n \t%s\n", "leave", "ret");}
 ;
 
 program
