@@ -95,11 +95,21 @@ primary_expression
 	}		
 | IDENTIFIER INC_OP											
 	{
-		PRINT("%s++", $1); $<ch>$ = $<ch>1;	
+		PRINT("%s++", $1); 
+		//$<ch>$ = $<ch>1;	
+		TreeNode* op = create_tree_node("++"); 
+		TreeNode* var = create_tree_node($<ch>1); 
+		set_left(op, var);
+		$$ = (void*) op;
 	}
 | IDENTIFIER DEC_OP											
 	{
-		PRINT("%s--", $1); $<ch>$ = $<ch>1;
+		PRINT("%s--", $1); 
+		//$<ch>$ = $<ch>1;
+		TreeNode* op = create_tree_node("--"); 
+		TreeNode* var = create_tree_node($<ch>1); 
+		set_left(op, var);
+		$$ = (void*) op;
 	}
 ;
 
@@ -253,7 +263,7 @@ expression
 : unary_expression assignment_operator comparison_expression 	
 	{
 		TreeNode* dt = create_tree_node($<ch>2);  
-		TreeNode* var = $<tn>1; 
+		TreeNode* var = (TreeNode*) $<tn>1; 
 		set_left(dt, var);
 		set_right(dt, (TreeNode*) $<tn>3); 
 		printf("\n----- TREE ------ \n"); 
@@ -263,7 +273,9 @@ expression
 	}
 | comparison_expression
 	{
-		//TODO
+		printf("\n----- TREE ------ \n"); 
+		print_tree_node($<tn>1, 0); 
+		printf("\n----- END TREE ------ \n");
 	}		
 ;
 
@@ -416,11 +428,10 @@ expression_statement
 ;
 
 /*Fonctionnement GCC : Les blocs if et else sont gérés séparément. Quand un bloc else est évalué, il est rattaché au bloc if le plus proche*/
-selection_statement
-: IF '(' {PRINT("%s(", "if");} expression ')' {PRINT("%s\n", ") {");} statement {PRINT("%s\n", "}");}
-| FOR '(' {PRINT("%s(", "for");} expression_statement expression_statement expression ')' {PRINT("%s\n", ") {");} statement {PRINT("%s\n", "}");}
-| ELSE {PRINT("%s", "else {");} statement {PRINT("%s\n", "}");}
-|
+selection_statement /* TODO Refaire le traitement des if else ! */
+: IF '('  expression ')'  statement {PRINT("%s\n", "if only");}
+| IF '(' expression ')'  statement  ELSE statement {PRINT("%s\n", "if else");}
+| FOR '(' {PRINT("%s(", "for ");} expression_statement expression_statement expression ')' {PRINT("%s\n", ")");} statement
 ;
 
 iteration_statement
