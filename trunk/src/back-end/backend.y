@@ -43,18 +43,6 @@
     int size;
     struct delarator_list* next;
   };
-  /*
- int searchOffset(char* sym) {
-   int offset = getSym(sym, symbolTable);
-    while(offset == type_UNDEFINED && symbolTable != NULL)
-      symbolTable = symbolTable->next;
-    if(offset==type_UNDEFINED && symbolTable == NULL)
-      exit(1);
-    return offset;
-    }*/
-
-
-
 
   //global
  // symbolTable->offset = currentOffset;
@@ -284,7 +272,24 @@ labeled_statement
 compound_statement
 : '{' '}' {$$="";}
 | '{' statement_list '}' {$$=$2;}
-| '{' declaration_list statement_list '}' {$$=$2;}
+| '{' 
+{ // Nouveau statement, on crée une liste de symbole pour ce statement
+  struct symbolTableTreeNode* newNode =
+    createTreeNode(symbolTableCurrentNode);
+  fprintf(stderr,"Création d'un nouveau fils : %p\n", newNode);
+  struct symbolTableTreeNodeList *nodeList = 
+    createTreeNodeList(newNode);
+  nodeList->next = symbolTableCurrentNode->sons;
+  symbolTableCurrentNode->sons = nodeList;
+  // cette liste est la nouvelle liste active
+  symbolTableCurrentNode = newNode;
+}
+declaration_list statement_list '}' 
+{
+  // Fin du statement, on remonte à la liste de symbole du statement père
+  symbolTableCurrentNode = symbolTableCurrentNode->father;
+  $$="";
+}
 ;
 
 declaration_list
@@ -315,7 +320,7 @@ statement
 jump_statement
 : GOTO IDENTIFIER ';' {PRINT("%s %s\n", "\tjmp\t", gotoLabel($2));}
 | RETURN ';' {PRINT("%s\n", "ret");}
-| RETURN expression ';'
+| RETURN expression ';' {PRINT("%s\n", "ret");}
 ;
 
 program
@@ -370,6 +375,7 @@ int main (int argc, char *argv[]) {
   PRINT("%s",ASM_INIT());
   /***************************/
   yyparse ();
+  dumpSymbolTable(symbolTableRoot,0);
   free (file_name);
   /****** /INIT *************/
   
