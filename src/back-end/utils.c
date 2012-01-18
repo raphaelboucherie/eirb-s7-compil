@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "globals.h"
 
 char* regOffset(char* string, int a)
 {

@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "globals.h"
-
 static int labelNumber = 0; // might change
 
 char* gotoLabel(char* string);

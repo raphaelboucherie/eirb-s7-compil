@@ -1,15 +1,15 @@
 %{
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "utils.h"
-#include "symT.h"
+  //#include "symT.h"
 #include "label.h"
 #include "pile.h"
+#include "symbolTable.h"
 #include "globals.h"
+
 
 #define PRINT(format, args ...) {printf(format, args);}
   int yylex ();
@@ -28,7 +28,7 @@
   struct list_str
   {
     int value;
-    struct list_str *next;
+    struct list_str* next;
   };
   
   struct string_list
@@ -43,7 +43,7 @@
     int size;
     struct delarator_list* next;
   };
-
+  /*
  int searchOffset(char* sym) {
    int offset = getSym(sym, symbolTable);
     while(offset == type_UNDEFINED && symbolTable != NULL)
@@ -51,11 +51,13 @@
     if(offset==type_UNDEFINED && symbolTable == NULL)
       exit(1);
     return offset;
-  }
+    }*/
+
+
 
 
   //global
-  struct list_str * list = NULL; 
+ // symbolTable->offset = currentOffset;
 
   %}
 
@@ -82,7 +84,7 @@
 %%
 
 primary_expression
-: IDENTIFIER {int o = searchOffset($1); $$=regOffset("%esp",o);} 
+: IDENTIFIER {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot); $$=regOffset("%esp",o);} 
 
 | CONSTANT  {$$=constToASMConst($1);}
 
@@ -103,11 +105,11 @@ primary_expression
     while(temp!=NULL); 
 }
 
-| IDENTIFIER INC_OP  {int o = searchOffset($1);
+| IDENTIFIER INC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
                       char* str = regOffset("%esp", o);
                       PRINT("%s %s, %s\n", "\taddl\t", "$1", str); $$=str;}
 
-| IDENTIFIER DEC_OP  {int o = searchOffset($1);
+| IDENTIFIER DEC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
                       char* str = regOffset("%esp", o);
                       PRINT("%s %s, %s\n", "\tsubl\t", "$1", str); $$=str;} 
 ;
@@ -178,9 +180,11 @@ declaration
   do
     {
       if (declaratorList->size < 0)
-	addSym(declaratorList->name, $1, symbolTable);
+	addIdentifier(declaratorList->name, $1,
+		      symbolTableCurrentNode);
       else
-	addSym(declaratorList->name, declaratorList->size, symbolTable);
+	addIdentifier(declaratorList->name, declaratorList->size,
+		      symbolTableCurrentNode);
       temp = declaratorList->next;
       free(declaratorList->name);
       free(declaratorList);
