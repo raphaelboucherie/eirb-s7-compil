@@ -1,6 +1,6 @@
 LEX=lex
 YACC=yacc
-CFLAGS=-Wall
+CFLAGS=-Wall -Wno-unused-variable
 CC=gcc
 
 all:backend
