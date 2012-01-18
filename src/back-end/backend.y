@@ -84,7 +84,7 @@
 %%
 
 primary_expression
-: IDENTIFIER {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot); $$=regOffset("%esp",o);} 
+: IDENTIFIER {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot); $$=regOffset("%ebp",o);} 
 
 | CONSTANT  {$$=constToASMConst($1);}
 
@@ -106,11 +106,11 @@ primary_expression
 }
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
-                      char* str = regOffset("%esp", o);
+                      char* str = regOffset("%ebp", o);
                       PRINT("%s %s, %s\n", "\taddl\t", "$1", str); $$=str;}
 
 | IDENTIFIER DEC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
-                      char* str = regOffset("%esp", o);
+                      char* str = regOffset("%ebp", o);
                       PRINT("%s %s, %s\n", "\tsubl\t", "$1", str); $$=str;} 
 ;
 
