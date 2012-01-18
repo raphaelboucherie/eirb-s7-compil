@@ -25,15 +25,3 @@ char* ASM_CLOSE()
   return "";//mov eax, 1\nint 0x80\n";
 }
 
-void globalInit()
-{
-  labelPile = createPile(100);
-  symbolTableRoot = createTreeNode(NULL); // la racine n'a pas de père (father = NULL)
-  symbolTableCurrentNode = symbolTableRoot;
-}
-
-void globalFree()
-{
-  freePile(labelPile);
-  // TOTO free ROOT !
-}

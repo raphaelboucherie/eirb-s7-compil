@@ -6,7 +6,7 @@ int getOffset()
   return currentOffset;
 }
 
-int getSym(char* string)
+int getSym(char* string, struct symT* symbolTable)
 {
   fprintf(stderr,"SEARCHING FOR SYMT ELEMENT : %s\n", string);
   struct symT* temp = symbolTable;
@@ -24,7 +24,7 @@ int getSym(char* string)
   return -1;
 }
 
-void addSym(char* string, int type)
+void addSym(char* string, int type, struct symT* symbolTable)
 {
   struct symT* temp = malloc(sizeof(struct symT ) );
   fprintf(stderr,"CREATING SYMT ELEMENT\n");
