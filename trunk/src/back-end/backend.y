@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "stringList.h"
 #include "utils.h"
 #include "label.h"
 #include "pile.h"
@@ -10,7 +11,9 @@
 #include "globals.h"
 
 
+
 #define PRINT(format, args ...) {printf(format, args);}
+
   int yylex ();
   int yyerror ();
 
@@ -79,7 +82,7 @@ primary_expression
 | IDENTIFIER '(' ')' 
 {
   //TODO : search for identifier
-  PRINT("%s %s\n", "\tcall\t", $1);
+  asmCode = addString(asmCode,"%s %s\n", "\tcall\t", $1);
 } 
 
 | IDENTIFIER '(' argument_expression_list ')' // EXPERIMENTAL /!\
@@ -88,23 +91,23 @@ primary_expression
   struct string_list* temp = NULL;
   do
     {
-      PRINT("%s %s\n", "\tpushl\t", strList->str);
+      asmCode = addString(asmCode,"%s %s\n", "\tpushl\t", strList->str);
       temp=strList->next;
       free(strList->str);
       free(strList);
       strList = temp;
     }
     while(temp!=NULL); 
-  PRINT("%s %s\n", "\tcall\t", $1); 
+  asmCode = addString(asmCode,"%s %s\n", "\tcall\t", $1); 
 }
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
                       char* str = regOffset("%ebp", o);
-                      PRINT("%s %s, %s\n", "\taddl\t", "$1", str); $$=str;}
+                      asmCode = addString(asmCode,"%s %s, %s\n", "\taddl\t", "$1", str); $$=str;}
 
 | IDENTIFIER DEC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
                       char* str = regOffset("%ebp", o);
-                      PRINT("%s %s, %s\n", "\tsubl\t", "$1", str); $$=str;} 
+                      asmCode = addString(asmCode,"%s %s, %s\n", "\tsubl\t", "$1", str); $$=str;} 
 ;
 
 postfix_expression
@@ -133,9 +136,9 @@ argument_expression_list
 
 unary_expression
 : postfix_expression {$$=$1;}
-| INC_OP unary_expression {PRINT("%s %s \n", "\tinc\t", $2); $$=$2;}
-| DEC_OP unary_expression {PRINT("%s %s \n", "\tdec\t", $2); $$=$2;}
-| unary_operator unary_expression {PRINT("%s \n", $2); $$=$2;}
+| INC_OP unary_expression {asmCode = addString(asmCode,"%s %s \n", "\tinc\t", $2); $$=$2;}
+| DEC_OP unary_expression {asmCode = addString(asmCode,"%s %s \n", "\tdec\t", $2); $$=$2;}
+| unary_operator unary_expression {asmCode = addString(asmCode,"%s \n", $2); $$=$2;}
 ;
 
 unary_operator
@@ -144,20 +147,20 @@ unary_operator
 ;
 
 comparison_expression
-: unary_expression                            {PRINT("%s $0, %s \n", "\tcmpl\t", $1); $$="jeq";}
-| primary_expression '<' primary_expression   {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjge\t";} 
-| primary_expression '>' primary_expression   {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjle\t";}
-| primary_expression LE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjg\t";}
-| primary_expression GE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjl\t";} 
-| primary_expression EQ_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjne\t";} 
-| primary_expression NE_OP primary_expression {PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax");PRINT("%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjeq\t";} 
+: unary_expression                            {asmCode = addString(asmCode,"%s $0, %s \n", "\tcmpl\t", $1); $$="jeq";}
+| primary_expression '<' primary_expression   {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjge\t";} 
+| primary_expression '>' primary_expression   {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjle\t";}
+| primary_expression LE_OP primary_expression {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjg\t";}
+| primary_expression GE_OP primary_expression {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjl\t";} 
+| primary_expression EQ_OP primary_expression {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjne\t";} 
+| primary_expression NE_OP primary_expression {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjeq\t";} 
 ;
 
 expression
 : unary_expression assignment_operator unary_expression 
 {
-PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax")
-PRINT("%s %s, %s \n", $2, "%eax", $1); $$=$1;
+  asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");
+  asmCode = addString(asmCode,"%s %s, %s \n", $2, "%eax", $1); $$=$1;
 }
 | unary_expression {$$=$1;}
 ;
@@ -225,7 +228,7 @@ declarator_list
 
 type_name
 : INT     { $$ = type_INT; }
-| VOID    { $$ = 0; } // Function
+| VOID    { $$ = type_FUNCTION; } // Function
 | FLOAT   { $$ = type_FLOAT; }
 ;
 
@@ -355,7 +358,7 @@ statement
 ;
 
 labeled_statement
-: IDENTIFIER ':' {PRINT("%s:\n", gotoLabel($1));} statement 
+: IDENTIFIER ':' {asmCode = addString(asmCode,"%s:\n", gotoLabel($1));} statement 
 ;
 
 compound_statement
@@ -401,17 +404,17 @@ expression_statement
 selection_statement
 : IF '(' comparison_expression ')' 
   {char* lbl = newLabel("IF");
-  PRINT("%s %s\n", $3, lbl);
+  asmCode = addString(asmCode,"%s %s\n", $3, lbl);
   push(lbl,labelPile);}
 statement
   {char* lbl = pop(labelPile);
-   PRINT("%s:\n",lbl);}
+   asmCode = addString(asmCode,"%s:\n",lbl);}
 ;
 
 jump_statement
-: GOTO IDENTIFIER ';' {PRINT("%s %s\n", "\tjmp\t", gotoLabel($2));}
-| RETURN ';' //{PRINT("\t%s\n \t%s\n", "leave", "ret");}
-| RETURN expression ';' //{PRINT("\t%s\n \t%s\n", "leave", "ret");} // TODO
+: GOTO IDENTIFIER ';' {asmCode = addString(asmCode,"%s %s\n", "\tjmp\t", gotoLabel($2));}
+| RETURN ';' //{asmCode = addString(asmCode,"\t%s\n \t%s\n", "leave", "ret");}
+| RETURN expression ';' //{asmCode = addString(asmCode,"\t%s\n \t%s\n", "leave", "ret");} // TODO
 ;
 
 program
@@ -432,8 +435,8 @@ declarator
   char* functionName = decl->name;
   yyerror("Declaration of function : ");
   int stackSize = 256;
-  //PRINT("\n.globl %s\n\t.type\t %s, @function\n%s:\n\tenter\t $%d, $0\n",functionName,functionName,functionName,stackSize); // USE ENTER
-  PRINT("\n.globl %s\n\t.type\t %s, @function\n%s:\n\tpushl\t %s\n\tmovl\t %s, %s\n\tsubl\t $%d, %s\n", 
+  //asmCode = addString(asmCode,"\n.globl %s\n\t.type\t %s, @function\n%s:\n\tenter\t $%d, $0\n",functionName,functionName,functionName,stackSize); // USE ENTER
+  asmCode = addString(asmCode,"\n.globl %s\n\t.type\t %s, @function\n%s:\n\tpushl\t %s\n\tmovl\t %s, %s\n\tsubl\t $%d, %s\n", 
 	functionName, functionName, functionName, "%ebp", "%esp", "%ebp", stackSize, "%esp"); // USE GCC init
 	struct declarator_list * f = (struct declarator_list *) $2;
 	symbolTableCurrentNode = getFunctionNode(symbolTableRoot, f->name);
@@ -442,7 +445,7 @@ declarator
 }
 compound_statement 
 {
-  PRINT("\t%s\n\t%s\n","leave","ret");
+  asmCode = addString(asmCode,"\t%s\n\t%s\n","leave","ret");
 }
 ;
 
@@ -481,14 +484,17 @@ int main (int argc, char *argv[]) {
   }
   /****** INIT ***************/
   globalInit();
-  PRINT("%s",ASM_INIT());
+  asmCode = addString(NULL,"%s",ASM_INIT());
   /***************************/
   yyparse ();
+  asmCode = addString(asmCode,"%s",ASM_CLOSE());
   dumpSymbolTable(symbolTableRoot,0);
+  printString(asmCode);
   free (file_name);
   /****** /INIT *************/
   
-  PRINT("%s",ASM_CLOSE());
+
+
   globalFree();
 
   /**************************/
