@@ -251,10 +251,16 @@ int check_type(TreeNode* tn, const Node* symtable){
 			break;
 			
 			case 12 : /* | */
-				if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
-					return TYPE_FLOAT;
-				}
-				if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
+				if((type_left == TYPE_FLOAT && type_right == TYPE_FLOAT) 
+					|| (type_left == TYPE_FLOAT && type_right == TYPE_FLOAT)){
+					Node* left = get_node_from_symtable(tn->left->content, symtable);
+					Node* right = get_node_from_symtable(tn->right->content, symtable);
+					if(left == NULL || right == NULL){
+						return TYPE_UNDEF;
+					}
+					if(left->dimension != 1 || right->dimension != 1){
+						return TYPE_UNDEF;
+					}
 					return TYPE_FLOAT;
 				}
 				return TYPE_UNDEF;
