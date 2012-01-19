@@ -1,6 +1,6 @@
 LEX=lex
 YACC=yacc
-CFLAGS=-Wall -Wno-unused-variable
+CFLAGS=-Wall -Wno-unused-variable -g
 CC=gcc
 
 all:backend
@@ -15,7 +15,7 @@ frontend:frontend.c scanner_frontend.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 backend:backend.c scanner_backend.c utils.c label.c pile.c symbolTable.c
-	$(CC) $(CFLAGS) -o $@ $^
+	clear && $(CC) $(CFLAGS) -o $@ $^
 
 frontend.c:frontend.y
 	$(YACC) -o $@ --defines=frontend.tab.h $^

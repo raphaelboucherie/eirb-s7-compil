@@ -1,12 +1,13 @@
 #include "symbolTable.h"
 
-struct symbolTableIdentifierList* createIdentifierList(char* name, int type, int offset)
+struct symbolTableIdentifierList* createIdentifierList(char* name, int type, int offset, int size)
 {
   struct symbolTableIdentifierList* idList = malloc(sizeof (struct symbolTableIdentifierList));
   idList->name = strdup(name);
   idList->type = type;
   idList->offset = offset;
   idList->next = NULL;
+  idList->size = size;
   return idList;
 }
 
@@ -24,6 +25,15 @@ struct symbolTableTreeNode* createTreeNode(struct symbolTableTreeNode* father)
   node->father=father;
   node->sons = NULL;
   node->identifierList = NULL;
+  node->functionName = NULL;
+  return node;
+}
+
+struct symbolTableTreeNode* createFunctionTreeNode(struct symbolTableTreeNode* root, 
+						   char* functionName)
+{
+  struct symbolTableTreeNode* node = createTreeNode(root);
+  node->functionName = strdup(functionName);
   return node;
 }
 
@@ -60,29 +70,28 @@ struct symbolTableIdentifierList* getIdentifierInList(char* name, struct symbolT
   return NULL;
 }
 
-void addIdentifier (char* identifier, int type, 
+void addIdentifier (char* identifier, int size, int type, 
 		    struct symbolTableTreeNode* symbolTableCurrentNode)
 
 {
   assert(!getIdentifierInList(identifier,symbolTableCurrentNode->identifierList) && 
 	 "conflit avec un symbole déja présent dans la table"); 
+  assert(type != 0x10000 && // 0x10000 = type_FUNCTION
+	 "L'ajout de fonction dans la table ne doit pas utiliser cette fonction");
   fprintf(stderr,"Ajout de l'identifier : %s\n", identifier);
   int offset;
-  if (type < 0)
-    offset = getOffset();
-  else
-    offset = -1; // fontion
+  offset = getOffset(size);
   struct symbolTableIdentifierList* identifierData = 
-    createIdentifierList(identifier,type,offset);
+    createIdentifierList(identifier,type,offset,size);
 			 
   identifierData->next = symbolTableCurrentNode->identifierList;
   symbolTableCurrentNode->identifierList = identifierData;
 }
 
-int getOffset()
+int getOffset(int size)
 {
   static int currentOffset = 0;
-  currentOffset+=4;
+  currentOffset+=(size*4);
   return currentOffset;
 }
 

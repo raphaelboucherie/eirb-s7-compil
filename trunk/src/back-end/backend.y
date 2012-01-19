@@ -40,6 +40,7 @@
   {
     char* name;
     int size;
+    int type;
     struct delarator_list* next;
   };
 
@@ -63,10 +64,10 @@
 %token  IF ELSE GOTO RETURN
 
 %type <str> primary_expression postfix_expression unary_expression expression_statement declaration_list
-%type <str> selection_statement unary_operator type_name comparison_expression jump_statement
+%type <str> selection_statement unary_operator comparison_expression jump_statement
 %type <str> expression assignment_operator statement compound_statement labeled_statement statement_list
 %type <list> declarator declarator_list argument_expression_list
-%type <integer> parameter_list parameter_declaration
+%type <integer> parameter_list parameter_declaration type_name
 %start program
 %%
 
@@ -94,7 +95,7 @@ primary_expression
       strList = temp;
     }
     while(temp!=NULL); 
- 		PRINT("%s %s\n", "\tcall\t", functionLabel($1)); 
+  PRINT("%s %s\n", "\tcall\t", functionLabel($1)); 
 }
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
@@ -171,24 +172,35 @@ assignment_operator
 declaration
 : type_name declarator_list ';' 
 {
-  struct declarator_list *declaratorList = (struct declarator_list*)$2;
-  struct declarator_list *temp = NULL;
-  do
+  if ( $2 != NULL )
     {
-      if (declaratorList->size < 0)
+      struct declarator_list *declaratorList = (struct declarator_list*)$2;
+      struct declarator_list *temp = NULL;
+      do
+	{
+      /*
+      if (declaratorList->type < 0)
 	addIdentifier(declaratorList->name, $1,
 		      symbolTableCurrentNode);
 	
       else
 	addIdentifier(declaratorList->name, declaratorList->size,
-		      symbolTableCurrentNode);
-	
-      temp = declaratorList->next;
-      free(declaratorList->name);
-      free(declaratorList);
-      declaratorList = temp;
+	symbolTableCurrentNode); */
+
+      // add flag for int/float 
+	  
+	  declaratorList->type = $1 | declaratorList->type; 
+	  if (!(declaratorList->type & type_FUNCTION))
+	    addIdentifier(declaratorList->name, declaratorList->size,
+			  declaratorList->type, symbolTableCurrentNode);
+	  
+	  temp = declaratorList->next;
+	  free(declaratorList->name);
+	  free(declaratorList);
+	  declaratorList = temp;
+	}
+      while(temp != NULL);
     }
-  while(temp != NULL);
 }
 ;
 
@@ -197,10 +209,17 @@ declarator_list
 
 | declarator_list ',' declarator 
 {
-  struct declarator_list *declaratorInfo = (struct declarator_list*)$3;
-  struct declarator_list *declaratorList = (struct declarator_list*)$1;
-  declaratorInfo->next = declaratorList;
-  $$ = (void*) declaratorInfo; 
+  if ($3 == NULL)
+    $$ = $1;
+  else
+    {
+      assert($3 != NULL);
+      assert($1 != NULL);
+      struct declarator_list *declaratorInfo = (struct declarator_list*)$3;
+      struct declarator_list *declaratorList = (struct declarator_list*)$1;
+      declaratorInfo->next = declaratorList;
+      $$ = (void*) declaratorInfo; 
+    }
 }
 ;
 
@@ -211,11 +230,12 @@ type_name
 ;
 
 declarator
-: IDENTIFIER {} //*
+: IDENTIFIER //*
 {
   struct declarator_list *di = malloc(sizeof(struct declarator_list));
   di->name = strdup($1);
-  di->size=-1;
+  di->size=1;
+  di->type=0;
   yyerror("identifier");
   $$=(void*)di;
 } //*/
@@ -225,14 +245,15 @@ declarator
   struct declarator_list *di2 = (struct declarator_list*)$2;
   di->name = strdup(di2->name);
   di->size = di2->size;
+  di->type = di2->type;
   $$=(void*)di;  //*/
 } // ARRAY NOT HANDLED YET
 | declarator '[' CONSTANT ']'
-{ /*
-struct declarator_info *di = malloc(sizeof(struct declarator_info));
-di->value=$<dinfo.value>1;
-di->size = $3;
-$$=*di; */  
+{ //*
+    struct declarator_list *di = (struct declarator_info*)$1;
+    //di->size = $3; //TODO $3 is string not int
+    di->type = type_ARRAY;
+    $$=(void*)di; //*/  
 } 
 | declarator '[' ']' { /*
 struct declarator_info *di = malloc(sizeof(struct declarator_info));
@@ -241,21 +262,26 @@ di->size = 0;
 $$=*di;  //*/
 }
 | declarator '(' parameter_list ')'
-{ //*
+{ //* Creation de la table de symbole de la fonction + ajout des parametres a la table
+  // A REFAIRE
   struct declarator_list *di = malloc(sizeof(struct declarator_list));
   struct declarator_list *di2 = (struct declarator_list*)$1;
   di->name=strdup(di2->name);
-  di->size = $3;
-  $$=(void*)di;  //*/
+  di->size = 0; //*/
+  di->type = type_FUNCTION;
+  yyerror("declarator ( param )");
+  $$=(void*)di;  // Function is already added in symbolTable
  }
 | declarator '(' ')' 
-{ //*
+{ //* Creation de la table de symbole de la fonction
+  // A REFAIRE
   struct declarator_list *di = malloc(sizeof(struct declarator_list));
   struct declarator_list *di2 = (struct declarator_list*)$1;
   di->name= strdup(di2->name);
   di->size = 0;
-  yyerror("declarator ()");
-  $$=(void*)di;  //*/
+  di->type = type_FUNCTION;
+  yyerror("declarator ()"); //*/
+  $$=(void*)di; // Function is already added in symbolTable
 }
 ;
 
