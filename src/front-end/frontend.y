@@ -7,6 +7,7 @@
 	#include "symtable.h"
 	#include "derivationtree.h"
 	#include "pile.h"
+	#include "generate2a.h"
 	
 	#define PRINT(format, args...) printf(format, args)
 
@@ -27,6 +28,7 @@
 			switch(list_tmp->type){
 				case TYPE_UNDEF: type = "UNDEF"; break;
 				case TYPE_VOID: type = "VOID"; break;
+
 				case TYPE_INT: type = "INT"; break;
 				case TYPE_FLOAT: type = "FLOAT"; break;
 				default : list_tmp = list_tmp->next; continue;
@@ -49,6 +51,7 @@
 	char label[256];
 	struct pile* pile_for = NULL;
 	struct pile* pile_while = NULL;
+	struct pile* stack = NULL;
 %}
 
 %union {
@@ -273,20 +276,22 @@ expression
 		TreeNode* var = (TreeNode*) $<tn>1; 
 		set_left(dt, var);
 		set_right(dt, (TreeNode*) $<tn>3);
-		/*
+		
 		printf("\n----- TREE ------ \n"); 
 		print_tree_node(dt, 0); 
 		printf("\n----- END TREE ------ \n");
-		*/
+		printf("tree lenght : %d\n", tree_length(dt));
+		tree_to_2a_code(dt, symTable);
+		
 		free_tree_node(dt); 
 	}
 | comparison_expression
 	{
-		/*
+		
 		printf("\n----- TREE ------ \n"); 
 		print_tree_node($<tn>1, 0); 
 		printf("\n----- END TREE ------ \n");
-		*/
+		
 	}		
 ;
 
@@ -513,6 +518,7 @@ int main (int argc, char *argv[]) {
 	n.name = "";
     symTable = create_symtable(n);
 	pile_for = createPile(100);
+	stack = createPile(100);
 	pile_while = createPile(100);
     
     if(argc==2) {
