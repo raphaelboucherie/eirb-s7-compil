@@ -41,7 +41,7 @@
     char* name;
     int size;
     int type;
-    struct delarator_list* next;
+    struct declarator_list* next;
   };
 
   //global
@@ -85,7 +85,7 @@ primary_expression
 | IDENTIFIER '(' argument_expression_list ')' // EXPERIMENTAL /!\
 { 
   struct string_list* strList = (struct string_list*)$3;
-	struct string_list* temp = NULL;
+  struct string_list* temp = NULL;
   do
     {
       PRINT("%s %s\n", "\tpushl\t", strList->str);
@@ -95,7 +95,7 @@ primary_expression
       strList = temp;
     }
     while(temp!=NULL); 
-  PRINT("%s %s\n", "\tcall\t", functionLabel($1)); 
+  PRINT("%s %s\n", "\tcall\t", $1); 
 }
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
@@ -250,7 +250,7 @@ declarator
 } // ARRAY NOT HANDLED YET
 | declarator '[' CONSTANT ']'
 { //*
-    struct declarator_list *di = (struct declarator_info*)$1;
+    struct declarator_list *di = (struct declarator_list*)$1;
     //di->size = $3; //TODO $3 is string not int
     di->type = type_ARRAY;
     $$=(void*)di; //*/  
@@ -271,7 +271,29 @@ $$=*di;  //*/
   di->type = type_FUNCTION;
   yyerror("declarator ( param )");
   $$=(void*)di;  // Function is already added in symbolTable
- }
+
+  if(getFunctionNode(symbolTableRoot,di->name) == NULL) {
+    struct symbolTableTreeNode* newNode = createFunctionTreeNode(symbolTableRoot, di->name);
+		fprintf(stderr, "creation table fonction %s , %p \n", di->name, newNode);
+
+    struct declarator_list *parameterList = (struct declarator_list*)$3;
+    struct declarator_list *temp = NULL;
+    do
+      {
+        if (parameterList->size < 0)
+  	  addIdentifier(parameterList->name, parameterList->size, parameterList->type, newNode);
+	
+        else
+	  addIdentifier(parameterList->name, parameterList->size, parameterList->type, newNode);
+	
+        temp = parameterList->next;
+        free(parameterList->name);
+        free(parameterList);
+        parameterList = temp;
+      }
+    while(temp != NULL);
+   }
+}
 | declarator '(' ')' 
 { //* Creation de la table de symbole de la fonction
   // A REFAIRE
@@ -287,17 +309,46 @@ $$=*di;  //*/
 
 
 parameter_list
-: parameter_declaration {$$=$1;}
-| parameter_list ',' parameter_declaration {$$=$1+$3;}
+: parameter_declaration {//$$=$1;}
+  struct declarator_list *di = malloc(sizeof(struct declarator_list));
+  struct declarator_list *di2 = (struct declarator_list*)$1;
+  di->name= strdup(di2->name);
+  di->size = di2->size;
+  $$=(void*)di;
+}
+| parameter_list ',' parameter_declaration 
+{
+  struct declarator_list *parameterInfo = (struct declarator_list*)$3;
+  struct declarator_list *parameterList = (struct declarator_list*)$1;
+  parameterInfo->next = parameterList;
+  $$ = (void*) parameterInfo; 
+}
 ;
 
 parameter_declaration
-: type_name declarator {$$=1;}
+: type_name declarator {
+  struct declarator_list *di = malloc(sizeof(struct declarator_list));
+  struct declarator_list *di2 = (struct declarator_list*)$2;
+  di->name= strdup(di2->name);
+  di->size = 0;
+  $$=(void*)di;
+}
 ;
 
 statement
 : labeled_statement {$$=$1;}
-| compound_statement {fprintf(stderr,"Compound statement\n");$$=$1;}
+| compound_statement {fprintf(stderr,"Compound statement\n");$$=$1;
+  yyerror("Compound_statement");
+  struct symbolTableTreeNode* newNode =
+    createTreeNode(symbolTableCurrentNode);
+  fprintf(stderr,"Création d'un nouveau fils : %p\n", newNode);
+  struct symbolTableTreeNodeList *nodeList = 
+    createTreeNodeList(newNode);
+  nodeList->next = symbolTableCurrentNode->sons;
+  symbolTableCurrentNode->sons = nodeList;
+  // cette liste est la nouvelle liste active
+  symbolTableCurrentNode = newNode;
+}
 | expression_statement {$$=$1;}
 | selection_statement {$$=$1;}
 | jump_statement {$$=$1;}
@@ -311,7 +362,7 @@ compound_statement
 : '{' '}' {$$="";}
 | '{' statement_list '}' 
 | '{' 
-{ // Nouveau statement, on crée une liste de symbole pour ce statement
+{ /*// Nouveau statement, on crée une liste de symbole pour ce statement
   yyerror("Compound_statement");
   struct symbolTableTreeNode* newNode =
     createTreeNode(symbolTableCurrentNode);
@@ -322,6 +373,7 @@ compound_statement
   symbolTableCurrentNode->sons = nodeList;
   // cette liste est la nouvelle liste active
   symbolTableCurrentNode = newNode;
+  */
 }
 declaration_list statement_list '}' 
 {
@@ -383,6 +435,10 @@ declarator
   //PRINT("\n.globl %s\n\t.type\t %s, @function\n%s:\n\tenter\t $%d, $0\n",functionName,functionName,functionName,stackSize); // USE ENTER
   PRINT("\n.globl %s\n\t.type\t %s, @function\n%s:\n\tpushl\t %s\n\tmovl\t %s, %s\n\tsubl\t $%d, %s\n", 
 	functionName, functionName, functionName, "%ebp", "%esp", "%ebp", stackSize, "%esp"); // USE GCC init
+	struct declarator_list * f = (struct declarator_list *) $2;
+	symbolTableCurrentNode = getFunctionNode(symbolTableRoot, f->name);
+	yyerror("CurrentNode");
+	fprintf(stderr, "%s %p \n", f->name, symbolTableCurrentNode);
 }
 compound_statement 
 {

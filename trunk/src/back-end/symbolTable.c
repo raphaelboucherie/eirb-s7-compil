@@ -26,6 +26,13 @@ struct symbolTableTreeNode* createTreeNode(struct symbolTableTreeNode* father)
   node->sons = NULL;
   node->identifierList = NULL;
   node->functionName = NULL;
+
+	if(father != NULL) {
+		struct symbolTableTreeNodeList * sons = malloc(sizeof(struct symbolTableTreeNodeList));
+		sons->data = node;
+		sons->next = father->sons;
+		father->sons = sons;
+	}
   return node;
 }
 
@@ -156,4 +163,20 @@ void dumpSymbolTableIdentifierList(struct symbolTableIdentifierList* list)
 	      list->name, list->type, list->offset);
       list = list->next;
     }
+}
+
+struct symbolTableTreeNode * getFunctionNode(struct symbolTableTreeNode *root, char * name) {
+	 if(!strcmp(name, "main"))
+		 return root;
+
+   struct symbolTableTreeNodeList * sons = root->sons;
+   while(sons != NULL) {
+		 				fprintf(stderr, "comparaison %s %s .\n", sons->data->functionName, name);
+       if(!strcmp(sons->data->functionName, name)) {
+            return sons->data;
+			 }
+       else
+	    sons = sons->next;
+   }
+   return NULL;
 }

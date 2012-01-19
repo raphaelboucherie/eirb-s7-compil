@@ -75,4 +75,6 @@ void dumpSymbolTableTreeNodeList(struct symbolTableTreeNodeList* list);
 
 void dumpSymbolTableIdentifierList(struct symbolTableIdentifierList* list);
 
+struct symbolTableTreeNode * getFunctionNode(struct symbolTableTreeNode *root, char * name);
+
 #endif // SYMBOL_TABLE_H
