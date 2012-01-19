@@ -18,8 +18,8 @@ int main()
 WHILE0:
 	if (b<=0)
 		goto WHILE1;
-	b--;
-	goto WHILE0;
+	if (b--== a)
+		goto WHILE0;
 WHILE1:
 	b++;
 	return ;

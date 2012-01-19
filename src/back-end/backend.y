@@ -80,8 +80,8 @@ primary_expression
 
 | IDENTIFIER '(' argument_expression_list ')' // EXPERIMENTAL /!\
 { 
-  struct string_list* strList = (struct string_list*)$1;
-  struct string_list* temp = NULL;
+  struct string_list* strList = (struct string_list*)$3;
+	struct string_list* temp = NULL;
   do
     {
       PRINT("%s %s\n", "\tpushl\t", strList->str);
@@ -91,6 +91,7 @@ primary_expression
       strList = temp;
     }
     while(temp!=NULL); 
+ 		PRINT("%s %s\n", "\tcall\t", functionLabel($1)); 
 }
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
