@@ -17,7 +17,7 @@ char* constToASMConst(char* string)
 char* ASM_INIT()
 {
   //  return "BITS 32\nSECTION .data\nSECTION .text\n\tGLOBAL _start\n\n_start:\n";
-  return "\t.text\n.globl main\n\t.type	main, @function\nmain:\n\tpushl\t %ebp\n\tmovl\t %esp, %ebp\n\tsubl\t $16, %esp\n";
+  return "\t.text\n";//.globl main\n\t.type	main, @function\nmain:\n\tpushl\t %ebp\n\tmovl\t %esp, %ebp\n\tsubl\t $16, %esp\n";
 }
 char* ASM_CLOSE()
 {

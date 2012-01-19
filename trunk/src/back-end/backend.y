@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "utils.h"
-  //#include "symT.h"
 #include "label.h"
 #include "pile.h"
 #include "symbolTable.h"
@@ -56,7 +55,7 @@
 %token<int> TYPE_NAME
 %union {
   char *str;
-  int* list;
+  void* list;
   int integer;
 }
 %token INT FLOAT VOID
@@ -115,7 +114,7 @@ argument_expression_list
   struct string_list* strList = malloc( sizeof ( struct string_list ) );
   strList->str = strdup($1);
   strList->next = NULL;
-  $$=(int*)strList; 
+  $$=(void*)strList; 
 }
 | argument_expression_list ',' primary_expression 
 { 
@@ -123,7 +122,7 @@ argument_expression_list
   struct string_list* strElement = malloc( sizeof ( struct string_list ) );
   strElement->str = strdup($3);
   strElement->next = strList;
-  $$=(int*)strElement;
+  $$=(void*)strElement;
 }
 ;
 
@@ -171,9 +170,11 @@ declaration
       if (declaratorList->size < 0)
 	addIdentifier(declaratorList->name, $1,
 		      symbolTableCurrentNode);
+	
       else
 	addIdentifier(declaratorList->name, declaratorList->size,
 		      symbolTableCurrentNode);
+	
       temp = declaratorList->next;
       free(declaratorList->name);
       free(declaratorList);
@@ -191,7 +192,7 @@ declarator_list
   struct declarator_list *declaratorInfo = (struct declarator_list*)$3;
   struct declarator_list *declaratorList = (struct declarator_list*)$1;
   declaratorInfo->next = declaratorList;
-  $$ = (int*) declaratorInfo; 
+  $$ = (void*) declaratorInfo; 
 }
 ;
 
@@ -207,7 +208,8 @@ declarator
   struct declarator_list *di = malloc(sizeof(struct declarator_list));
   di->name = strdup($1);
   di->size=-1;
-  $$=(int*)di;
+  yyerror("identifier");
+  $$=(void*)di;
 } //*/
 | '(' declarator ')' 
 { //*
@@ -215,7 +217,7 @@ declarator
   struct declarator_list *di2 = (struct declarator_list*)$2;
   di->name = strdup(di2->name);
   di->size = di2->size;
-  $$=(int*)di;  //*/
+  $$=(void*)di;  //*/
 } // ARRAY NOT HANDLED YET
 | declarator '[' CONSTANT ']'
 { /*
@@ -236,7 +238,7 @@ $$=*di;  //*/
   struct declarator_list *di2 = (struct declarator_list*)$1;
   di->name=strdup(di2->name);
   di->size = $3;
-  $$=(int*)di;  //*/
+  $$=(void*)di;  //*/
  }
 | declarator '(' ')' 
 { //*
@@ -244,7 +246,8 @@ $$=*di;  //*/
   struct declarator_list *di2 = (struct declarator_list*)$1;
   di->name= strdup(di2->name);
   di->size = 0;
-  $$=(int*)di;  //*/
+  yyerror("declarator ()");
+  $$=(void*)di;  //*/
 }
 ;
 
@@ -260,7 +263,7 @@ parameter_declaration
 
 statement
 : labeled_statement {$$=$1;}
-| compound_statement {$$=$1;}
+| compound_statement {fprintf(stderr,"Compound statement\n");$$=$1;}
 | expression_statement {$$=$1;}
 | selection_statement {$$=$1;}
 | jump_statement {$$=$1;}
@@ -272,9 +275,10 @@ labeled_statement
 
 compound_statement
 : '{' '}' {$$="";}
-| '{' statement_list '}' {$$=$2;}
+| '{' statement_list '}' 
 | '{' 
 { // Nouveau statement, on crée une liste de symbole pour ce statement
+  yyerror("Compound_statement");
   struct symbolTableTreeNode* newNode =
     createTreeNode(symbolTableCurrentNode);
   fprintf(stderr,"Création d'un nouveau fils : %p\n", newNode);
@@ -294,7 +298,7 @@ declaration_list statement_list '}'
 ;
 
 declaration_list
-: declaration
+: {yyerror("test");} declaration 
 | declaration_list declaration
 ;
 
@@ -320,13 +324,13 @@ statement
 
 jump_statement
 : GOTO IDENTIFIER ';' {PRINT("%s %s\n", "\tjmp\t", gotoLabel($2));}
-| RETURN ';' {PRINT("\t%s\n \t%s\n", "leave", "ret");}
-| RETURN expression ';' {PRINT("\t%s\n \t%s\n", "leave", "ret");}
+| RETURN ';' //{PRINT("\t%s\n \t%s\n", "leave", "ret");}
+| RETURN expression ';' //{PRINT("\t%s\n \t%s\n", "leave", "ret");} // TODO
 ;
 
 program
-: external_declaration
-| program external_declaration
+: external_declaration 
+| program external_declaration 
 ;
 
 external_declaration
@@ -335,7 +339,18 @@ external_declaration
 ;
 
 function_definition
-: type_name declarator compound_statement
+: type_name 
+declarator 
+{
+  struct declarator_list* decl = (struct declarator_list*)$2;
+  char* functionName = decl->name;
+  yyerror("Declaration of function : ");
+  PRINT("\n.globl %s\n\t.type\t %s, @function\n%s:\n\tenter\t $256, $0\n",functionName,functionName,functionName);
+}
+compound_statement 
+{
+  PRINT("\t%s\n\t%s\n","leave","ret");
+}
 ;
 
 %%

@@ -62,7 +62,10 @@ struct symbolTableIdentifierList* getIdentifierInList(char* name, struct symbolT
 
 void addIdentifier (char* identifier, int type, 
 		    struct symbolTableTreeNode* symbolTableCurrentNode)
+
 {
+  assert(!getIdentifierInList(identifier,symbolTableCurrentNode->identifierList) && 
+	 "conflit avec un symbole déja présent dans la table"); 
   fprintf(stderr,"Ajout de l'identifier : %s\n", identifier);
   int offset;
   if (type < 0)
