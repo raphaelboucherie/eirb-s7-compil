@@ -1,5 +1,12 @@
 #include "derivationtree.h"
 
+void set_tree_node_content(char* content, TreeNode* tn){
+	if(tn != NULL && tn->content != NULL){
+		free(tn->content);
+		tn->content = strdup(content);
+	}	
+}
+
 TreeNode* create_tree_node(char* content){
 	TreeNode* newTreeNode = malloc(sizeof(TreeNode));
 	if(newTreeNode != NULL){

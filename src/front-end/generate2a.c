@@ -44,8 +44,113 @@ char* tree_to_2a_code(TreeNode* tn, Node* symtable){
 			addr_left = tree_to_2a_code(tn->left, symtable);
 		}
 	}
-	printf("addr_left = %s\n", addr_left);
-	printf("addr_right = %s\n", addr_right);
+	if(!strcmp(tn->content, "+")){
+		printf("%s_tmp = %s;\n", addr_left, addr_left);
+		printf("%s_tmp += %s;\n", addr_left, addr_right);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "-")){
+		printf("%s_tmp = %s;\n", addr_left, addr_left);
+		printf("%s_tmp -= %s;\n", addr_left, addr_right);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "*")){
+		printf("%s_tmp = %s;\n", addr_left, addr_left);
+		printf("%s_tmp *= %s;\n", addr_left, addr_right);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "=")){
+		printf("%s = %s;\n", addr_left, addr_right);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "+=")){
+		printf("%s += %s;\n", addr_left, addr_right);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "*=")){
+		printf("%s *= %s;\n", addr_left, addr_right);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "-=")){
+		printf("%s -= %s;\n", addr_left, addr_right);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "<")){
+		printf("if(%s < %s)\n", tn->left->content, tn->right->content);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		printf("%s = 1;\n", addr_left);
+		printf("if(%s >= %s)\n", tn->left->content, tn->right->content);
+		
+		printf("%s = 0;\n", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, ">")){
+		printf("if(%s > %s)\n", tn->left->content, tn->right->content);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		printf("%s = 1;\n", addr_left);
+		printf("if(%s <= %s)\n", tn->left->content, tn->right->content);
+		
+		printf("%s = 0;\n", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "<=")){
+		printf("if(%s <= %s)\n", tn->left->content, tn->right->content);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		printf("%s = 1;\n", addr_left);
+		printf("if(%s > %s)\n", tn->left->content, tn->right->content);
+		
+		printf("%s = 0;\n", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, ">=")){
+		printf("if(%s >= %s)\n", tn->left->content, tn->right->content);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		printf("%s = 1;\n", addr_left);
+		printf("if(%s < %s)\n", tn->left->content, tn->right->content);
+		
+		printf("%s = 0;\n", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "!=")){
+		printf("%s -= %s;\n", tn->left->content, tn->right->content);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "==")){
+		printf("if(%s == %s)\n", tn->left->content, tn->right->content);
+		sprintf(addr_left, "%s_tmp", addr_left);
+		printf("%s = 1;\n", addr_left);
+		printf("if(%s != %s)\n", tn->left->content, tn->right->content);
+		
+		printf("%s = 0;\n", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+	else if(!strcmp(tn->content, "|")){
+		/* Cas du Pipe */
+		printf("%s_tmp = %s | %s;\n", addr_left, tn->left->content, tn->right->content);
+				
+		sprintf(addr_left, "%s_tmp", addr_left);
+		set_tree_node_content(addr_left, tn);
+		return addr_left;
+	}
+//	printf("addr_left = %s\n", addr_left);
+//	printf("addr_right = %s\n", addr_right);
 /*	printf("content : %s\n", tn->content); */
 	return tn->content;
 }

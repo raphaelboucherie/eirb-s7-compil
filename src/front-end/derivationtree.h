@@ -9,6 +9,7 @@ typedef struct TreeNode{
 		struct TreeNode* right;
 } TreeNode;
 
+void set_tree_node_content(char* content, TreeNode* tn);
 TreeNode* create_tree_node(char* content);
 void set_left(TreeNode* tn, TreeNode* tleft);
 void set_right(TreeNode* tn, TreeNode* tright);
