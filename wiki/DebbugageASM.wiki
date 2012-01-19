@@ -1,0 +1,16 @@
+#summary Techniques et commandes de debug ASM
+#labels ASM
+
+= Details =
+
+Les noms des registres prennent un $ au lieu d'un %
+
+p [registre] -> ???
+i r [registre] -> Affiche le registre ( adresse ? valeur ? )
+i r -> Affiche tout les registres
+
+x/[nb]type [adresse] 
+ [nb] = nbre de case mémoire à lire
+ type = d pour décimal, i pour instruction
+ [adresse] = adresse hexadécimale en mémoire ( 0xffffffff )
+-> Affiche la valeur dans la case mémoire 
