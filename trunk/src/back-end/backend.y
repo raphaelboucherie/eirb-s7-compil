@@ -75,7 +75,11 @@ primary_expression
 
 | CONSTANT  {$$=constToASMConst($1);}
 
-| IDENTIFIER '(' ')' {PRINT("%s %s\n", "\tcall\t", functionLabel($1));} 
+| IDENTIFIER '(' ')' 
+{
+  //TODO : search for identifier
+  PRINT("%s %s\n", "\tcall\t", $1);
+} 
 
 | IDENTIFIER '(' argument_expression_list ')' // EXPERIMENTAL /!\
 { 
@@ -149,7 +153,11 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator unary_expression {PRINT("%s %s, %s \n", $2, $3, $1); $$=$1;}
+: unary_expression assignment_operator unary_expression 
+{
+PRINT("%s %s, %s \n","\tmovl\t", $3,"%eax")
+PRINT("%s %s, %s \n", $2, "%eax", $1); $$=$1;
+}
 | unary_expression {$$=$1;}
 ;
 
@@ -345,7 +353,10 @@ declarator
   struct declarator_list* decl = (struct declarator_list*)$2;
   char* functionName = decl->name;
   yyerror("Declaration of function : ");
-  PRINT("\n.globl %s\n\t.type\t %s, @function\n%s:\n\tenter\t $256, $0\n",functionName,functionName,functionName);
+  int stackSize = 256;
+  //PRINT("\n.globl %s\n\t.type\t %s, @function\n%s:\n\tenter\t $%d, $0\n",functionName,functionName,functionName,stackSize); // USE ENTER
+  PRINT("\n.globl %s\n\t.type\t %s, @function\n%s:\n\tpushl\t %s\n\tmovl\t %s, %s\n\tsubl\t $%d, %s\n", 
+	functionName, functionName, functionName, "%ebp", "%esp", "%ebp", stackSize, "%esp"); // USE GCC init
 }
 compound_statement 
 {
