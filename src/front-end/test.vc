@@ -1,24 +1,24 @@
 int a, z;
 float b;
-void u[2];
+void u[2][5];
 int i;
 int main(int c)
 {
+	int ra;
 	a = 2;
 	b = -3;
 	z = 2;
-	c = a + b - z;
-	++c;
+	z = c + a < b;
+	
 	
 	if(b == 5){
 		u[1] = 2;
 	}
 	for(i=0; i<3; i++){
 		for(a = 0; a < 16; a++){
-				
-		int r;
-		r = 2;
-		int j;
+			int r;			
+			int j;
+			r = 2;
 		}
 		while(a == b)
 			i++;

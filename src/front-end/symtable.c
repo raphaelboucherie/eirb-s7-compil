@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include "symtable.h"
 
+/////////////////////////
+//// SYMBOLS TABLE
+/////////////////////////
+
 /* Crée une liste pour la table des symbole à partir d'un premier élément */
 Node* create_symtable(Node n){
 	Node* newNode = malloc(sizeof(Node));
@@ -11,6 +15,8 @@ Node* create_symtable(Node n){
 		newNode->addr = n.addr; /* Malloc la value selon le type */
 		newNode->name = strdup(n.name);
 		newNode->next = NULL;
+		newNode->size = n.size;
+		newNode->dimension = n.dimension;
 		return newNode;
 	}
 	perror("Allocation error\n");
@@ -25,6 +31,8 @@ Node* add_start_to_symtable(Node n, Node* list){
 		newNode->addr = n.addr; /* Malloc la value selon le type */
 		newNode->name = strdup(n.name);
 		newNode->next = list;
+		newNode->size = n.size;
+		newNode->dimension = n.dimension;
 		return newNode;	
 	}
 	perror("Allocation error");
@@ -40,6 +48,8 @@ Node* add_end_to_symtable(Node n, Node* ln){
 		newNode->addr = n.addr; /* Malloc la value selon le type */
 		newNode->name = strdup(n.name);
 		newNode->next = NULL;
+		newNode->size = n.size;
+		newNode->dimension = n.dimension;
 		while(list->next != NULL){
 			list = list->next;
 		}
@@ -85,4 +95,27 @@ void free_symtable(Node* ln){
 			ln = ln_tmp;
 		}
 	}
+}
+
+
+/////////////////////////
+//// IDENTIFIERS
+/////////////////////////
+
+Identifier* create_identifier(Identifier id){
+	Identifier* _id = malloc(sizeof(Identifier));
+	if(_id != NULL){
+		_id->name = id.name;
+		_id->size = id.size;
+		_id->dimension = id.dimension;
+		_id->next = NULL;
+		return _id;
+	}
+	perror("Allocation error");
+	exit(1);
+}
+
+void free_identifier(Identifier* id){
+	free(id->name);
+	free(id);
 }

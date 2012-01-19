@@ -13,6 +13,7 @@
 	extern int yylineno;
 	int yylex();
 	int yyerror();
+	static int var_identifier = 1;
 	
 	//The symbol table
 	Node* symTable;
@@ -31,14 +32,15 @@
 				default : list_tmp = list_tmp->next; continue;
 			}
 			printf("Symbol : %s ", list_tmp->name);
-			printf("(%s)\n", type);
+			printf("(type = %s)", type);
+			printf("(size = %d)", list_tmp->size);
+			printf("(dim = %d)\n", list_tmp->dimension);
 			list_tmp = list_tmp->next;
 		}
 	}
 	
 	int getNewId(){
-		int id_gen;
-		return abs((int)(&id_gen));
+		return var_identifier++;
 	}
 	
 	/* Label for loops */
@@ -52,6 +54,7 @@
 %union {
 	char *str;
 	void* tn;
+	void* id;
 	int num;
 	char* ch;
 }
@@ -73,7 +76,8 @@
 %type <tn> primary_expression
 %type <ch> assignment_operator;
 %type <ch> type_name;
-%type <ch> declarator;
+%type <id> declarator;
+%type <id> declarator_list;
 %type <ch> unary_operator;
 
 %%
@@ -83,7 +87,7 @@ primary_expression
 	{
 		PRINT("%s", $1);
 		if(find_in_symtable($<ch>1, symTable) == 0){
-			yyerror("Indentificateur introuvable ! \n");
+			yyerror("Identificateur introuvable ! \n");
 			exit(1);
 		}														
 		$$ = (void*) create_tree_node($<ch>1);
@@ -199,7 +203,6 @@ additive_expression
 	}
 | additive_expression '+' {PRINT("%s", "+");} multiplicative_expression		
 	{		
-		//PRINT("id_%d=", getNewId());
 		TreeNode* op = create_tree_node("+"); 
 		set_right(op, (TreeNode*) $<tn>4);
 		set_left(op, (TreeNode*) $<tn>1);
@@ -264,16 +267,15 @@ comparison_expression
 		set_left(op, (TreeNode*) $<tn>1);
 		$$ = (void*) op;
 	}
-
 ;
-
+ 
 expression
 : unary_expression assignment_operator comparison_expression 	
 	{
 		TreeNode* dt = create_tree_node($<ch>2);  
 		TreeNode* var = (TreeNode*) $<tn>1; 
 		set_left(dt, var);
-		set_right(dt, (TreeNode*) $<tn>3); 
+		set_right(dt, (TreeNode*) $<tn>3);
 		/*
 		printf("\n----- TREE ------ \n"); 
 		print_tree_node(dt, 0); 
@@ -292,7 +294,7 @@ expression
 ;
 
 assignment_operator
-: '='					{PRINT("%s", "="); $<ch>$ = "=";}
+: '='				{PRINT("%s", "="); $<ch>$ = "=";}
 | MUL_ASSIGN			{PRINT("%s", "*="); $<ch>$ = "*=";}
 | ADD_ASSIGN			{PRINT("%s", "+="); $<ch>$ = "+=";}
 | SUB_ASSIGN			{PRINT("%s", "-="); $<ch>$ = "-=";}
@@ -316,35 +318,33 @@ declaration
 		else{
 			type = TYPE_UNDEF;
 		}
-		char* param = strtok($<ch>2, ",");
-		//Single param
-		if(param == NULL){
+		Identifier* _ids = $<id>2;
+		
+		//Parcours de la liste d'identifieurs (permettant de recuperer la taille d'un potentiel tableau multidimensionnel...)
+		do{
 			Node newNode;
-			newNode.name = $<ch>2;
+			newNode.name = _ids->name;
 			newNode.type = type;
+			newNode.size = _ids->size;
+			newNode.dimension = _ids->dimension;
 			symTable = add_start_to_symtable(newNode, symTable);
-		}
-		else{
-			//Param list
-			while(param != NULL){
-				Node newNode;
-				newNode.name = param;
-						newNode.type = type;
-						symTable = add_start_to_symtable(newNode, symTable);
-						param = strtok(NULL, ",");
-			}
-		}
+			Identifier* tmp = _ids;
+			_ids = _ids->next;
+			free_identifier(tmp);
+		}while(_ids != NULL);
 	}
 ;
 
 declarator_list
 : declarator												
 	{
-		$<ch>$ =$<ch>1;
+		$<id>$ = $<id>1;
 	}
 | declarator_list ',' {PRINT("%s", ",");} declarator							
-	{	// On construit la liste de paramètre récupérée plus haut dans l'arbre
-		sprintf($<ch>$, "%s,%s", $<ch>1, $<ch>4);
+	{	
+		Identifier* _id = $<id>4;
+		_id->next = $<id>1;
+		$<id>$ = $<id>4;
 	}
 ;
 
@@ -358,18 +358,30 @@ declarator
 : IDENTIFIER  												
 	{
 		PRINT("%s", $1); 
-		$<ch>$ = $<ch>1;
+		Identifier id;
+		id.name = $1;
+		id.size = 1;
+		id.dimension = 0;
+		$<id>$ = create_identifier(id);
 	}
 | '(' {PRINT("%s", "(");} declarator {PRINT("%s", ")");} ')'									
 | declarator '[' CONSTANT ']'			
 	{
 		PRINT("[%s]", $3); 
-		$<ch>$ = $<ch>1;
+		if($<id>1 != NULL){
+			Identifier* _id = $<id>1;
+			_id->size *= atoi($3);
+			_id->dimension++;
+			$<id>$ = _id;
+		}
 	}
 | declarator '[' ']'											
 	{
 		PRINT("%s", "[]"); 
-		$<ch>$ = $<ch>1;
+		if($<id>1 != NULL){
+			Identifier* _id = $<id>1;
+			$<id>$ = _id;
+		}
 	}
 | declarator '(' {PRINT("%s", "(");} parameter_list ')' 
 	{
@@ -378,7 +390,6 @@ declarator
 | declarator '(' ')'											
 	{
 		PRINT("%s", "()"); 
-		$<ch>$ = $<ch>1;
 	}
 ;
 
@@ -403,10 +414,14 @@ parameter_declaration
 		else{
 			type = TYPE_UNDEF;
 		}
+		Identifier* _id = $<id>2;
 		Node newNode;
-		newNode.name = $<ch>2;
+		newNode.name = _id->name;
 		newNode.type = type;
+		newNode.size = _id->size;
+		newNode.dimension = _id->dimension;
 		symTable = add_start_to_symtable(newNode, symTable);
+		free_identifier(_id);
 	}
 ;
 
@@ -435,7 +450,7 @@ statement_list
 ;
 
 expression_statement
-: ';'					{PRINT("%s", ";");}
+: ';'				{PRINT("%s", ";");}
 | expression ';'		{PRINT("%s", ";");}
 ;
 
