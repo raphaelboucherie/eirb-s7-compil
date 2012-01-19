@@ -108,7 +108,6 @@ primary_expression
 | IDENTIFIER INC_OP											
 	{
 		PRINT("%s++", $1); 
-		//$<ch>$ = $<ch>1;	
 		TreeNode* op = create_tree_node("++"); 
 		TreeNode* var = create_tree_node($<ch>1); 
 		set_left(op, var);
@@ -117,7 +116,6 @@ primary_expression
 | IDENTIFIER DEC_OP											
 	{
 		PRINT("%s--", $1); 
-		//$<ch>$ = $<ch>1;
 		TreeNode* op = create_tree_node("--"); 
 		TreeNode* var = create_tree_node($<ch>1); 
 		set_left(op, var);
@@ -193,7 +191,6 @@ multiplicative_expression
 		set_left(op, (TreeNode*) $<tn>1);
 		$$ = (void*) op;
 	}
-
 ;
 
 additive_expression
