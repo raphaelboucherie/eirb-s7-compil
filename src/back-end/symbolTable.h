@@ -30,6 +30,7 @@ struct symbolTableTreeNode
   struct symbolTableIdentifierList* identifierList;
   char* functionName;
   struct string* code; 
+  int currentOffset;
 };
 
 struct symbolTableIdentifierList* 
@@ -62,7 +63,7 @@ addIdentifier (char* identifier, int size, int type,
 	       struct symbolTableTreeNode* symbolTableCurrentNode);
 	     
 
-int getOffset();
+int getOffset(int size, struct symbolTableTreeNode* node);
 
 int searchOffset(char* identifier,
 		 struct symbolTableTreeNode* symbolTableCurrentNode, 

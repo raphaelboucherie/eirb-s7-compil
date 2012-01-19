@@ -66,11 +66,11 @@
 
 %token  IF ELSE GOTO RETURN
 
-%type <str> primary_expression postfix_expression unary_expression expression_statement declaration_list
+%type <str> primary_expression postfix_expression unary_expression expression_statement 
 %type <str> selection_statement unary_operator comparison_expression jump_statement
-%type <str> expression assignment_operator statement compound_statement labeled_statement statement_list
+%type <str> expression assignment_operator statement labeled_statement statement_list
 %type <list> declarator declarator_list argument_expression_list
-%type <integer> parameter_list parameter_declaration type_name
+%type <integer> parameter_list parameter_declaration type_name declaration compound_statement declaration_list
 %start program
 %%
 
@@ -82,7 +82,7 @@ primary_expression
 | IDENTIFIER '(' ')' 
 {
   //TODO : search for identifier
-  asmCode = addString(asmCode,"%s %s\n", "\tcall\t", $1);
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tcall\t", $1);
 } 
 
 | IDENTIFIER '(' argument_expression_list ')' // EXPERIMENTAL /!\
@@ -91,23 +91,23 @@ primary_expression
   struct string_list* temp = NULL;
   do
     {
-      asmCode = addString(asmCode,"%s %s\n", "\tpushl\t", strList->str);
+      symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tpushl\t", strList->str);
       temp=strList->next;
       free(strList->str);
       free(strList);
       strList = temp;
     }
     while(temp!=NULL); 
-  asmCode = addString(asmCode,"%s %s\n", "\tcall\t", $1); 
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tcall\t", $1); 
 }
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
                       char* str = regOffset("%ebp", o);
-                      asmCode = addString(asmCode,"%s %s, %s\n", "\taddl\t", "$1", str); $$=str;}
+                      symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\taddl\t", "$1", str); $$=str;}
 
 | IDENTIFIER DEC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
                       char* str = regOffset("%ebp", o);
-                      asmCode = addString(asmCode,"%s %s, %s\n", "\tsubl\t", "$1", str); $$=str;} 
+                      symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\tsubl\t", "$1", str); $$=str;} 
 ;
 
 postfix_expression
@@ -136,9 +136,9 @@ argument_expression_list
 
 unary_expression
 : postfix_expression {$$=$1;}
-| INC_OP unary_expression {asmCode = addString(asmCode,"%s %s \n", "\tinc\t", $2); $$=$2;}
-| DEC_OP unary_expression {asmCode = addString(asmCode,"%s %s \n", "\tdec\t", $2); $$=$2;}
-| unary_operator unary_expression {asmCode = addString(asmCode,"%s \n", $2); $$=$2;}
+| INC_OP unary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s \n", "\tinc\t", $2); $$=$2;}
+| DEC_OP unary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s \n", "\tdec\t", $2); $$=$2;}
+| unary_operator unary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s \n", $2); $$=$2;}
 ;
 
 unary_operator
@@ -147,20 +147,20 @@ unary_operator
 ;
 
 comparison_expression
-: unary_expression                            {asmCode = addString(asmCode,"%s $0, %s \n", "\tcmpl\t", $1); $$="jeq";}
-| primary_expression '<' primary_expression   {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjge\t";} 
-| primary_expression '>' primary_expression   {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjle\t";}
-| primary_expression LE_OP primary_expression {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjg\t";}
-| primary_expression GE_OP primary_expression {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjl\t";} 
-| primary_expression EQ_OP primary_expression {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjne\t";} 
-| primary_expression NE_OP primary_expression {asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");asmCode = addString(asmCode,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjeq\t";} 
+: unary_expression                            {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s $0, %s \n", "\tcmpl\t", $1); $$="jeq";}
+| primary_expression '<' primary_expression   {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%eax");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjge\t";} 
+| primary_expression '>' primary_expression   {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%eax");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjle\t";}
+| primary_expression LE_OP primary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%eax");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjg\t";}
+| primary_expression GE_OP primary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%eax");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjl\t";} 
+| primary_expression EQ_OP primary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%eax");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjne\t";} 
+| primary_expression NE_OP primary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%eax");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%eax", $1); $$="\tjeq\t";} 
 ;
 
 expression
 : unary_expression assignment_operator unary_expression 
 {
-  asmCode = addString(asmCode,"%s %s, %s \n","\tmovl\t", $3,"%eax");
-  asmCode = addString(asmCode,"%s %s, %s \n", $2, "%eax", $1); $$=$1;
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%eax");
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", $2, "%eax", $1); $$=$1;
 }
 | unary_expression {$$=$1;}
 ;
@@ -175,6 +175,7 @@ assignment_operator
 declaration
 : type_name declarator_list ';' 
 {
+  int listSize = 0;
   if ( $2 != NULL )
     {
       struct declarator_list *declaratorList = (struct declarator_list*)$2;
@@ -196,6 +197,7 @@ declaration
 	  if (!(declaratorList->type & type_FUNCTION))
 	    addIdentifier(declaratorList->name, declaratorList->size,
 			  declaratorList->type, symbolTableCurrentNode);
+	  listSize+=declaratorList->size;
 	  
 	  temp = declaratorList->next;
 	  free(declaratorList->name);
@@ -204,6 +206,7 @@ declaration
 	}
       while(temp != NULL);
     }
+  $$ = listSize;
 }
 ;
 
@@ -277,18 +280,15 @@ $$=*di;  //*/
 
   if(getFunctionNode(symbolTableRoot,di->name) == NULL) {
     struct symbolTableTreeNode* newNode = createFunctionTreeNode(symbolTableRoot, di->name);
-		fprintf(stderr, "creation table fonction %s , %p \n", di->name, newNode);
+    fprintf(stderr, "creation table fonction %s , %p \n", di->name, newNode);
 
     struct declarator_list *parameterList = (struct declarator_list*)$3;
     struct declarator_list *temp = NULL;
     do
       {
-        if (parameterList->size < 0)
-  	  addIdentifier(parameterList->name, parameterList->size, parameterList->type, newNode);
-	
-        else
-	  addIdentifier(parameterList->name, parameterList->size, parameterList->type, newNode);
-	
+	fprintf(stderr,"adding function parameter %s, size = %d, type = %d\n", 
+		parameterList->name, parameterList->size, parameterList->type);
+	addIdentifier(parameterList->name, parameterList->size, parameterList->type, newNode);
         temp = parameterList->next;
         free(parameterList->name);
         free(parameterList);
@@ -307,6 +307,12 @@ $$=*di;  //*/
   di->type = type_FUNCTION;
   yyerror("declarator ()"); //*/
   $$=(void*)di; // Function is already added in symbolTable
+
+  if(getFunctionNode(symbolTableRoot,di->name) == NULL) 
+    {
+      struct symbolTableTreeNode* newNode = createFunctionTreeNode(symbolTableRoot, di->name);
+      fprintf(stderr, "creation table fonction %s , %p \n", di->name, newNode);
+    }
 }
 ;
 
@@ -333,24 +339,30 @@ parameter_declaration
   struct declarator_list *di = malloc(sizeof(struct declarator_list));
   struct declarator_list *di2 = (struct declarator_list*)$2;
   di->name= strdup(di2->name);
-  di->size = 0;
+  di->size = di2->size;
+  di->type = $1 | di2->type;
   $$=(void*)di;
 }
 ;
 
 statement
 : labeled_statement {$$=$1;}
-| compound_statement {fprintf(stderr,"Compound statement\n");$$=$1;
+| 
+{
   yyerror("Compound_statement");
-  struct symbolTableTreeNode* newNode =
-    createTreeNode(symbolTableCurrentNode);
-  fprintf(stderr,"Création d'un nouveau fils : %p\n", newNode);
-  struct symbolTableTreeNodeList *nodeList = 
-    createTreeNodeList(newNode);
-  nodeList->next = symbolTableCurrentNode->sons;
-  symbolTableCurrentNode->sons = nodeList;
-  // cette liste est la nouvelle liste active
+  // Création du noeud
+  struct symbolTableTreeNode* newNode = createTreeNode(symbolTableCurrentNode);
+  // On change le noeud actif
   symbolTableCurrentNode = newNode;
+}
+compound_statement
+{
+  // on sort du statement, on ajoute le code et on remonte au père
+  symbolTableCurrentNode->father->code = 
+    addStringList(symbolTableCurrentNode->father->code,
+		  symbolTableCurrentNode->code);
+  symbolTableCurrentNode = symbolTableCurrentNode->father;
+    $$=$2;
 }
 | expression_statement {$$=$1;}
 | selection_statement {$$=$1;}
@@ -358,7 +370,7 @@ statement
 ;
 
 labeled_statement
-: IDENTIFIER ':' {asmCode = addString(asmCode,"%s:\n", gotoLabel($1));} statement 
+: IDENTIFIER ':' {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s:\n", gotoLabel($1));} statement 
 ;
 
 compound_statement
@@ -381,14 +393,14 @@ compound_statement
 declaration_list statement_list '}' 
 {
   // Fin du statement, on remonte à la liste de symbole du statement père
-  symbolTableCurrentNode = symbolTableCurrentNode->father;
-  $$="";
+  
+  $$=$3;
 }
 ;
 
 declaration_list
-: {yyerror("test");} declaration 
-| declaration_list declaration
+: declaration {$$ = $1;}
+| declaration_list declaration {$$ = $1 + $2;}
 ;
 
 statement_list
@@ -402,19 +414,23 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' comparison_expression ')' 
+: {yyerror("lecture du IF");} IF '(' {yyerror("lecture de la comparaison");} comparison_expression ')' 
   {char* lbl = newLabel("IF");
-  asmCode = addString(asmCode,"%s %s\n", $3, lbl);
-  push(lbl,labelPile);}
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", $5, lbl);
+  push(lbl,labelPile);
+  yyerror("début du statement (IF)");}
 statement
-  {char* lbl = pop(labelPile);
-   asmCode = addString(asmCode,"%s:\n",lbl);}
+  {
+    yyerror("fin du statement (IF)");
+    char* lbl = pop(labelPile);
+    symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s:\n",lbl);
+    yyerror("fin lecture du IF");}
 ;
 
 jump_statement
-: GOTO IDENTIFIER ';' {asmCode = addString(asmCode,"%s %s\n", "\tjmp\t", gotoLabel($2));}
-| RETURN ';' //{asmCode = addString(asmCode,"\t%s\n \t%s\n", "leave", "ret");}
-| RETURN expression ';' //{asmCode = addString(asmCode,"\t%s\n \t%s\n", "leave", "ret");} // TODO
+: GOTO IDENTIFIER ';' {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tjmp\t", gotoLabel($2));}
+| RETURN ';' //{symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s\n \t%s\n", "leave", "ret");}
+| RETURN expression ';' //{symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s\n \t%s\n", "leave", "ret");} // TODO
 ;
 
 program
@@ -433,19 +449,34 @@ declarator
 {
   struct declarator_list* decl = (struct declarator_list*)$2;
   char* functionName = decl->name;
-  yyerror("Declaration of function : ");
-  int stackSize = 256;
-  //asmCode = addString(asmCode,"\n.globl %s\n\t.type\t %s, @function\n%s:\n\tenter\t $%d, $0\n",functionName,functionName,functionName,stackSize); // USE ENTER
-  asmCode = addString(asmCode,"\n.globl %s\n\t.type\t %s, @function\n%s:\n\tpushl\t %s\n\tmovl\t %s, %s\n\tsubl\t $%d, %s\n", 
-	functionName, functionName, functionName, "%ebp", "%esp", "%ebp", stackSize, "%esp"); // USE GCC init
-	struct declarator_list * f = (struct declarator_list *) $2;
-	symbolTableCurrentNode = getFunctionNode(symbolTableRoot, f->name);
-	yyerror("CurrentNode");
-	fprintf(stderr, "%s %p \n", f->name, symbolTableCurrentNode);
+  fprintf(stderr,"Declaration of function : %s\n", functionName);
+  struct declarator_list * f = (struct declarator_list *) $2;
+  symbolTableCurrentNode = getFunctionNode(symbolTableRoot, f->name);
+  fprintf(stderr, "%s %p \n", f->name, symbolTableCurrentNode);
 }
 compound_statement 
 {
+  struct declarator_list* decl = (struct declarator_list*)$2;
+  char* functionName = decl->name;
+  int stackSize = $4;
+
+  fprintf(stderr,"Ajout du code d'init, stackSize = %d\n", stackSize);
+  asmCode = addString(asmCode,
+		      "\n.globl %s\n\t.type\t %s, @function\n%s:\n\tpushl\t %s\n\tmovl\t %s, %s\n\tsubl\t $%d, %s\n",functionName, functionName, functionName, "%ebp", "%esp", "%ebp", (stackSize+1)*4, "%esp"); // USE GCC init
+
+  fprintf(stderr,"Ajout du code du corps : %s\n", symbolTableCurrentNode->code->str);
+  asmCode = addStringList(asmCode, symbolTableCurrentNode->code);
+  fprintf(stderr,"Ajout du code de fin\n");
   asmCode = addString(asmCode,"\t%s\n\t%s\n","leave","ret");
+  // On retourne au père
+  symbolTableCurrentNode = symbolTableCurrentNode->father;
+  assert(symbolTableCurrentNode != NULL);
+
+
+  //asmCode = addString(asmCode,"\n.globl %s\n\t.type\t %s, @function\n%s:\n\tenter\t $%d, $0\n",functionName,functionName,functionName,stackSize); // USE ENTER
+  
+  
+  fprintf(stderr,"End of declaration of function : %s\n", functionName);
 }
 ;
 
@@ -505,6 +536,7 @@ void globalInit()
 {
   labelPile = createPile(100);
   symbolTableRoot = createTreeNode(NULL); // la racine n'a pas de père (father = NULL)
+  symbolTableRoot->functionName = "_root";
   symbolTableCurrentNode = symbolTableRoot; 
 }
 

@@ -1,45 +1,23 @@
-
-void foo(int c, int z);
-void foo(int c, int z)
+int bar(int a, int b)
 {
-	int a;
-	a=42;
-	if (a > 12)
-	{
-		int b;
-		b = 12;
-		a+=b;
-		b+=c;
-	}
-	return ;
+  int c;
+  c+=a;
+  if ( c < b )
+    return 1;
+  return 0;
 }
 
-
-int main() 
-{ 
-	int a;
-	int b;
-	float c;
-	a=2;
-	b=5;
-	c=1;
-	if (a<b) 
-	{
-		if (a>1)
-		{
-			foo(a,b);
-			a=3;
-		}
-		a+=3;	
-	}
-	b=10;
-WHILE0:
-	if (b<=0)
-		goto WHILE1;
-	if (b--== a)
-		goto WHILE0;
-WHILE1:
-	b++;
-	return ;
+void foo()
+{
+  int b;
+  b = 21;
 }
 
+int main()
+{
+  int a;
+  a= 42;
+  foo();
+  a= 35;
+  return 1;
+}
