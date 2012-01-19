@@ -196,7 +196,7 @@ int check_type(TreeNode* tn, const Node* symtable){
 						return TYPE_FLOAT;
 					}
 				}else{
-					//Si meme types à gauche et à droite (float, float ou int, int)
+					//Si memes types à gauche et à droite (float, float ou int, int)
 					if((type_left == TYPE_INT && type_left == TYPE_INT) 
 						|| (type_left == TYPE_FLOAT && type_left == TYPE_FLOAT)
 						|| (type_left == TYPE_CONSTANT && type_right == TYPE_INT)
