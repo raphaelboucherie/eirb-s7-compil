@@ -6,14 +6,15 @@ int main(int c)
 {
 	int ra;
 	a = 2;
-	b = -3;
+	b = 3;
 	z = 2;
 	z = c + a < b;
 	
-	
 	if(b == 5){
-		u[1] = 2;
+		
 	}
+	if(a < b){
+	}	
 	for(i=0; i<3; i++){
 		for(a = 0; a < 16; a++){
 			int r;			

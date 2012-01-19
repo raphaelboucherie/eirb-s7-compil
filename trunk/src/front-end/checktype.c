@@ -4,8 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <regex.h>
 #include "derivationtree.h"
 #include "symtable.h"
+#include "checktype.h"
 
 #define NB_OP 13
 
@@ -25,6 +27,7 @@ char* operator[NB_OP] = {
 				"|" 	/* 12 */
 };
 int type_left = 0, type_right = 0;
+const char *var_regex = "";
 	
 int check_type(TreeNode* tn, const Node* symtable){
 	int i = 0;
@@ -52,6 +55,12 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
 					return TYPE_INT;
 				}
+				else if(type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT){
+					return TYPE_INT;
+				}
+				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
+					return TYPE_INT;
+				}
 				else{
 					return TYPE_UNDEF;
 				}
@@ -62,6 +71,12 @@ int check_type(TreeNode* tn, const Node* symtable){
 					return TYPE_INT;
 				}
 				else if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
+					return TYPE_INT;
+				}
+				else if(type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT){
+					return TYPE_INT;
+				}
+				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
 				else{
@@ -76,6 +91,12 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
 					return TYPE_INT;
 				}
+				else if(type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT){
+					return TYPE_INT;
+				}
+				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
+					return TYPE_INT;
+				}
 				else{
 					return TYPE_UNDEF;
 				}
@@ -88,6 +109,12 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
 					return TYPE_INT;
 				}
+				else if(type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT){
+					return TYPE_INT;
+				}
+				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
+					return TYPE_INT;
+				}
 				else{
 					return TYPE_UNDEF;
 				}
@@ -96,6 +123,9 @@ int check_type(TreeNode* tn, const Node* symtable){
 			case 6 : /* = */
 				if(type_left == type_right){
 					printf("Affectation OK\n");
+					return type_left;
+				}
+				else if((type_left == TYPE_INT || type_left == TYPE_FLOAT) && type_right == TYPE_CONSTANT){
 					return type_left;
 				}
 				else{
@@ -111,6 +141,28 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
 					return TYPE_FLOAT;
 				}
+				else if(type_left == TYPE_CONSTANT){
+					if(type_right == TYPE_CONSTANT){
+						return TYPE_CONSTANT;
+					}
+					if(type_right == TYPE_INT){
+						return TYPE_INT;
+					}
+					if(type_right == TYPE_FLOAT){
+						return TYPE_FLOAT;
+					}
+				}
+				else if(type_right == TYPE_CONSTANT){
+					if(type_left == TYPE_CONSTANT){
+						return TYPE_CONSTANT;
+					}
+					if(type_left == TYPE_INT){
+						return TYPE_INT;
+					}
+					if(type_left == TYPE_FLOAT){
+						return TYPE_FLOAT;
+					}
+				}
 				else{
 					return TYPE_UNDEF;
 				}
@@ -122,6 +174,28 @@ int check_type(TreeNode* tn, const Node* symtable){
 				}
 				else if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
 					return TYPE_FLOAT;
+				}
+				else if(type_left == TYPE_CONSTANT){
+					if(type_right == TYPE_CONSTANT){
+						return TYPE_CONSTANT;
+					}
+					if(type_right == TYPE_INT){
+						return TYPE_INT;
+					}
+					if(type_right == TYPE_FLOAT){
+						return TYPE_FLOAT;
+					}
+				}
+				else if(type_right == TYPE_CONSTANT){
+					if(type_left == TYPE_CONSTANT){
+						return TYPE_CONSTANT;
+					}
+					if(type_left == TYPE_INT){
+						return TYPE_INT;
+					}
+					if(type_left == TYPE_FLOAT){
+						return TYPE_FLOAT;
+					}
 				}
 				else{
 					return TYPE_UNDEF;
@@ -135,6 +209,28 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
 					return TYPE_FLOAT;
 				}
+				else if(type_left == TYPE_CONSTANT){
+					if(type_right == TYPE_CONSTANT){
+						return TYPE_CONSTANT;
+					}
+					if(type_right == TYPE_INT){
+						return TYPE_INT;
+					}
+					if(type_right == TYPE_FLOAT){
+						return TYPE_FLOAT;
+					}
+				}
+				else if(type_right == TYPE_CONSTANT){
+					if(type_left == TYPE_CONSTANT){
+						return TYPE_CONSTANT;
+					}
+					if(type_left == TYPE_INT){
+						return TYPE_INT;
+					}
+					if(type_left == TYPE_FLOAT){
+						return TYPE_FLOAT;
+					}
+				}
 				else{
 					return TYPE_UNDEF;
 				}
@@ -145,6 +241,12 @@ int check_type(TreeNode* tn, const Node* symtable){
 					return TYPE_INT;
 				}
 				else if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
+					return TYPE_INT;
+				}
+				else if(type_left == TYPE_CONSTANT && (type_right == TYPE_CONSTANT || type_right == TYPE_INT || type_right == TYPE_FLOAT)){
+					return TYPE_INT;
+				}
+				else if(type_right == TYPE_CONSTANT && (type_left == TYPE_CONSTANT || type_left == TYPE_INT || type_left == TYPE_FLOAT)){
 					return TYPE_INT;
 				}
 				else{
@@ -159,17 +261,28 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
 					return TYPE_INT;
 				}
+				else if(type_left == TYPE_CONSTANT && (type_right == TYPE_CONSTANT || type_right == TYPE_INT || type_right == TYPE_FLOAT)){
+					return TYPE_INT;
+				}
+				else if(type_right == TYPE_CONSTANT && (type_left == TYPE_CONSTANT || type_left == TYPE_INT || type_left == TYPE_FLOAT)){
+					return TYPE_INT;
+				}
 				else{
 					return TYPE_UNDEF;
 				}
 			break;
 		}
-	}
-	else{
-		/* C'est un opérande */
+	}else{
+		/* C'est une opérande */
 		operand =  get_node_from_symtable(tn->content, symtable);
+		// Constante
+		if(operand == NULL){		
+			return TYPE_CONSTANT;
+		}
+		// Variable
 		return operand->type;
 	}
+	return TYPE_UNDEF;
 }
 
 #endif /* __CHECK_TYPE_H__ */
