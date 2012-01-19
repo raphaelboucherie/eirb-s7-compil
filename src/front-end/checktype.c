@@ -61,9 +61,7 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
-				else{
-					return TYPE_UNDEF;
-				}
+				return TYPE_UNDEF;
 			break;
 
 			case 3 : /* >= */
@@ -79,9 +77,7 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
-				else{
-					return TYPE_UNDEF;
-				}
+				return TYPE_UNDEF;
 			break;
 
 			case 4 : /* == */
@@ -97,9 +93,7 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
-				else{
-					return TYPE_UNDEF;
-				}
+				return TYPE_UNDEF;
 			break;
 
 			case 5 : /* != */
@@ -115,23 +109,17 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
-				else{
-					return TYPE_UNDEF;
-				}
+				return TYPE_UNDEF;
 			break;
 			
 			case 6 : /* = */
 				if(type_left == type_right){
-					printf("Affectation OK\n");
 					return type_left;
 				}
 				else if((type_left == TYPE_INT || type_left == TYPE_FLOAT) && type_right == TYPE_CONSTANT){
 					return type_left;
 				}
-				else{
-					printf("Affectation impossible \n");
-					return TYPE_UNDEF;
-				}
+				return TYPE_UNDEF;
 			break;
 
 			case 7 : /* + */
@@ -163,9 +151,7 @@ int check_type(TreeNode* tn, const Node* symtable){
 						return TYPE_FLOAT;
 					}
 				}
-				else{
-					return TYPE_UNDEF;
-				}
+				return TYPE_UNDEF;
 			break;
 			
 			case 8 : /* - */
@@ -197,9 +183,7 @@ int check_type(TreeNode* tn, const Node* symtable){
 						return TYPE_FLOAT;
 					}
 				}
-				else{
-					return TYPE_UNDEF;
-				}
+				return TYPE_UNDEF;
 			break;
 			
 			case 9 : /* * */
@@ -231,9 +215,7 @@ int check_type(TreeNode* tn, const Node* symtable){
 						return TYPE_FLOAT;
 					}
 				}
-				else{
-					return TYPE_UNDEF;
-				}
+				return TYPE_UNDEF;
 			break;
 			
 			case 10 : /* < */
@@ -249,9 +231,7 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_right == TYPE_CONSTANT && (type_left == TYPE_CONSTANT || type_left == TYPE_INT || type_left == TYPE_FLOAT)){
 					return TYPE_INT;
 				}
-				else{
-					return TYPE_UNDEF;
-				}
+				return TYPE_UNDEF;
 			break;
 			
 			case 11 : /* > */
@@ -267,9 +247,17 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_right == TYPE_CONSTANT && (type_left == TYPE_CONSTANT || type_left == TYPE_INT || type_left == TYPE_FLOAT)){
 					return TYPE_INT;
 				}
-				else{
-					return TYPE_UNDEF;
+				return TYPE_UNDEF;
+			break;
+			
+			case 12 : /* | */
+				if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
+					return TYPE_FLOAT;
 				}
+				if(type_left == TYPE_FLOAT && type_right == TYPE_FLOAT){
+					return TYPE_FLOAT;
+				}
+				return TYPE_UNDEF;
 			break;
 		}
 	}else{
