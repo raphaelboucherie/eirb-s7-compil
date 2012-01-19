@@ -291,7 +291,7 @@ expression
 			switch(ret){
 				case TYPE_INT: printf("Expression type : INT\n"); break;
 				case TYPE_FLOAT: printf("Expression type : FLOAT\n"); break;
-				case TYPE_UNDEF: printf("Expression type : UNDEF\n"); break;
+				case TYPE_UNDEF: printf("Expression type : UNDEF\n"); yyerror("Uncompatible types !"); exit(1); break;
 				default : printf("Expression type : %d\n", ret);
 			}
 		}
