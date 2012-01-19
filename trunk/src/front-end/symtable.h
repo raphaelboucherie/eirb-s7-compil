@@ -9,10 +9,19 @@
 /* Every type >= 0 is a function with n parameters */
 
 
+typedef struct Identifier{
+	char* name;
+	int size;
+	int dimension;
+	struct Identifier* next;
+} Identifier;
+
 typedef struct Node{
 	int type;
 	void* addr;
 	char* name;
+	int size;
+	int dimension;
 	struct Node* next;
 	struct Node* parent;
 } Node;
@@ -24,4 +33,7 @@ Node* add_end_to_symtable(Node n, Node* list);
 int find_in_symtable(char* n, const Node* ln);
 Node* get_node_from_symtable(char* n, const Node* list);
 void free_symtable(Node* ln);
+
+Identifier* create_identifier(Identifier id);
+void free_identifier(Identifier* id);
 #endif
