@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "stringList.h"
 
 
 struct symbolTableIdentifierList
@@ -28,6 +29,7 @@ struct symbolTableTreeNode
   struct symbolTableTreeNode* father; 
   struct symbolTableIdentifierList* identifierList;
   char* functionName;
+  struct string* code; 
 };
 
 struct symbolTableIdentifierList* 
