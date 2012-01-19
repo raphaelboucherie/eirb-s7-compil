@@ -111,7 +111,7 @@ primary_expression
 	}		
 | IDENTIFIER INC_OP											
 	{
-		PRINT("%s++", $1); 
+
 		char decvar[256];
 		sprintf(decvar, "%s%s", $<ch>1, "++");
 		TreeNode* op = create_tree_node(decvar); 
@@ -119,7 +119,7 @@ primary_expression
 	}
 | IDENTIFIER DEC_OP											
 	{
-		PRINT("%s--", $1); 
+
 		char decvar[256];
 		sprintf(decvar, "%s%s", $<ch>1, "--");
 		TreeNode* op = create_tree_node(decvar); 
@@ -297,8 +297,9 @@ expression
 		}
 		printf("\n----- END TYPE VALIDATION ------ \n"); 				
 		printf("tree lenght : %d\n", tree_length(dt));
-		tree_to_2a_code(dt, symTable);
-		
+		char code_2a[4096] = "";
+		tree_to_2a_code(dt, symTable, code_2a);
+		printf("%s", code_2a);
 		free_tree_node(dt); 
 	}
 | comparison_expression
