@@ -164,6 +164,11 @@ char* tree_to_2a_code(TreeNode* tn, Node* symtable, char* code_2a){
 	else if(!strcmp(tn->content, "|")){
 
            	  /* Cas du Pipe */
+		/* Idée By Z. :
+			On créé un vecteur tmp = v1
+			On fait tmp *= v2
+			Puis pour le moment on voit pas comment faire l'addition des composantes
+		*/
 	         addr_left_tmp = strdup(addr_left);
 		 strcat(addr_left_tmp,"_tmp");	 
           	while(find_in_symtable(addr_left_tmp, symtable))
