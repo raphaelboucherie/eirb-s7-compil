@@ -6,6 +6,7 @@
 	#include <sys/time.h>
 	#include "symtable.h"
 	#include "derivationtree.h"
+	#include "checktype.h"
 	#include "pile.h"
 	#include "generate2a.h"
 	
@@ -280,6 +281,10 @@ expression
 		printf("\n----- TREE ------ \n"); 
 		print_tree_node(dt, 0); 
 		printf("\n----- END TREE ------ \n");
+		printf("\n----- TYPE VALIDATION ------ \n"); 
+		int ret = check_type(dt, symTable);
+		printf("Return type is : %d", ret);
+		printf("\n----- END TYPE VALIDATION ------ \n"); 				
 		printf("tree lenght : %d\n", tree_length(dt));
 		tree_to_2a_code(dt, symTable);
 		

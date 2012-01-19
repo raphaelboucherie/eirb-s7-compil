@@ -2,6 +2,7 @@
 #define __SYMTABLEH__
 
 /* Define const for types */
+#define TYPE_CONSTANT -5
 #define TYPE_UNDEF -4
 #define TYPE_VOID -3
 #define TYPE_INT -2
