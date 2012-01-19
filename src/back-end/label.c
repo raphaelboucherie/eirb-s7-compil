@@ -18,7 +18,7 @@ char* gotoLabel(char* string)
 char* functionLabel(char* string)
 {
   char* str = malloc( sizeof( char ) * 256 );
-  sprintf(str,".FUNCTION_%s", string);
+  sprintf(str,".f_%s", string);
   return str;
 }
     

@@ -10,7 +10,8 @@ int main()
 	{
 		if (a>3)
 		{
-			a=3;
+		  foo();
+		  a=3;
 		}
 		a+=3;	
 	}
@@ -23,4 +24,17 @@ WHILE0:
 WHILE1:
 	b++;
 	return ;
+}
+
+void foo()
+{
+  int a;
+  a=42;
+  if (a > 12)
+    {
+      int b;
+      b = 12;
+      a+=b;
+    }
+  return ;
 }

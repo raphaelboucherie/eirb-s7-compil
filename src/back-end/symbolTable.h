@@ -51,6 +51,7 @@ getIdentifierInList(char* name,
 void 
 addIdentifier (char* identifier, int size, 
 	       struct symbolTableTreeNode* symbolTableCurrentNode);
+	     
 
 int getOffset();
 
