@@ -26,13 +26,17 @@ struct symbolTableTreeNode* createTreeNode(struct symbolTableTreeNode* father)
   node->sons = NULL;
   node->identifierList = NULL;
   node->functionName = NULL;
-
-	if(father != NULL) {
-		struct symbolTableTreeNodeList * sons = malloc(sizeof(struct symbolTableTreeNodeList));
-		sons->data = node;
-		sons->next = father->sons;
-		father->sons = sons;
-	}
+  node->code = NULL;
+  node->currentOffset = 0;
+    
+  if(father != NULL) 
+    {
+      fprintf(stderr,"Création d'un nouveau fils : %p\n", node);
+      struct symbolTableTreeNodeList * sons = malloc(sizeof(struct symbolTableTreeNodeList));
+      sons->data = node;
+      sons->next = father->sons;
+      father->sons = sons;
+    }
   return node;
 }
 
@@ -87,19 +91,19 @@ void addIdentifier (char* identifier, int size, int type,
 	 "L'ajout de fonction dans la table ne doit pas utiliser cette fonction");
   fprintf(stderr,"Ajout de l'identifier : %s\n", identifier);
   int offset;
-  offset = getOffset(size);
+  offset = getOffset(size, symbolTableCurrentNode);
   struct symbolTableIdentifierList* identifierData = 
     createIdentifierList(identifier,type,offset,size);
 			 
   identifierData->next = symbolTableCurrentNode->identifierList;
   symbolTableCurrentNode->identifierList = identifierData;
+  fprintf(stderr,"Fin de l'ajout de l'identifier : %s\n", identifier);
 }
 
-int getOffset(int size)
+int getOffset(int size, struct symbolTableTreeNode* node)
 {
-  static int currentOffset = 0;
-  currentOffset+=(size*4);
-  return currentOffset;
+  node->currentOffset+=(size*4);
+  return node->currentOffset;
 }
 
 int searchOffset(char* identifier,
@@ -130,7 +134,8 @@ void addSon(struct symbolTableTreeNode* node,
 
 void dumpSymbolTable(struct symbolTableTreeNode* root, int i)
 {
-  fprintf(stderr,"Node %p informations : \n", root);
+  fprintf(stderr,"Node %s informations : \n", root->functionName);
+  fprintf(stderr,"Pointer = %p\n", root);
   fprintf(stderr,"Current level : %d\n",i);
   fprintf(stderr,"father = %p\n",root->father);
   fprintf(stderr,"Symbol table informations : \n");
@@ -165,18 +170,16 @@ void dumpSymbolTableIdentifierList(struct symbolTableIdentifierList* list)
     }
 }
 
-struct symbolTableTreeNode * getFunctionNode(struct symbolTableTreeNode *root, char * name) {
-	 if(!strcmp(name, "main"))
-		 return root;
-
-   struct symbolTableTreeNodeList * sons = root->sons;
-   while(sons != NULL) {
-		 				fprintf(stderr, "comparaison %s %s .\n", sons->data->functionName, name);
-       if(!strcmp(sons->data->functionName, name)) {
-            return sons->data;
-			 }
-       else
-	    sons = sons->next;
-   }
+struct symbolTableTreeNode * getFunctionNode(struct symbolTableTreeNode *root, char * name) 
+{
+  struct symbolTableTreeNodeList * sons = root->sons;
+  while(sons != NULL) {
+    fprintf(stderr, "comparaison %s %s .\n", sons->data->functionName, name);
+    if(!strcmp(sons->data->functionName, name)) {
+      return sons->data;
+    }
+    else
+      sons = sons->next;
+  }
    return NULL;
 }
