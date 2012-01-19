@@ -61,7 +61,6 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
-				return TYPE_UNDEF;
 			break;
 
 			case 3 : /* >= */
@@ -77,7 +76,6 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
-				return TYPE_UNDEF;
 			break;
 
 			case 4 : /* == */
@@ -93,7 +91,6 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
-				return TYPE_UNDEF;
 			break;
 
 			case 5 : /* != */
@@ -109,7 +106,6 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
-				return TYPE_UNDEF;
 			break;
 			
 			case 6 : /* = */
@@ -119,7 +115,6 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if((type_left == TYPE_INT || type_left == TYPE_FLOAT) && type_right == TYPE_CONSTANT){
 					return type_left;
 				}
-				return TYPE_UNDEF;
 			break;
 
 			case 7 : /* + */
@@ -150,10 +145,28 @@ int check_type(TreeNode* tn, const Node* symtable){
 					if(type_left == TYPE_FLOAT){
 						return TYPE_FLOAT;
 					}
+				}else{
+					//Si meme types à gauche et à droite (float, float ou int, int)
+					if((type_left == TYPE_INT && type_left == TYPE_INT) 
+						|| (type_left == TYPE_FLOAT && type_left == TYPE_FLOAT)
+						|| (type_left == TYPE_CONSTANT && type_right == TYPE_INT)
+						|| (type_left == TYPE_CONSTANT && type_right == TYPE_FLOAT)
+						|| (type_left == TYPE_INT && type_right == TYPE_CONSTANT)
+						|| (type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT)){
+						
+						Node* left = get_node_from_symtable(tn->left->content, symtable);
+						Node* right = get_node_from_symtable(tn->right->content, symtable);
+						// Si les symboles récupérés sont valides
+						if(left == NULL || right == NULL){
+							return TYPE_UNDEF;
+						}
+						// Si l'une des operandes et un vecteur (tableau de dimension 1)
+						if(left->dimension == 1 || right->dimension == 1){
+							return TYPE_FLOAT;
+						}
+					}
 				}
-				return TYPE_UNDEF;
 			break;
-			
 			case 8 : /* - */
 				if(type_left == TYPE_INT && type_right == TYPE_INT){
 					return TYPE_INT;
@@ -182,8 +195,27 @@ int check_type(TreeNode* tn, const Node* symtable){
 					if(type_left == TYPE_FLOAT){
 						return TYPE_FLOAT;
 					}
+				}else{
+					//Si meme types à gauche et à droite (float, float ou int, int)
+					if((type_left == TYPE_INT && type_left == TYPE_INT) 
+						|| (type_left == TYPE_FLOAT && type_left == TYPE_FLOAT)
+						|| (type_left == TYPE_CONSTANT && type_right == TYPE_INT)
+						|| (type_left == TYPE_CONSTANT && type_right == TYPE_FLOAT)
+						|| (type_left == TYPE_INT && type_right == TYPE_CONSTANT)
+						|| (type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT)){
+						
+						Node* left = get_node_from_symtable(tn->left->content, symtable);
+						Node* right = get_node_from_symtable(tn->right->content, symtable);
+						// Si les symboles récupérés sont valides
+						if(left == NULL || right == NULL){
+							return TYPE_UNDEF;
+						}
+						// Si l'une des operandes et un vecteur (tableau de dimension 1)
+						if(left->dimension == 1 || right->dimension == 1){
+							return TYPE_FLOAT;
+						}
+					}
 				}
-				return TYPE_UNDEF;
 			break;
 			
 			case 9 : /* * */
@@ -214,8 +246,27 @@ int check_type(TreeNode* tn, const Node* symtable){
 					if(type_left == TYPE_FLOAT){
 						return TYPE_FLOAT;
 					}
+				}else{
+					//Si meme types à gauche et à droite (float, float ou int, int)
+					if((type_left == TYPE_INT && type_left == TYPE_INT) 
+						|| (type_left == TYPE_FLOAT && type_left == TYPE_FLOAT)
+						|| (type_left == TYPE_CONSTANT && type_right == TYPE_INT)
+						|| (type_left == TYPE_CONSTANT && type_right == TYPE_FLOAT)
+						|| (type_left == TYPE_INT && type_right == TYPE_CONSTANT)
+						|| (type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT)){
+						
+						Node* left = get_node_from_symtable(tn->left->content, symtable);
+						Node* right = get_node_from_symtable(tn->right->content, symtable);
+						// Si les symboles récupérés sont valides
+						if(left == NULL || right == NULL){
+							return TYPE_UNDEF;
+						}
+						// Si l'une des operandes et un vecteur (tableau de dimension 1)
+						if(left->dimension == 1 || right->dimension == 1){
+							return TYPE_FLOAT;
+						}
+					}
 				}
-				return TYPE_UNDEF;
 			break;
 			
 			case 10 : /* < */
@@ -231,7 +282,6 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_right == TYPE_CONSTANT && (type_left == TYPE_CONSTANT || type_left == TYPE_INT || type_left == TYPE_FLOAT)){
 					return TYPE_INT;
 				}
-				return TYPE_UNDEF;
 			break;
 			
 			case 11 : /* > */
@@ -247,23 +297,24 @@ int check_type(TreeNode* tn, const Node* symtable){
 				else if(type_right == TYPE_CONSTANT && (type_left == TYPE_CONSTANT || type_left == TYPE_INT || type_left == TYPE_FLOAT)){
 					return TYPE_INT;
 				}
-				return TYPE_UNDEF;
 			break;
 			
 			case 12 : /* | */
+				//Si meme types à gauche et à droite (float, float ou int, int)
 				if((type_left == TYPE_FLOAT && type_right == TYPE_FLOAT) 
 					|| (type_left == TYPE_FLOAT && type_right == TYPE_FLOAT)){
 					Node* left = get_node_from_symtable(tn->left->content, symtable);
 					Node* right = get_node_from_symtable(tn->right->content, symtable);
+					// Si les symboles récupérés sont valides
 					if(left == NULL || right == NULL){
 						return TYPE_UNDEF;
 					}
+					// Si les 2 operandes sont de type vecteur (tableau de dimension 1)
 					if(left->dimension != 1 || right->dimension != 1){
 						return TYPE_UNDEF;
 					}
 					return TYPE_FLOAT;
 				}
-				return TYPE_UNDEF;
 			break;
 		}
 	}else{

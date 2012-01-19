@@ -9,11 +9,12 @@ int main(int c)
 	int ra;
 	a = 2;
 	b = 3;
-	z = 2;
-	z = c + a < b;
-	
-	r = u | v;
-	
+		
+	r = 2 + v;
+	r = 2 - v;
+	r = v * 2 - b;
+	r = v | u;
+
 	if(b == 5){
 		
 	}
@@ -21,10 +22,13 @@ int main(int c)
 	}	
 	for(i=0; i<3; i++){
 		for(a = 0; a < 16; a++){
-			int j;
+			int zeeeee;
+			zeeeee++;			
 		}
-		while(a == b)
+		while(a == b){
+			int zsss;
 			i++;
+		}
 	}
 }
 
