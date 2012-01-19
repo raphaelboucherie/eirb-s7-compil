@@ -112,17 +112,17 @@ primary_expression
 | IDENTIFIER INC_OP											
 	{
 		PRINT("%s++", $1); 
-		TreeNode* op = create_tree_node("++"); 
-		TreeNode* var = create_tree_node($<ch>1); 
-		set_left(op, var);
+		char decvar[256];
+		sprintf(decvar, "%s%s", $<ch>1, "++");
+		TreeNode* op = create_tree_node(decvar); 
 		$$ = (void*) op;
 	}
 | IDENTIFIER DEC_OP											
 	{
 		PRINT("%s--", $1); 
-		TreeNode* op = create_tree_node("--"); 
-		TreeNode* var = create_tree_node($<ch>1); 
-		set_left(op, var);
+		char decvar[256];
+		sprintf(decvar, "%s%s", $<ch>1, "--");
+		TreeNode* op = create_tree_node(decvar); 
 		$$ = (void*) op;
 	}
 ;
@@ -150,15 +150,17 @@ unary_expression
 	}				
 | INC_OP unary_expression										
 	{
-		TreeNode* op = create_tree_node("++"); 
-		set_left(op, (TreeNode*) $<tn>2);
+		char decvar[256];
+		sprintf(decvar, "%s%s", "++", $<ch>1);
+		TreeNode* op = create_tree_node(decvar); 
 		$$ = (void*) op;
 	}
 
 | DEC_OP unary_expression										
 	{
-		TreeNode* op = create_tree_node("--"); 
-		set_left(op, (TreeNode*) $<tn>2);
+		char decvar[256];
+		sprintf(decvar, "%s%s", "--", $<ch>1);
+		TreeNode* op = create_tree_node(decvar); 
 		$$ = (void*) op;
 	}
 | unary_operator unary_expression
