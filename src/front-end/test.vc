@@ -18,6 +18,7 @@ int main(int c)
 				
 		int r;
 		r = 2;
+		int j;
 		}
 		while(a == b)
 			i++;
