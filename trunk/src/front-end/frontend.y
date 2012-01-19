@@ -18,7 +18,7 @@
 	Node* symTable;
 	// The derivation tree
 	TreeNode* dt;
-	
+
 	void displaySymTable(const Node* list){
 		Node* list_tmp = (Node*) list;
 		while(list_tmp != NULL){
@@ -44,6 +44,7 @@
 	/* Label for loops */
 	static int for_label = 0;	
 	static int while_label = 0;
+	char label[256];
 	struct pile* pile_for = NULL;
 	struct pile* pile_while = NULL;
 %}
@@ -443,11 +444,11 @@ selection_statement /* TODO Refaire le traitement des if else ! */
 : IF '('  expression ')'  statement {PRINT("%s\n", "if only");}
 | IF '(' expression ')'  statement  ELSE statement {PRINT("%s\n", "if else");}
 /* STRCAT SEGFAULT ! */
-| FOR '(' {PRINT("%s_%d : \n", ".for", for_label); push(strcat(".for_", (char*) for_label), pile_for); for_label++; } expression_statement expression_statement expression  ')' {PRINT("%s\n", ")");} statement {PRINT("goto %s\n", pop(pile_for));}
+| FOR '(' {sprintf(label, "%s_%d", ".for", for_label); push(label, pile_for); PRINT("%s:\n", label); for_label++; } expression_statement expression_statement expression  ')' {PRINT("%s\n", ")");} statement {PRINT("goto %s\n", pop(pile_for));}
 ;
 
 iteration_statement
-: WHILE '(' {PRINT("%s_%d : ", ".while", while_label++);} expression ')' {PRINT("%s", ")");} statement
+: WHILE '('{sprintf(label, "%s_%d", ".while", while_label); push(label, pile_while); PRINT("%s:\n", label); while_label++; } expression ')' {PRINT("%s", ")");} statement {PRINT("goto %s\n", pop(pile_while));}
 ;
 
 jump_statement
