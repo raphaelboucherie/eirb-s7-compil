@@ -1,3 +1,18 @@
+
+void foo()
+{
+  int a;
+  a=42;
+  if (a > 12)
+    {
+      int b;
+      b = 12;
+      a+=b;
+    }
+  return ;
+}
+
+
 int main() 
 { 
 	int a;
@@ -8,7 +23,7 @@ int main()
 	c=1;
 	if (a<b) 
 	{
-		if (a>3)
+		if (a>1)
 		{
 		  foo();
 		  a=3;
@@ -26,15 +41,3 @@ WHILE1:
 	return ;
 }
 
-void foo()
-{
-  int a;
-  a=42;
-  if (a > 12)
-    {
-      int b;
-      b = 12;
-      a+=b;
-    }
-  return ;
-}
