@@ -286,7 +286,12 @@ expression
 		if(ret == TYPE_UNDEF){
 			printf("Expression type : UNDEF\n");
 		}else{
-			printf("Expression type : %d\n", ret);
+			switch(ret){
+				case TYPE_INT: printf("Expression type : INT\n"); break;
+				case TYPE_FLOAT: printf("Expression type : FLOAT\n"); break;
+				case TYPE_UNDEF: printf("Expression type : UNDEF\n"); break;
+				default : printf("Expression type : %d\n", ret);
+			}
 		}
 		printf("\n----- END TYPE VALIDATION ------ \n"); 				
 		printf("tree lenght : %d\n", tree_length(dt));
