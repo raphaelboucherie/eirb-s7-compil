@@ -283,7 +283,11 @@ expression
 		printf("\n----- END TREE ------ \n");
 		printf("\n----- TYPE VALIDATION ------ \n"); 
 		int ret = check_type(dt, symTable);
-		printf("Return type is : %d", ret);
+		if(ret == TYPE_UNDEF){
+			printf("Expression type : UNDEF\n");
+		}else{
+			printf("Expression type : %d\n", ret);
+		}
 		printf("\n----- END TYPE VALIDATION ------ \n"); 				
 		printf("tree lenght : %d\n", tree_length(dt));
 		tree_to_2a_code(dt, symTable);
