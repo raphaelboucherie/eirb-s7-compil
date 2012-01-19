@@ -6,7 +6,7 @@
 #include "derivationtree.h"
 #include "symtable.h"
 
-char* tree_to_2a_code(TreeNode* tn, Node* symtable);
+char* tree_to_2a_code(TreeNode* tn, Node* symtable, char* code_2a);
 int tree_length(TreeNode* tn);
 int max(int i , int j);
 
