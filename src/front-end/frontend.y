@@ -6,6 +6,7 @@
 	#include <sys/time.h>
 	#include "symtable.h"
 	#include "derivationtree.h"
+	#include "pile.h"
 	
 	#define PRINT(format, args...) printf(format, args)
 
@@ -39,6 +40,12 @@
 		int id_gen;
 		return abs((int)(&id_gen));
 	}
+	
+	/* Label for loops */
+	static int for_label = 0;	
+	static int while_label = 0;
+	struct pile* pile_for = NULL;
+	struct pile* pile_while = NULL;
 %}
 
 %union {
@@ -266,16 +273,20 @@ expression
 		TreeNode* var = (TreeNode*) $<tn>1; 
 		set_left(dt, var);
 		set_right(dt, (TreeNode*) $<tn>3); 
+		/*
 		printf("\n----- TREE ------ \n"); 
 		print_tree_node(dt, 0); 
 		printf("\n----- END TREE ------ \n");
+		*/
 		free_tree_node(dt); 
 	}
 | comparison_expression
 	{
+		/*
 		printf("\n----- TREE ------ \n"); 
 		print_tree_node($<tn>1, 0); 
 		printf("\n----- END TREE ------ \n");
+		*/
 	}		
 ;
 
@@ -431,11 +442,12 @@ expression_statement
 selection_statement /* TODO Refaire le traitement des if else ! */
 : IF '('  expression ')'  statement {PRINT("%s\n", "if only");}
 | IF '(' expression ')'  statement  ELSE statement {PRINT("%s\n", "if else");}
-| FOR '(' {PRINT("%s(", "for ");} expression_statement expression_statement expression ')' {PRINT("%s\n", ")");} statement
+/* STRCAT SEGFAULT ! */
+| FOR '(' {PRINT("%s_%d : \n", ".for", for_label); push(strcat(".for_", (char*) for_label), pile_for); for_label++; } expression_statement expression_statement expression  ')' {PRINT("%s\n", ")");} statement {PRINT("goto %s\n", pop(pile_for));}
 ;
 
 iteration_statement
-: WHILE '(' {PRINT("%s(", "while");} expression ')' {PRINT("%s", ")");} statement
+: WHILE '(' {PRINT("%s_%d : ", ".while", while_label++);} expression ')' {PRINT("%s", ")");} statement
 ;
 
 jump_statement
@@ -487,6 +499,8 @@ int main (int argc, char *argv[]) {
     Node n;
 	n.name = "";
     symTable = create_symtable(n);
+	pile_for = createPile(100);
+	pile_while = createPile(100);
     
     if(argc==2) {
 		input = fopen (argv[1], "r");

@@ -14,8 +14,11 @@ int main(int c)
 		u[1] = 2;
 	}
 	for(i=0; i<3; i++){
+		for(a = 0; a < 16; a++){
+				
 		int r;
 		r = 2;
+		}
 	}
 }
 
