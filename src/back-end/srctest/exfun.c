@@ -13,6 +13,6 @@ int main()
   int a;
 	a = bar(3,4);
 	int c;
-	c = 0
-  return c;
+	c = 0;
+  return 0;
 }
