@@ -89,6 +89,7 @@ primary_expression
 { 
   struct string_list* strList = (struct string_list*)$3;
   struct string_list* temp = NULL;
+	int i = 0;
   do
     {
       symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tpushl\t", strList->str);
@@ -96,9 +97,12 @@ primary_expression
       free(strList->str);
       free(strList);
       strList = temp;
+			i++;
     }
     while(temp!=NULL); 
   symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tcall\t", $1); 
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %d\n", "\tadd\t", "%ebp", i*2); 
+	$$="%eax";
 }
 
 | IDENTIFIER INC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
@@ -430,7 +434,11 @@ statement
 jump_statement
 : GOTO IDENTIFIER ';' {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tjmp\t", gotoLabel($2));}
 | RETURN ';' //{symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s\n \t%s\n", "leave", "ret");}
-| RETURN expression ';' //{symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s\n \t%s\n", "leave", "ret");} // TODO
+| RETURN expression ';' {
+	fprintf(stderr, "retour expression %s \n", $2);
+	symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s \t%s, %s\n", "movl", $2, "%eax");
+	symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s\n \t%s\n", "leave", "ret");// TODO
+	} 
 ;
 
 program
@@ -466,8 +474,8 @@ compound_statement
 
   fprintf(stderr,"Ajout du code du corps : %s\n", symbolTableCurrentNode->code->str);
   asmCode = addStringList(asmCode, symbolTableCurrentNode->code);
-  fprintf(stderr,"Ajout du code de fin\n");
-  asmCode = addString(asmCode,"\t%s\n\t%s\n","leave","ret");
+//  fprintf(stderr,"Ajout du code de fin\n");
+//  asmCode = addString(asmCode,"\t%s\n\t%s\n","leave","ret");
   // On retourne au père
   symbolTableCurrentNode = symbolTableCurrentNode->father;
   assert(symbolTableCurrentNode != NULL);
