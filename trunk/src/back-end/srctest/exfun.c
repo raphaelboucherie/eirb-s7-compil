@@ -11,8 +11,8 @@ int bar(int a, int b)
 int main()
 {
   int a;
-	a = bar(3,4);
 	int c;
+	a = bar(3,4);
 	c = 0;
   return 0;
 }

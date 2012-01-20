@@ -20,9 +20,9 @@ int main()
 {
   int a;
 	int b;
+	int c;
   a= 42;
   b= 35;
-	int c;
 	c = bar(a,b);
   return 1;
 }
