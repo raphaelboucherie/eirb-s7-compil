@@ -1,28 +1,24 @@
-void foo() {
-	int a;
-	a = 4;
+int bar(int a, int b)
+{
+	int c;
+	c+=a;
+	if ( c < b )
+		return 1;
+	return 0;
+}
+
+void foo()
+{
+	int b;
+	b = 21;
 	return ;
 }
 
-int bar(int a, int b)
-{
-  int c;
-	c = 0;
-  c+=a;
-	foo();
-  if ( c < b )
-    return 1;
-  return 0;
-}
-
-
 int main()
 {
-  int a;
-	int b;
-  a= 42;
-  b= 35;
-	int c;
-	c = bar(a,b);
-  return 1;
+	int a;
+	a= 42;
+	foo();
+	a= 35;
+	return 1;
 }

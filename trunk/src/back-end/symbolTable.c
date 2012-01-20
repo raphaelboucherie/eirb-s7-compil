@@ -28,6 +28,7 @@ struct symbolTableTreeNode* createTreeNode(struct symbolTableTreeNode* father)
   node->functionName = NULL;
   node->code = NULL;
   node->currentOffset = 0;
+  node->parameterSize=0;
     
   if(father != NULL) 
     {
@@ -98,6 +99,11 @@ void addIdentifier (char* identifier, int size, int type,
   identifierData->next = symbolTableCurrentNode->identifierList;
   symbolTableCurrentNode->identifierList = identifierData;
   fprintf(stderr,"Fin de l'ajout de l'identifier : %s\n", identifier);
+}
+
+void addParameter(char * identifier, int size, int type, struct symbolTableTreeNode* symbolTableCurrentNode) {
+  addIdentifier(identifier, size, type, symbolTableCurrentNode);
+  symbolTableCurrentNode->parameterSize += size;
 }
 
 int getOffset(int size, struct symbolTableTreeNode* node)
