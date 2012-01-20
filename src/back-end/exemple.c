@@ -19,5 +19,6 @@ int main()
   a= 42;
   foo();
   a= 35;
+	a = bar(3,4);
   return 1;
 }
