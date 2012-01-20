@@ -477,7 +477,24 @@ expression_statement
 selection_statement /* TODO Refaire le traitement des if else ! */
 : IF '('  expression ')'  statement {PRINT("%s\n", "if only");}
 | IF '(' expression ')'  statement  ELSE statement {PRINT("%s\n", "if else");}
-| FOR '(' {sprintf(label, "%s_%d", ".for", for_label); push(label, pile_for); PRINT("%s:\n", label); for_label++; } expression_statement expression_statement expression  ')' {PRINT("%s\n", ")");} statement {PRINT("goto %s\n", pop(pile_for));}
+| FOR '(' 
+	{
+		sprintf(label, "%s_%d", ".for", for_label); 
+		push(label, pile_for); 
+		/* PRINT("%s:\n", label); */
+		for_label++; 
+	} 
+	expression_statement 
+	expression_statement 
+	expression  
+	')' 
+	{
+		PRINT("%s\n", label);
+	} 
+	statement 
+	{
+		PRINT("goto %s\n", pop(pile_for));
+	}
 ;
 
 iteration_statement

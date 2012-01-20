@@ -167,7 +167,8 @@ char* tree_to_2a_code(TreeNode* tn, Node* symtable, char* code_2a){
 		/* Idée By Z. :
 			On créé un vecteur tmp = v1
 			On fait tmp *= v2
-			Puis pour le moment on voit pas comment faire l'addition des composantes
+			Puis on fait var += tmp ce qui somme toutes les valeur de tmp et place le résultat dans var !
+			Jobs done in 2 addr
 		*/
 	         addr_left_tmp = strdup(addr_left);
 		 strcat(addr_left_tmp,"_tmp");	 
