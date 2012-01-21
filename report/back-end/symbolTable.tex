@@ -1,0 +1,74 @@
+\section{Table de symboles}
+
+Avant de rentrer dans le vif du sujet, il est important de spécifier comment chaque identifiant est géré.\\ Deux choses nous ont poussés à implémenter une telle structure :
+\begin{itemize}
+\item Dans un premier temps, les variables étant stockées dans la pile, on va avoir besoin de connaître leur position pour pouvoir y accéder. A chaque symbole sera donc associé un offset.
+\item Ensuite, lorsque l'on a plusieurs fonctions, les variables ne sont pas forcément visibles dans chaque bloc. Il va donc être nécessaire d'établir un arbre de table de symboles, où chaque n\oe{}ud est propre à une fonction, et n'a de visibilité que dans sa propre liste de symboles et la table racine.
+\end{itemize}
+
+La grammaire n'acceptant pas la déclaration de variables au milieu du code, les blocs d'instructions autre que des fonctions (if, goto..) n'ont pas de table propre.
+
+\subsection*{Structures}
+
+Pour gérer cette structure, nous utilisons trois structures en terme de programmation C.
+
+Tout d'abord, une structure pour décrire chaque n\oe{}ud de l'arbre, c'est à dire chaque table. 
+
+\begin{verbatim}
+struct symbolTableTreeNode
+{
+  struct symbolTableTreeNodeList* sons;
+  struct symbolTableTreeNode* father;
+  struct symbolTableIdentifierList* identifierList;
+  char* functionName;
+  struct string* code;
+  int currentOffset;
+  int parameterSize;
+};
+\end{verbatim} 
+
+Elle est composée d'un champ father, et d'un champ sons pour respecter la navigation dans l'arbre. 
+Le champ identifierList correspond aux symboles en eux-même. Il s'agit d'une liste. 
+functionName et parameterSize sont des champs qui décrivent la fonction, c'est à dire son nom, et la taille de ses paramètres.
+code permet de gérer l'affichage du code asm.
+currentOffset correspond au FramePointer et permet de définir le début de la fonction dans la pile, et donc sa visibilité.
+
+
+La structure qui suit décrit un étage de l'arbre. Il s'agit d'une liste de tables des symboles situés à la même distance de la racine.
+
+\begin{verbatim} 
+ struct symbolTableTreeNodeList
+{
+  struct symbolTableTreeNodeList* next;
+  struct symbolTableTreeNode* data;
+};
+\end{verbatim} 
+
+Enfin, voici la liste des symboles en elle-même.
+
+\begin{verbatim}
+struct symbolTableIdentifierList
+{
+  struct symbolTableIdentifierList* next;
+  char* name;
+  int type;
+  int offset;
+  int size;
+  int nbArrayDimension;
+  int dimensionSizes[256];
+};
+\end{verbatim} 
+ 
+Elle contient bien évidemment un pointeur vers l'élément suivant.
+Elle contient de plus toutes les informations concernant un symbole, c'est à dire son nom, son type, son offset (sa position dans la pile), et sa taille.
+Dans le cas d'un tableau, elle possède aussi sa dimension, et la taille de chacun des vecteurs qui le composent.
+
+Graphiquement, nous avons donc le système qui suit : 
+
+\begin{figure}[h!]
+\includegraphics[scale=0.5]{arbresym}
+\end{figure}
+
+Ici, Root a pour father NULL, et pour sons A, B et C.
+Les table A, B et C ont toutes pour père Root, et pas de fils.
+Root a deux éléments dans sa table des symboles, A quatre, B six et C un seul.

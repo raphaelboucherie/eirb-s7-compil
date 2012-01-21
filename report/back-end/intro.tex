@@ -1,0 +1,14 @@
+\section*{Introduction}
+
+Un compilateur est généralement composé de deux parties, appelées FrontEnd et BackEnd. A partir d'un certain langage, ici proche du C, le FrontEnd retranscrit le code d'entrée en une forme intermédiaire. Ensuite, le BackEnd utilise ce code intermédiaire pour à nouveau le traduire en langage Assembleur. 
+
+Notre partie du projet concerne le BackEnd. 
+Le code que nous devons traiter a donc plusieurs caractéristiques :
+\begin{itemize}
+\item C'est un code deux adresses. Les opérations se font donc avec des instructions comme += ou -=. 
+\item Les seules boucles autorisées sont effectuées à partir de goto et de label. Les structures de plus haut niveau telles que while, sont prohibées.
+\item Les structures conditionnelles sont simplifiées. Il n'y a pas de clause else.
+\item Comme en C, on pourra traiter des bloc d'instructions et des fonctions.
+\end{itemize}
+
+Notre but principal est de traduire le code donné en assembleur x86 pour machine Intel en 32 bits. La vérification du type des variables est traité dans le FrontEnd et ne nous concerne pas.
