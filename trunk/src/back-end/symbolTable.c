@@ -8,8 +8,11 @@ struct symbolTableIdentifierList* createIdentifierList(char* name, int type, int
   idList->offset = offset;
   idList->next = NULL;
   idList->size = size;
+  idList->nbArrayDimension = 0;
   return idList;
 }
+
+
 
 struct symbolTableTreeNodeList* createTreeNodeList(struct symbolTableTreeNode* data)
 {
@@ -80,6 +83,34 @@ struct symbolTableIdentifierList* getIdentifierInList(char* name, struct symbolT
       list=list->next;
     }
   return NULL;
+}
+
+int addArrayIdentifier(char* identifier, int size, int type, 
+			struct symbolTableTreeNode* symbolTableCurrentNode,
+			int nbDimension, int* dimensionSizes)
+{
+  assert(!getIdentifierInList(identifier,symbolTableCurrentNode->identifierList) && 
+	 "conflit avec un symbole déja présent dans la table"); 
+  assert(type & 0x1000); // type_ARRAY
+  fprintf(stderr,"Ajout de l'identifier : %s\n", identifier);
+  int offset;
+  int totalSize = 1;
+  offset = getOffset(size, symbolTableCurrentNode);
+  struct symbolTableIdentifierList* identifierData = 
+    createIdentifierList(identifier,type,offset,size);
+  
+  int i = 0;
+  for (i=0;i<nbDimension;i++)
+    {
+      addArrayDimension(identifierData,dimensionSizes[i]);
+      totalSize*= dimensionSizes[i];
+    }
+  
+  
+  identifierData->next = symbolTableCurrentNode->identifierList;
+  symbolTableCurrentNode->identifierList = identifierData;
+  fprintf(stderr,"Fin de l'ajout de l'identifier : %s de taille : %d\n", identifier, totalSize);
+  return totalSize;
 }
 
 void addIdentifier (char* identifier, int size, int type, 
@@ -188,4 +219,15 @@ struct symbolTableTreeNode * getFunctionNode(struct symbolTableTreeNode *root, c
       sons = sons->next;
   }
    return NULL;
+}
+
+
+
+void addArrayDimension(struct symbolTableIdentifierList* identifier, int size)
+{
+  assert(identifier!=NULL);
+  fprintf(stderr,"Adding dimension( of size %d ) to array %s\n", 
+	  size, identifier->name);
+  identifier->dimensionSizes[identifier->nbArrayDimension] = size;
+  identifier->nbArrayDimension++;
 }

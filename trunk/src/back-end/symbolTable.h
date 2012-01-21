@@ -15,6 +15,8 @@ struct symbolTableIdentifierList
   int type;
   int offset;
   int size;
+  int nbArrayDimension;
+  int dimensionSizes[256];
 };
 
 struct symbolTableTreeNodeList
@@ -63,8 +65,14 @@ void
 addIdentifier (char* identifier, int size, int type,
 	       struct symbolTableTreeNode* symbolTableCurrentNode);
 
-void addParameter(char * identifier, int size, int type, 
-         struct symbolTableTreeNode* symbolTableCurrentNode);
+int 
+addArrayIdentifier(char* identifier, int size, int type, 
+		   struct symbolTableTreeNode* symbolTableCurrentNode,
+		   int nbDimension, int* dimensionSizes);
+
+void 
+addParameter(char * identifier, int size, int type, 
+	     struct symbolTableTreeNode* symbolTableCurrentNode);
 	     
 
 int getOffset(int size, struct symbolTableTreeNode* node);
@@ -82,6 +90,8 @@ void dumpSymbolTableTreeNodeList(struct symbolTableTreeNodeList* list);
 
 void dumpSymbolTableIdentifierList(struct symbolTableIdentifierList* list);
 
-struct symbolTableTreeNode * getFunctionNode(struct symbolTableTreeNode *root, char * name);
+struct symbolTableTreeNode*
+getFunctionNode(struct symbolTableTreeNode *root, char * name);
 
+void addArrayDimension(struct symbolTableIdentifierList* identifier, int size);
 #endif // SYMBOL_TABLE_H
