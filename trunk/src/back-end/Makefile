@@ -9,7 +9,7 @@ program:asm
 	gcc -m32 -g test.s
 
 asm:backend 
-	clear && ./backend $(FILE) 1>test.s 2>log && gcc -S -O0 $(FILE) && cat test.s
+	clear && ./backend $(FILE) 1>test.s && gcc -S -O0 $(FILE) && cat test.s
 
 frontend:frontend.c scanner_frontend.c
 	$(CC) $(CFLAGS) -o $@ $^
