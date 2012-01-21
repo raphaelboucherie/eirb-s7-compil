@@ -128,21 +128,28 @@ primary_expression
 }
 
 | IDENTIFIER INC_OP  
-{
+{ //Identifier incrementation, add 1 to the value stared in the address returned by IDENTIFIER 
   char* str = postfixExpressionToRegister($1, symbolTableCurrentNode, symbolTableRoot);
   symbolTableCurrentNode->code = 
-    addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\taddl\t", "$1", str); $$=$1;}
+    addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\taddl\t", "$1", str); 
+  //Return the offset, value now incremented
+    $$=$1;
+}
 
-| IDENTIFIER DEC_OP  {
+| IDENTIFIER DEC_OP  
+{ //Identifier decrementation, substract 1 to the value stared at the offset of IDENTIFIER
   char* str = postfixExpressionToRegister($1, symbolTableCurrentNode, symbolTableRoot);
   symbolTableCurrentNode->code = 
-    addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\tsubl\t", "$1", str); $$=$1;} 
+    addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\tsubl\t", "$1", str); 
+  //Return the offset, value now decreased
+    $$=$1;
+} 
 ;
 
 postfix_expression
-: primary_expression {$$=$1;}
+: primary_expression {$$=$1; /* Access to a simple value, as identifier, constant, function ...*/}
 | postfix_expression '[' expression ']' 
-{
+{ // Access to a value in an array
   char str[256];
   char str2[256];
   char* dbg1 = $1;
@@ -155,9 +162,8 @@ postfix_expression
 ;
 
 argument_expression_list 
-// String list ( register + offset list ) 
 : primary_expression 
-{ 
+{ // Argument for calling a function
   struct string_list* strList = malloc( sizeof ( struct string_list ) );
   strList->str = postfixExpressionToRegister($1,
 					     symbolTableCurrentNode,
@@ -166,7 +172,7 @@ argument_expression_list
   $$=(void*)strList; 
 }
 | argument_expression_list ',' primary_expression 
-{ 
+{ // List of argument for calling a function, by addition
   struct string_list* strList = (struct string_list*)$1;
   struct string_list* strElement = malloc( sizeof ( struct string_list ) );
   strElement->str = postfixExpressionToRegister($3,
@@ -184,20 +190,22 @@ unary_expression
   $$ = $1;
 }
 | INC_OP unary_expression 
-{
+{ // Access to an incremented value, not only the instruction of incrementation
   char* reg2 = postfixExpressionToRegister($2,
 					   symbolTableCurrentNode,
 					   symbolTableRoot);
   symbolTableCurrentNode->code = 
     addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\taddl\t", "$1", reg2);
+  // Return the offset
   $$=$2;
 }
 | DEC_OP unary_expression 
-{
+{ // Access to an decreased value, not only the instruction of decrementation
   char* reg2 = postfixExpressionToRegister($2,
 					   symbolTableCurrentNode,
 					   symbolTableRoot);
   symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tsubl\t", "$1", reg2);
+  // Return the offset
   $$=$2;
 }
 | unary_operator unary_expression 
@@ -339,7 +347,7 @@ char* reg1 = postfixExpressionToRegister($1,
 
 expression
 : unary_expression assignment_operator unary_expression 
-{
+{ // Assignment operation
   fprintf(LOG,"expression, assignement operator = %d\n", $2);
   struct symbolTableIdentifierList* id1;
   struct symbolTableIdentifierList* id3;
@@ -351,8 +359,7 @@ expression
     }
   else
     {
-      // Création d'une entré factice pour les constantes et
-      // les registres prédéfinis
+    // Creation of artificial entry for constants and predifined registers
       id1 = malloc(sizeof(struct symbolTableIdentifierList));
       id1->type = type_UNDEFINED;
     }
@@ -365,8 +372,7 @@ expression
     }
   else
     {
-      // Création d'une entré factice pour les constantes et
-      // les registres prédéfinis
+    // Creation of artificial entry for constants and predifined registers
       id3 = malloc(sizeof(struct symbolTableIdentifierList));
       id3->type = type_UNDEFINED;
     }
@@ -542,7 +548,7 @@ assignment_operator
 
 declaration
 : type_name declarator_list ';' 
-{
+{ // Declaration of variable(s) with same type
   int listSize = 0;
   if ( $2 != NULL )
     {
@@ -553,6 +559,7 @@ declaration
 	  int elementSize = 0;
 	  // add flag for int/float 
 	  declaratorList->type = $1 | declaratorList->type; 
+    // If array, add in current symbol table with dimension
 	  if (declaratorList->type & type_ARRAY)
 	    {
 	      elementSize = 
@@ -561,6 +568,7 @@ declaration
 				 declaratorList->nbArrayDimension, 
 				 declaratorList->dimensionSizes);
 	    }
+    // If not function, add in current symbol table
 	  else if (!(declaratorList->type & type_FUNCTION))
 	    {
 	      addIdentifier(declaratorList->name, declaratorList->size,
@@ -583,7 +591,7 @@ declarator_list
 : declarator {$$ = $1;}
 
 | declarator_list ',' declarator 
-{
+{ // Add a declarator to the list which will be treaten
   if ($3 == NULL)
     $$ = $1;
   else
@@ -660,7 +668,9 @@ $$=*di;  //*/
   fprintf(LOG, "declarator ( param )");
   $$=(void*)di;  // Function is already added in symbolTable
 
+  // If the function has not been declared before
   if(getFunctionNode(symbolTableRoot,di->name) == NULL) {
+    // Function's symbol table is created
     struct symbolTableTreeNode* newNode = createFunctionTreeNode(symbolTableRoot, di->name);
     fprintf(LOG, "creation table fonction %s , %p \n", di->name, newNode);
 
@@ -668,6 +678,7 @@ $$=*di;  //*/
     struct declarator_list *temp = NULL;
     do
       {
+        // Add parameter in the new node
 	fprintf(LOG,"adding function parameter %s, size = %d, type = %d\n", 
 		parameterList->name, parameterList->size, parameterList->type);
   	addParameter(parameterList->name, parameterList->size, parameterList->type, newNode);
@@ -680,7 +691,7 @@ $$=*di;  //*/
    }
 }
 | declarator '(' ')' 
-{ //* Creation de la table de symbole de la fonction
+{ 
 
   struct declarator_list *di = malloc(sizeof(struct declarator_list));
   struct declarator_list *di2 = (struct declarator_list*)$1;
@@ -691,7 +702,9 @@ $$=*di;  //*/
   fprintf(LOG, "declarator ()"); //*/
   $$=(void*)di; // Function is already added in symbolTable
 
+  // If the function has not been declared before
   if(getFunctionNode(symbolTableRoot,di->name) == NULL) 
+    // Function's symbol table is created
     {
       struct symbolTableTreeNode* newNode = createFunctionTreeNode(symbolTableRoot, di->name);
       fprintf(LOG, "creation table fonction %s , %p \n", di->name, newNode);
@@ -701,7 +714,7 @@ $$=*di;  //*/
 
 
 parameter_list
-: parameter_declaration {//$$=$1;}
+: parameter_declaration {
   struct declarator_list *di = malloc(sizeof(struct declarator_list));
   struct declarator_list *di2 = (struct declarator_list*)$1;
   di->name= strdup(di2->name);
@@ -709,7 +722,7 @@ parameter_list
   $$=(void*)di;
 }
 | parameter_list ',' parameter_declaration 
-{
+{ // Parameters are added in a list
   struct declarator_list *parameterInfo = (struct declarator_list*)$3;
   struct declarator_list *parameterList = (struct declarator_list*)$1;
   parameterInfo->next = parameterList;
@@ -718,7 +731,8 @@ parameter_list
 ;
 
 parameter_declaration
-: type_name declarator {
+: type_name declarator 
+{ // Function's parameters with same type declaration 
   struct declarator_list *di = malloc(sizeof(struct declarator_list));
   struct declarator_list *di2 = (struct declarator_list*)$2;
   di->name= strdup(di2->name);
@@ -729,22 +743,25 @@ parameter_declaration
 ;
 
 statement
-: labeled_statement {$$=$1;}
+: labeled_statement {$$=$1; /* Label instructions */}
 | 
 {
+  // Statement's begin
   fprintf(LOG, "Compound_statement");
-  // Création du noeud
+  // New symbol table (creation of a new node in the tree)
   struct symbolTableTreeNode* newNode = createTreeNode(symbolTableCurrentNode);
-  // On change le noeud actif
+  // Current node became the new one's
   symbolTableCurrentNode = newNode;
   fprintf(LOG, "Current Table :%s \n", symbolTableCurrentNode->functionName);
 }
 compound_statement
 {
-  // on sort du statement, on ajoute le code et on remonte au père
+  // Statement's end
+  // Code's addition
   symbolTableCurrentNode->father->code = 
     addStringList(symbolTableCurrentNode->father->code,
 		  symbolTableCurrentNode->code);
+  // Change current symbol table for father's
   symbolTableCurrentNode = symbolTableCurrentNode->father;
   fprintf(LOG,"Current Table :%s \n", symbolTableCurrentNode->functionName);
     $$=$2;
@@ -777,7 +794,7 @@ compound_statement
 }
 declaration_list statement_list '}' 
 {
-  // Fin du statement, on remonte à la liste de symbole du statement père
+  // Statement's end, give the symbol list to father
   $$=$3;
 }
 ;
@@ -810,28 +827,35 @@ selection_statement
   IF '(' 
 	{fprintf(LOG, "lecture de la comparaison");} 
 	comparison_expression ')' 
-  {
+{ /* Conditional statement*/ 
+  // Creation of a new IF label
 		char* lbl = newLabel("IF");
   	symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", $5, lbl);
   	push(lbl,labelPile);
   	fprintf(LOG, "début du statement (IF)");
-	}
+}
 statement
-  {
-    fprintf(LOG, "fin du statement (IF)");
-    char* lbl = pop(labelPile);
-    symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s:\n",lbl);
-    fprintf(LOG, "fin lecture du IF");
+{
+  /* End of the statement */
+  fprintf(LOG, "fin du statement (IF)");
+  char* lbl = pop(labelPile);
+  // Write label name after the statement
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s:\n",lbl);
+  fprintf(LOG, "fin lecture du IF");
 	}
 ;
 
 jump_statement
 : GOTO IDENTIFIER ';' 
-	{symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tjmp\t", gotoLabel($2));}
+{ // Go to instruction
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tjmp\t", gotoLabel($2));
+}
 | RETURN ';' 
-	{symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s\n \t%s\n", "leave", "ret");}
+{ // Exit function without return value
+    symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s\n \t%s\n", "leave", "ret");
+}
 | RETURN expression ';' 
-	{
+{ // Exit function with return value
 		fprintf(LOG, "retour expression %s \n", $2);
 		symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s \t%s, %s\n", "movl", $2, "%eax");
 		symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"\t%s\n \t%s\n", "leave", "ret");
@@ -852,10 +876,14 @@ function_definition
 : type_name 
 declarator 
 {
+  /* Function declaration */
   struct declarator_list* decl = (struct declarator_list*)$2;
   char* functionName = decl->name;
   fprintf(LOG,"Declaration of function : %s\n", functionName);
   struct declarator_list * f = (struct declarator_list *) $2;
+
+  // Symbol table is created in the "declarator" rule
+  // Searching for the good node in order to put it as current symbol table
   symbolTableCurrentNode = getFunctionNode(symbolTableRoot, f->name);
   fprintf(LOG, "Current Table :%s \n", symbolTableCurrentNode->functionName);
   fprintf(LOG, "%s %p \n", f->name, symbolTableCurrentNode);
@@ -867,15 +895,19 @@ compound_statement
   int stackSize = $4;
   stackSize += getFunctionNode(symbolTableRoot,functionName)->parameterSize;
 
+  // Function's initialization (Stack)
   fprintf(LOG,"Ajout du code d'init, stackSize = %d\n", stackSize);
   asmCode = addString(asmCode,
 		      "\n.globl %s\n\t.type\t %s, @function\n%s:\n\tpushl\t %s\n\tmovl\t %s, %s\n\tsubl\t $%d, %s\n",functionName, functionName, functionName, "%ebp", "%esp", "%ebp", (stackSize+1)*4, "%esp"); // USE GCC init
 
+  // Function's body
   fprintf(LOG,"Ajout du code du corps : %s\n", symbolTableCurrentNode->code->str);
   asmCode = addStringList(asmCode, symbolTableCurrentNode->code);
 //  fprintf(stderr,"Ajout du code de fin\n");
 //  asmCode = addString(asmCode,"\t%s\n\t%s\n","leave","ret");
-  // On retourne au père
+
+  // End of the instructions
+  // Current symbol table comes back to father's
   symbolTableCurrentNode = symbolTableCurrentNode->father;
   assert(symbolTableCurrentNode != NULL);
 
