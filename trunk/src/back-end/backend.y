@@ -68,14 +68,23 @@
 
 %type <str> primary_expression postfix_expression unary_expression expression_statement 
 %type <str> selection_statement unary_operator comparison_expression jump_statement
-%type <str> expression assignment_operator statement labeled_statement statement_list
+%type <str> expression statement labeled_statement statement_list
 %type <list> declarator declarator_list argument_expression_list
 %type <integer> parameter_list parameter_declaration type_name declaration compound_statement declaration_list
+%type <integer> assignment_operator 
 %start program
 %%
 
 primary_expression
-: IDENTIFIER {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot); $$=regOffset("%ebp",o);} 
+: IDENTIFIER 
+{
+  /* Previous version
+  int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
+  $$=regOffset("%ebp",o); //*/
+
+  // New version use identifier name until print
+  $$ = $1;
+} 
 
 | CONSTANT  {$$=constToASMConst($1);}
 
@@ -85,10 +94,11 @@ primary_expression
   yyerror("Appel d'une fonction");
   fprintf(stderr, "%s \n", $1);
   symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tcall\t", $1);
-	$$="%eax";
+  // Function return value are always stored in eax
+  $$="%eax";
 } 
 
-| IDENTIFIER '(' argument_expression_list ')' // EXPERIMENTAL /!\
+| IDENTIFIER '(' argument_expression_list ')' 
 { 
   struct string_list* strList = (struct string_list*)$3;
   struct string_list* temp = NULL;
@@ -108,17 +118,20 @@ primary_expression
   argumentSize = getFunctionNode(symbolTableRoot,$1)->parameterSize;
   argumentSize *= 2;
  // symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s $%d, %s\n", "\taddl\t", argumentSize, "%ebp"); 
-  
-	$$="%eax";
+  // Function return value are always stored in eax
+  $$="%eax";
 }
 
-| IDENTIFIER INC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
-                      char* str = regOffset("%ebp", o);
-                      symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\taddl\t", "$1", str); $$=str;}
+| IDENTIFIER INC_OP  
+{
+  char* str = postfixExpressionToRegister($1, symbolTableCurrentNode, symbolTableRoot);
+  symbolTableCurrentNode->code = 
+    addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\taddl\t", "$1", str); $$=$1;}
 
-| IDENTIFIER DEC_OP  {int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
-                      char* str = regOffset("%ebp", o);
-                      symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\tsubl\t", "$1", str); $$=str;} 
+| IDENTIFIER DEC_OP  {
+  char* str = postfixExpressionToRegister($1, symbolTableCurrentNode, symbolTableRoot);
+  symbolTableCurrentNode->code = 
+    addString(symbolTableCurrentNode->code,"%s %s, %s\n", "\tsubl\t", "$1", str); $$=$1;} 
 ;
 
 postfix_expression
@@ -131,7 +144,9 @@ argument_expression_list
 : primary_expression 
 { 
   struct string_list* strList = malloc( sizeof ( struct string_list ) );
-  strList->str = strdup($1);
+  strList->str = postfixExpressionToRegister($1,
+					     symbolTableCurrentNode,
+					     symbolTableRoot);
   strList->next = NULL;
   $$=(void*)strList; 
 }
@@ -139,17 +154,45 @@ argument_expression_list
 { 
   struct string_list* strList = (struct string_list*)$1;
   struct string_list* strElement = malloc( sizeof ( struct string_list ) );
-  strElement->str = strdup($3);
+  strElement->str = postfixExpressionToRegister($3,
+						symbolTableCurrentNode,
+						symbolTableRoot);
   strElement->next = strList;
   $$=(void*)strElement;
 }
 ;
 
+// TODO : inc / dec dont exist
 unary_expression
-: postfix_expression {$$=$1;}
-| INC_OP unary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s \n", "\tinc\t", $2); $$=$2;}
-| DEC_OP unary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s \n", "\tdec\t", $2); $$=$2;}
-| unary_operator unary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s \n", $2); $$=$2;}
+: postfix_expression 
+{
+  $$ = $1;
+}
+| INC_OP unary_expression 
+{
+  char* reg2 = postfixExpressionToRegister($2,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code = 
+    addString(symbolTableCurrentNode->code,"%s %s \n", "\tinc\t", reg2);
+  $$=$2;
+}
+| DEC_OP unary_expression 
+{
+  char* reg2 = postfixExpressionToRegister($2,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s \n", "\tdec\t", reg2);
+  $$=$2;
+}
+| unary_operator unary_expression 
+{
+  char* reg2 = postfixExpressionToRegister($2,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s \n", reg2);
+  $$=$2;
+}
 ;
 
 unary_operator
@@ -158,29 +201,269 @@ unary_operator
 ;
 
 comparison_expression
-: unary_expression                            {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s $0, %s \n", "\tcmpl\t", $1); $$="jeq";}
-| primary_expression '<' primary_expression   {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%ebx");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", $1); $$="\tjge\t";} 
-| primary_expression '>' primary_expression   {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%ebx");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", $1); $$="\tjle\t";}
-| primary_expression LE_OP primary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%ebx");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", $1); $$="\tjg\t";}
-| primary_expression GE_OP primary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%ebx");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", $1); $$="\tjl\t";} 
-| primary_expression EQ_OP primary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%ebx");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", $1); $$="\tjne\t";} 
-| primary_expression NE_OP primary_expression {symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%ebx");symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", $1); $$="\tjeq\t";} 
+: unary_expression                            
+{
+  char* reg1 = postfixExpressionToRegister($1,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s $0, %s \n", "\tcmpl\t", reg1);
+  $$="jeq";
+}
+| primary_expression '<' primary_expression   
+{
+  char* reg1 = postfixExpressionToRegister($1,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  char* reg3 = postfixExpressionToRegister($3,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", reg3,"%ebx");
+  symbolTableCurrentNode->code = 
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", reg1);
+  $$="\tjge\t";
+} 
+| primary_expression '>' primary_expression   
+{
+  char* reg1 = postfixExpressionToRegister($1,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  char* reg3 = postfixExpressionToRegister($3,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", reg3,"%ebx");
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", reg1);
+  $$="\tjle\t";
+}
+| primary_expression LE_OP primary_expression 
+{
+  char* reg1 = postfixExpressionToRegister($1,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  char* reg3 = postfixExpressionToRegister($3,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", reg3,"%ebx");
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", reg1);
+  $$="\tjg\t";
+}
+| primary_expression GE_OP primary_expression 
+{
+  char* reg1 = postfixExpressionToRegister($1,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  char* reg3 = postfixExpressionToRegister($3,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", reg3,"%ebx");
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", reg1); 
+  $$="\tjl\t";
+} 
+| primary_expression EQ_OP primary_expression 
+{
+char* reg1 = postfixExpressionToRegister($1,
+					 symbolTableCurrentNode,
+					 symbolTableRoot);
+  char* reg3 = postfixExpressionToRegister($3,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", reg3,"%ebx");
+  symbolTableCurrentNode->code = 
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", reg1); 
+  $$="\tjne\t";
+} 
+| primary_expression NE_OP primary_expression 
+{
+char* reg1 = postfixExpressionToRegister($1,
+					 symbolTableCurrentNode,
+					 symbolTableRoot);
+  char* reg3 = postfixExpressionToRegister($3,
+					   symbolTableCurrentNode,
+					   symbolTableRoot);
+  symbolTableCurrentNode->code =
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", reg3,"%ebx");
+  symbolTableCurrentNode->code = 
+    addString(symbolTableCurrentNode->code,"%s %s, %s \n", "\tcmpl\t", "%ebx", reg1); 
+  $$="\tjeq\t";
+} 
 ;
 
 expression
 : unary_expression assignment_operator unary_expression 
 {
-  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t", $3,"%ebx");
-  symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s, %s \n", $2, "%ebx", $1); $$=$1;
+  fprintf(stderr,"expression, assignement operator = %d\n", $2);
+  struct symbolTableIdentifierList* id1;
+  struct symbolTableIdentifierList* id3;
+  if (isIdentifier($1))
+    {
+      id1 = getIdentifier($1,
+			  symbolTableCurrentNode,
+			  symbolTableRoot);
+    }
+  else
+    {
+      // Création d'une entré factice pour les constantes et
+      // les registres prédéfinis
+      id1 = malloc(sizeof(struct symbolTableIdentifierList));
+      id1->type = type_UNDEFINED;
+    }
+  
+  if (isIdentifier($3))
+    {
+      id3 = getIdentifier($3,
+			  symbolTableCurrentNode,
+			  symbolTableRoot);
+    }
+  else
+    {
+      // Création d'une entré factice pour les constantes et
+      // les registres prédéfinis
+      id1 = malloc(sizeof(struct symbolTableIdentifierList));
+      id1->type = type_UNDEFINED;
+    }
+
+  assert(id1 != NULL);
+  assert(id3 != NULL);
+  if ($2 == operator_MUL)
+    {
+      if (id1->type & type_ARRAY)
+	{
+	  if (id3->type & type_ARRAY) // array *= array
+	    {
+	      yyerror("Not implemented yet !");
+	    }
+	  else // array *= var
+	    {
+	      yyerror("Not implemented yet !");
+	    }
+	}
+      else
+	{
+	  if (id3->type & type_ARRAY) // var *= array
+	    {
+	      yyerror("Not implemented yet !");
+	    }
+	  else // var *= var 
+	    {
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"%s %s, %s \n",
+			  "\tmovl\t", regOffset("%ebp",id3->offset),"%eax");
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"%s %s\n",
+			  "\tmul\t", regOffset("%ebp",id1->offset));
+	      symbolTableCurrentNode->code =
+		addString(symbolTableCurrentNode->code,"%s %s, %s \n",
+			  "\tmovl\t", "%eax", regOffset("%ebp",id1->offset));
+	    }
+	}
+    }
+  else if ($2 == operator_ADD)
+    {
+      if (id1->type & type_ARRAY)
+	{
+	  if (id3->type & type_ARRAY) // array += array
+	    {
+	      	      yyerror("Not implemented yet !");
+	    }
+	  else // array += var
+	    {
+	      yyerror("Not implemented yet !");
+	    }
+	}
+      else
+	{
+	  if (id3->type & type_ARRAY) // var += array
+	    {
+	      yyerror("Not implemented yet !");
+	    }
+	  else // var += var 
+	    {
+	      char* operator = "\taddl\t";
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"%s %s, %s \n",
+			  "\tmovl\t", regOffset("%ebp",id3->offset),"%ebx");
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"%s %s, %s \n",
+			  operator, "%ebx", regOffset("%ebp",id1->offset)); $$=$1;
+	    }
+	}
+    }
+  else if ($2 == operator_SUB)
+    {
+      if (id1->type & type_ARRAY)
+	{
+	  if (id3->type & type_ARRAY) // array -= array
+	    {
+	      	      yyerror("Not implemented yet !");
+	    }
+	  else // array -= var
+	    {
+	      yyerror("Not implemented yet !");
+	    }
+	}
+      else
+	{
+	  if (id3->type & type_ARRAY) // var -= array
+	    {
+	      yyerror("Not implemented yet !");
+	    }
+	  else // var -= var 
+	    {
+	      char* operator = "\tsubl\t";
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"%s %s, %s \n", 
+			  "\tmovl\t", regOffset("%ebp",id3->offset),"%ebx");
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"%s %s, %s \n",
+			  operator, "%ebx", regOffset("%ebp",id1->offset)); $$=$1;
+	    }
+	}
+    }
+  else
+    {
+      if (id1->type & type_ARRAY)
+	{
+	  if (id3->type & type_ARRAY) // array = array
+	    {
+	      	      yyerror("Not implemented yet !");
+	    }
+	  else // array = var
+	    {
+	      yyerror("Not implemented yet !");
+	    }
+	}
+      else
+	{
+	  if (id3->type & type_ARRAY) // var = array
+	    {
+	      yyerror("Not implemented yet !");
+	    }
+	  else // var = var 
+	    { 
+      symbolTableCurrentNode->code = 
+	addString(symbolTableCurrentNode->code,"%s %s, %s \n","\tmovl\t",
+		  regOffset("%ebp",id3->offset), regOffset("%ebp",id1->offset));
+	    }
+	}
+    }
+  fprintf(stderr,"end of expression\n");
 }
-| unary_expression {$$=$1;}
+| unary_expression {$$=$1;} // TODO
 ;
 
 assignment_operator
-: '='        {$$="\tmovl\t";}
-| MUL_ASSIGN {$$="\tmull\t";}
-| ADD_ASSIGN {$$="\taddl\t";}
-| SUB_ASSIGN {$$="\tsubl\t";}
+: '='        {$$=operator_ASSIGN; fprintf(stderr,"op : %d\n", operator_ASSIGN);}
+| MUL_ASSIGN {$$=operator_MUL; fprintf(stderr,"op : %d\n", operator_MUL);}
+| ADD_ASSIGN {$$=operator_ADD; fprintf(stderr,"op : %d\n", operator_ADD);}
+| SUB_ASSIGN {$$=operator_SUB; fprintf(stderr,"op : %d\n", operator_SUB);}
 ;
 
 declaration
