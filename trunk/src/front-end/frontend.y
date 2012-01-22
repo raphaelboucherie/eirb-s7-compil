@@ -81,7 +81,7 @@
 primary_expression
 : IDENTIFIER												
 	{
-		PRINT("%s", $<ch>1);
+		//PRINT("%s", $<ch>1);
 		if(getIdentifier($<ch>1, symbol_table_current, symbol_table_root) == NULL){
 			yyerror("Identificateur introuvable ! \n");
 			exit(1);
@@ -91,7 +91,7 @@ primary_expression
 	}
 | CONSTANT
 	{	
-		PRINT("%s", $1); 
+		//PRINT("%s", $1); 
 		$<ch>$ = $<str>1;
 		if(getIdentifier($<ch>1, symbol_table_root, symbol_table_root) == NULL)
 			addIdentifier($<ch>1, TYPE_CONSTANT, 0, 1, 0, symbol_table_root);
@@ -105,6 +105,7 @@ primary_expression
 | IDENTIFIER '(' {PRINT("%s%s", $1, "(");} argument_expression_list ')'
 	{
 		PRINT("%s", ")");
+		TreeNode * tn = create_tree_node($<ch>1);
 	}		
 | IDENTIFIER INC_OP											
 	{
@@ -116,7 +117,6 @@ primary_expression
 	}
 | IDENTIFIER DEC_OP											
 	{
-
 		char decvar[256];
 		sprintf(decvar, "%s%s", $<ch>1, "--");
 		TreeNode* op = create_tree_node(decvar); 
@@ -138,6 +138,7 @@ postfix_expression
 argument_expression_list
 : expression						
 | argument_expression_list ',' {PRINT("%s", ",");} expression
+		
 ;
 
 unary_expression
@@ -295,7 +296,7 @@ expression
 		//printf("\n----- END TYPE VALIDATION ------ \n"); 				
 		//printf("tree lenght : %d\n", tree_length(dt));
 		char code_2a[4096] = "";
-		tree_to_2a_code(dt, symbol_table_current, symbol_table_root, code_2a);
+		tree_to_2a_code(dt, symbol_table_current, symbol_table_root, code_2a, stack_tmp);
 		LOG(stderr,"%s\n", "------------------- CODE 2 ADRESSES CORRESPONDANT -----------------------");
 		printf("%s", code_2a);
 		LOG(stderr,"%s\n", "------------------- FIN CODE 2 ADRESSES CORRESPONDANT -----------------------");
@@ -311,7 +312,7 @@ expression
 		printf("\n----- END TREE ------ \n");
 		*/
 		char code_2a[4096] = "";
-		tree_to_2a_code($<tn>1, symbol_table_current, symbol_table_root, code_2a);
+		tree_to_2a_code($<tn>1, symbol_table_current, symbol_table_root, code_2a, stack_tmp);
 		LOG(stderr,"%s\n", "------------------- CODE 2 ADRESSES CORRESPONDANT -----------------------");
 		printf("%s", code_2a);
 		LOG(stderr,"%s\n", "------------------- FIN CODE 2 ADRESSES CORRESPONDANT -----------------------");
@@ -620,7 +621,7 @@ selection_statement /* TODO Refaire le traitement des if else ! */
 	')' 
 	{
 		PRINT("%s", $<ch>4);
-		PRINT("%s: if(\n", label);
+		PRINT("%s: if(", label);
 	} 
 	statement 
 	{	
@@ -635,12 +636,13 @@ iteration_statement
 		push(label, stack_while); 
 		PRINT("%s:\n", label); 
 		while_label++; 
-		PRINT("%s", "if(");
 	} 
 	expression 
 	')' 
 	{
-		PRINT("%s", "){");
+		PRINT("%s", "if(");
+		PRINT("%s", pop(stack_tmp));
+		PRINT("%s", "){\n");
 	}
 	statement 
 	{
@@ -736,6 +738,7 @@ void globalInit()
 
 	stack_for = createPile(100);
 	stack_while = createPile(100);
+	stack_tmp = createPile(100);
 }
 
 int main (int argc, char *argv[]) {

@@ -68,6 +68,12 @@ int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbol
 				else if(type_left == TYPE_CONSTANT && type_right == TYPE_CONSTANT){
 					return TYPE_INT;
 				}
+				else if(type_left == TYPE_ARRAY){
+					return TYPE_ARRAY;
+				}	
+				else if(type_right == TYPE_ARRAY){
+					return TYPE_INT;
+				}
 			break;
 
 			case 3 : /* >= */
