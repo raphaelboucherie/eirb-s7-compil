@@ -1,0 +1,73 @@
+\section{Un exemple de traitement : l'instruction IF} 
+
+Le traitement d'une instruction IF est le résultat de la règle "selection\_statement".
+
+Dans un premier temps, il faut traiter l'instruction de comparaison. Si celle-ci n'est pas respectée, le programme sera directement envoyé vers un label que nous devons alors créer, et qui lui permettra de ne pas exécuter le code conditionnel.
+Le passage par la règle comparison\_expression va écrire la comparaison à exécuter.
+Prenons comme exemple le code qui suit :
+\begin{verbatim}
+a = 4;
+b = 5;
+if (a < b) {
+	int c;
+	c += a;
+}
+\end{verbatim}
+
+En admettant que a soit disponible à -8(\%ebp), et b à -16(\%ebp), le code produit par la comparaison sera :
+
+\begin{verbatim}
+movl -8(%ebp), %ebx
+cmpl %ebx, -16(%ebp)
+\end{verbatim}
+
+Et le résultat remonté à selection\_statement sera "jge". 
+Selection\_statement étant responsable de la gestion du label, il a besoin de cette information pour orienter l'exécution du code.
+Il est à noter qu'à première vue, on aurait pu simplement écrire : \begin{verbatim}
+cmpl -8(%ebp), -16(%ebp)
+\end{verbatim}
+Cependant, la plupart des instructions ne peuvent pas gérer deux références à la fois.
+
+Au terme de l'exécution de cette instruction, les drapeaux du processeur sont modifiés en conséquence et transmettront ainsi le résultat de la comparaison à l'instruction jump qui la suit.
+
+De retour dans la règle selection\_statement, la première instruction stockée est le résultat de comparison\_statement (l'instruction jump) suivi du label créé, c'est à dire dans notre exemple (en admettant que le label est nommé "label") : 
+\begin{verbatim}
+jge label
+\end{verbatim}
+
+Vient ensuite le corps de l'instruction IF, qui est une suite d'instructions.
+Une fois cette portion de code traitée, on sort du IF, et il faut donc préciser que la suite est accessible via le label précédemment créé. 
+
+Finalement, le code produit est le suivant :
+
+\begin{verbatim}
+movl -8(%ebp), %ebx
+cmpl %ebx, -16(%ebp)
+jge label
+...
+label :
+...
+\end{verbatim}
+
+Dans le fichier yacc, le code est géré de cette façon :
+
+\begin{verbatim}
+selection_statement
+ : IF '(' comparison_expression ')' 
+ { /* Conditional statement*/
+   // Creation of a new IF label
+     char* lbl = newLabel("IF");
+     symbolTableCurrentNode->code = 
+     	addString(symbolTableCurrentNode->code,"%s %s\n", $5, lbl);
+     push(lbl,labelPile);
+ }
+ statement
+ {
+   /* End of the statement */
+   char* lbl = pop(labelPile);
+   // Write label name after the statement
+   symbolTableCurrentNode->code = 
+   		addString(symbolTableCurrentNode->code,"%s:\n",lbl);
+   }
+ ;
+\end{verbatim}
