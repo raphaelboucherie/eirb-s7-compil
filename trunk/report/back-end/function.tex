@@ -1,0 +1,63 @@
+\section{Les fonctions}
+
+En assembleur, les fonctions ne sont qu'un label. Cependant, elles ont besoin d'un traitement particulier, pour gérer la pile et les paramètres par exemple.
+Deux parties sont à distinguer : l'appel et la définition.
+
+\subsection*{L'appel}
+
+Les fonctions sont appelées via l'instruction "call".
+Si la fonction a besoin d'arguments, ils lui sont passés par la pile avec des instructions "pushl"
+Le retour de la fonction est par convention stocké dans le registre \%eax. Il faut donc récupérer ce résultat à la fin de l'exécution de la fonction à l'aide d'une instruction "movl".
+
+Par exemple, pour une fonction à deux paramètres, le code produit sera similaire à celui-ci:
+
+\begin{verbatim}
+	pushl	 -8(%ebp)
+	pushl	 -4(%ebp)
+	call	 bar
+	movl	 %eax, -12(%ebp) 
+\end{verbatim}
+
+\subsection*{La définition}
+
+La définition d'une fonction se fait via la règle qui suit :
+
+\begin{verbatim}
+ 
+function_definition
+: type_name  declarator compound_statement 
+
+\end{verbatim}
+
+La table des symboles est créée lors de la déclaration de la fonction. La définition d'une fonction passant par la règle "declarator", si celle ci n'a pas été déclarée précedemment, la table y est créée. Ainsi, on est sûr de n'avoir qu'une seule et unique table pour la fonction. Lors de la déclaration, les paramètres sont ajoutés dans la table.
+
+Suite à la règle "declarator", on peut donc récupérer la table propre à la fonction définie. Nous avons pour cela implémenté une fonction getFunctionNode qui va chercher la table des symboles de la fonction correspondante.
+
+La corps de la fonction est ensuite traitée par la règle "compound\_statement", dont le résultat est stocké dans le code de la table des symboles courante.
+
+Une fois le corps traité, les informations nécessaires à l'initialisation de la pile sont connues. 
+
+\begin{verbatim}
+.globl bar               
+  .type  bar, @function     
+bar:        
+  pushl  %ebp     
+  movl   %esp, %ebp     
+  subl   $16, %esp     
+  movl   -8(%ebp), %ebx     
+  addl   %ebx, -12(%ebp)    
+  movl   -4(%ebp), %ebx     
+  addl   %ebx, -12(%ebp)    
+  movl   %ebx, %eax     
+  leave      
+  ret
+\end{verbatim}
+
+Dans le code précédent, il y a deux paramètres de type int, et une variable est déclarée. Il faut donc réserver suffisamment de place dans la pile après avoir initialisé le Stack Pointer. C'est ce dont se chargent les trois premières lignes du label.
+\begin{enumerate}
+\item  pushl  \%ebp place la valeur du Frame Base Pointer sur la pile. Cela permettra de récupérer cette information à la fin de l'exécution de la fonction.
+\item  movl   \%esp, \%ebp place la valeur du Stack Pointer en tant que nouveau Frame Base Pointer pour réduire la visibilité de la fonction.
+\item  subl   \$16, \%esp réserve 3 + 1 cases mémoires pour les paramètres et variables.
+\end{enumerate}
+
+A la fin du label, cette fonction renvoyant un résultat, il faut le placer dans \%eax. Les instructions leave et ret permettent de remettre la pile dans un état cohérent après l'exécution de la fonction.
