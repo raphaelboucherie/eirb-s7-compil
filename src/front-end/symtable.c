@@ -63,7 +63,7 @@ Node* add_end_to_symtable(Node n, Node* ln){
 /* Cherche l'élément de nom n dans la liste */
 int find_in_symtable(char* n, const Node* ln){
 	Node* list_tmp = (Node*) ln;
-	while(list_tmp != NULL && list_tmp->next != NULL){
+	while(list_tmp != NULL){
 		if(strcmp(list_tmp->name, n) == 0){
 			return 1;
 		}
@@ -94,6 +94,25 @@ void free_symtable(Node* ln){
 			free(ln);
 			ln = ln_tmp;
 		}
+	}
+}
+void displaySymTable(const Node* list){
+	Node* list_tmp = (Node*) list;
+	while(list_tmp != NULL){
+		char* type;
+		switch(list_tmp->type){
+			case TYPE_UNDEF: type = "UNDEF"; break;
+			case TYPE_VOID: type = "VOID"; break;
+
+			case TYPE_INT: type = "INT"; break;
+			case TYPE_FLOAT: type = "FLOAT"; break;
+			default : list_tmp = list_tmp->next; continue;
+		}
+		printf("Symbol : %s ", list_tmp->name);
+		printf("(type = %s)", type);
+		printf("(size = %d)", list_tmp->size);
+		printf("(dim = %d)\n", list_tmp->dimension);
+		list_tmp = list_tmp->next;
 	}
 }
 

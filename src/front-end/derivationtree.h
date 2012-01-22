@@ -8,6 +8,8 @@ typedef struct TreeNode{
 		struct TreeNode* left;
 		struct TreeNode* right;
 } TreeNode;
+int max(int i , int j);
+int tree_length(TreeNode* tn);
 
 void set_tree_node_content(char* content, TreeNode* tn);
 TreeNode* create_tree_node(char* content);

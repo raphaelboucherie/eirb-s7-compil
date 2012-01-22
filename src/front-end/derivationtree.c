@@ -1,4 +1,25 @@
 #include "derivationtree.h"
+int max(int i , int j){
+	return (i < j) ? j : i;
+}
+
+int tree_length(TreeNode* tn){
+	int left = 0;
+	int right = 0;
+	if(tn == NULL){
+		return 0;
+	}
+	else{
+		if(tn->left != NULL){
+			left = tree_length(tn->left);
+		}
+		if(tn->right != NULL){
+			right = tree_length(tn->right);
+		}
+		return 1 + max(left,right);
+	}
+
+}
 
 void set_tree_node_content(char* content, TreeNode* tn){
 	if(tn != NULL && tn->content != NULL){

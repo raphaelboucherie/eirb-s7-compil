@@ -1,13 +1,11 @@
 #ifndef __CHECK_TYPE_H__
 #define __CHECK_TYPE_H__
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <regex.h>
-#include "derivationtree.h"
-#include "symtable.h"
+#include "globals.h"
 #include "checktype.h"
+#include "derivationtree.h"
+#include "symbolTable.h"
 
 #define NB_OP 13
 
@@ -26,20 +24,29 @@ char* operator[NB_OP] = {
 				">", 	/* 11 */
 				"|" 	/* 12 */
 };
-int type_left = 0, type_right = 0;
-const char *var_regex = "";
+int type_left = -1, type_right = -1;
 	
-int check_type(TreeNode* tn, const Node* symtable){
+int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbolTableTreeNode* symtable_root){
 	int i = 0;
-	Node* operand;
+	struct symbolTableIdentifierList* operand;
 	if(type_left == TYPE_UNDEF || type_right == TYPE_UNDEF){
 		return TYPE_UNDEF;
 	}
-	if(tn->right != NULL){
-		type_right = check_type(tn->right, symtable);
+	if(tree_length(tn->left) < tree_length(tn->right)){
+		if(tn->right != NULL){
+			type_right = check_type(tn->right, symtable, symtable_root);
+		}
+		if(tn->left != NULL){
+			type_left = check_type(tn->left, symtable, symtable_root);
+		}
 	}
-	if(tn->left != NULL){
-		type_left = check_type(tn->left, symtable);
+	else{	
+		if(tn->left != NULL){
+			type_left = check_type(tn->left, symtable, symtable_root);
+		}
+		if(tn->right != NULL){
+			type_right = check_type(tn->right, symtable, symtable_root);
+		}
 	}
 	/* Validation du type */
 	while(i < NB_OP && strcmp(tn->content, operator[i]))
@@ -147,22 +154,22 @@ int check_type(TreeNode* tn, const Node* symtable){
 					}
 				}else{
 					//Si meme types à gauche et à droite (float, float ou int, int)
-					if((type_left == TYPE_INT && type_left == TYPE_INT) 
-						|| (type_left == TYPE_FLOAT && type_left == TYPE_FLOAT)
+					if((type_left == TYPE_INT && type_right == TYPE_INT) 
+						|| (type_left == TYPE_FLOAT && type_right == TYPE_FLOAT)
 						|| (type_left == TYPE_CONSTANT && type_right == TYPE_INT)
 						|| (type_left == TYPE_CONSTANT && type_right == TYPE_FLOAT)
 						|| (type_left == TYPE_INT && type_right == TYPE_CONSTANT)
 						|| (type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT)){
 						
-						Node* left = get_node_from_symtable(tn->left->content, symtable);
-						Node* right = get_node_from_symtable(tn->right->content, symtable);
+						struct symbolTableIdentifierList* left = getIdentifier(tn->left->content, symtable, symtable_root);
+						struct symbolTableIdentifierList* right = getIdentifier(tn->right->content, symtable, symtable_root);
 						// Si les symboles récupérés sont valides
 						if(left == NULL || right == NULL){
 							return TYPE_UNDEF;
 						}
 						// Si l'une des operandes et un vecteur (tableau de dimension 1)
 						if(left->dimension == 1 || right->dimension == 1){
-							return TYPE_FLOAT;
+							return TYPE_ARRAY;
 						}
 					}
 				}
@@ -204,8 +211,8 @@ int check_type(TreeNode* tn, const Node* symtable){
 						|| (type_left == TYPE_INT && type_right == TYPE_CONSTANT)
 						|| (type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT)){
 						
-						Node* left = get_node_from_symtable(tn->left->content, symtable);
-						Node* right = get_node_from_symtable(tn->right->content, symtable);
+						struct symbolTableIdentifierList* left = getIdentifier(tn->left->content, symtable, symtable_root);
+						struct symbolTableIdentifierList* right = getIdentifier(tn->right->content, symtable, symtable_root);
 						// Si les symboles récupérés sont valides
 						if(left == NULL || right == NULL){
 							return TYPE_UNDEF;
@@ -255,8 +262,8 @@ int check_type(TreeNode* tn, const Node* symtable){
 						|| (type_left == TYPE_INT && type_right == TYPE_CONSTANT)
 						|| (type_left == TYPE_FLOAT && type_right == TYPE_CONSTANT)){
 						
-						Node* left = get_node_from_symtable(tn->left->content, symtable);
-						Node* right = get_node_from_symtable(tn->right->content, symtable);
+						struct symbolTableIdentifierList* left = getIdentifier(tn->left->content, symtable, symtable_root);
+						struct symbolTableIdentifierList* right = getIdentifier(tn->right->content, symtable, symtable_root);
 						// Si les symboles récupérés sont valides
 						if(left == NULL || right == NULL){
 							return TYPE_UNDEF;
@@ -303,8 +310,8 @@ int check_type(TreeNode* tn, const Node* symtable){
 				//Si meme types à gauche et à droite (float, float ou int, int)
 				if((type_left == TYPE_FLOAT && type_right == TYPE_FLOAT) 
 					|| (type_left == TYPE_FLOAT && type_right == TYPE_FLOAT)){
-					Node* left = get_node_from_symtable(tn->left->content, symtable);
-					Node* right = get_node_from_symtable(tn->right->content, symtable);
+						struct symbolTableIdentifierList* left = getIdentifier(tn->left->content, symtable, symtable_root);
+						struct symbolTableIdentifierList* right = getIdentifier(tn->right->content, symtable, symtable_root);
 					// Si les symboles récupérés sont valides
 					if(left == NULL || right == NULL){
 						return TYPE_UNDEF;
@@ -319,7 +326,7 @@ int check_type(TreeNode* tn, const Node* symtable){
 		}
 	}else{
 		/* C'est une opérande */
-		operand =  get_node_from_symtable(tn->content, symtable);
+		operand =  getIdentifier(tn->content, symtable, symtable_root);
 		// Constante
 		if(operand == NULL){		
 			return TYPE_CONSTANT;

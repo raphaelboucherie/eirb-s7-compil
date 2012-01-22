@@ -5,7 +5,7 @@ CC=gcc
 
 all:frontend backend
 
-frontend:frontend.c scanner_frontend.c symtable.c derivationtree.c pile.c generate2a.c checktype.c
+frontend:frontend.c scanner_frontend.c symbolTable.c stringList.c  derivationtree.c pile.c generate2a.c checktype.c 
 	$(CC) $(CFLAGS) -o $@ $^
 
 backend:backend.c scanner_backend.c
