@@ -202,9 +202,8 @@ int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbol
 					if(type_left == TYPE_FLOAT){
 						return TYPE_FLOAT;
 					}
-				}else{
 					//Si meme types à gauche et à droite (float, float ou int, int)
-					if(((type_left == TYPE_INT || type_left == TYPE_FCTN_INT) && (type_right == TYPE_INT || type_right == TYPE_FCTN_INT)) 
+				}else if(((type_left == TYPE_INT || type_left == TYPE_FCTN_INT) && (type_right == TYPE_INT || type_right == TYPE_FCTN_INT)) 
 						|| (type_left == TYPE_FLOAT && type_right == TYPE_FLOAT)
 						|| (type_left == TYPE_CONSTANT && (type_right == TYPE_INT || type_right == TYPE_FCTN_INT))
 						|| (type_left == TYPE_CONSTANT && type_right == TYPE_FLOAT)
@@ -222,7 +221,10 @@ int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbol
 							return TYPE_ARRAY;
 						}
 					}
-				}
+				else {
+			    return TYPE_UNDEF;
+			  }
+				
 			break;
 			case 8 : /* - */
 				if((type_left == TYPE_INT || type_left == TYPE_FCTN_INT) && (type_right == TYPE_INT || type_right == TYPE_FCTN_INT)){
@@ -252,9 +254,8 @@ int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbol
 					if(type_left == TYPE_FLOAT){
 						return TYPE_FLOAT;
 					}
-				}else{
 					//Si memes types à gauche et à droite (float, float ou int, int)
-					if(((type_left == TYPE_INT || type_left == TYPE_FCTN_INT) && (type_left == TYPE_INT || type_left == TYPE_FCTN_INT)) 
+				}else if(((type_left == TYPE_INT || type_left == TYPE_FCTN_INT) && (type_left == TYPE_INT || type_left == TYPE_FCTN_INT)) 
 						|| (type_left == TYPE_FLOAT && type_left == TYPE_FLOAT)
 						|| (type_left == TYPE_CONSTANT && (type_right == TYPE_INT || type_right == TYPE_FCTN_INT))
 						|| (type_left == TYPE_CONSTANT && type_right == TYPE_FLOAT)
@@ -272,7 +273,9 @@ int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbol
 							return TYPE_ARRAY;
 						}
 					}
-				}
+				else {
+			    return TYPE_UNDEF;
+			  }
 			break;
 			
 			case 9 : /* * */
@@ -303,9 +306,8 @@ int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbol
 					if(type_left == TYPE_FLOAT){
 						return TYPE_FLOAT;
 					}
-				}else{
 					//Si meme types à gauche et à droite (float, float ou int, int)
-					if(((type_left == TYPE_INT || type_left == TYPE_FCTN_INT) && (type_left == TYPE_INT || type_left == TYPE_FCTN_INT)) 
+				}else if(((type_left == TYPE_INT || type_left == TYPE_FCTN_INT) && (type_left == TYPE_INT || type_left == TYPE_FCTN_INT)) 
 						|| (type_left == TYPE_FLOAT && type_left == TYPE_FLOAT)
 						|| (type_left == TYPE_CONSTANT && (type_right == TYPE_INT || type_right == TYPE_FCTN_INT))
 						|| (type_left == TYPE_CONSTANT && type_right == TYPE_FLOAT)
@@ -322,9 +324,11 @@ int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbol
 						if(left->dimension == 1 || right->dimension == 1){
 							return TYPE_ARRAY;
 						}
-					}
 				}
-			break;
+				else {
+				  return TYPE_UNDEF;
+				}
+				break;
 			
 			case 10 : /* < */
 	if((type_left == TYPE_INT || type_left == TYPE_FCTN_INT) && (type_right == TYPE_INT || type_right == TYPE_FCTN_INT)){
@@ -395,7 +399,10 @@ int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbol
 					}
 					return TYPE_ARRAY;
 				}
-			break;
+				else {
+				  return TYPE_UNDEF;
+				}
+				break;
 		}
 	}else{
 		/* C'est une opérande */
