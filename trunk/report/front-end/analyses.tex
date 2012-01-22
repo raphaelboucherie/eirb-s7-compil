@@ -1,0 +1,31 @@
+\newpage
+\section{Analyses du langage d'entrée}
+\subsection{Analyse lexicale}
+
+L'analyse lexicale du langage d'entrée est assurée par le lexeur \verb?Lex?. Il est capapble de reconnaitre les mots du langage d'entrée (lexèmes) et de les fournir à l'analyseur syntaxique qui va controler leurs agencements les uns par rapport aux autres.
+
+L'expression du langage au format Lex nous était fourni avec le sujet du projet, nous n'avons pas eu besoin de la modifier.
+
+
+\subsection{Analyse syntaxique}
+
+Concernant l'analyse syntaxique, celle-ci est réalisée par l'analyseur \verb?Bison? (ou \verb?Yacc?) et consiste à verifier la structure des lexèmes reconnus par \verb?Lex?.
+La syntaxe des différents lexèmes reconnus est déclarée sous forme de règles. Lors de l'analyse syntaxique un certain nombre de règles sont appliquées et des actions sémantiques associées sont éxecutées. Ces dernières permettent par exemple la construction d'une table des symboles ou d'un arbre syntaxique.
+
+\subsection{Table des symboles}
+
+La table des symboles regroupent tous les identificateurs recontrés lors de l'analyse syntaxique. 
+Une entrée dans la table des symboles contient un ensemble d'informations :
+
+\begin{itemize}
+\item \verb?nom? : Le nom de l'identificateur
+\item \verb?type? : Le type lié à l'identificateur (\verb?TYPE_VOID?, \verb?TYPE_INT?, \verb?TYPE_FLOAT?, \verb?TYPE_ARRAY?, \verb?TYPE_FCTN_INT?, ...)
+\item \verb?dimension? : La dimension liée à l'identificateur (s'il s'agit d'un tableau de vecteur par exemple)
+\item \verb?size? : La taille liée à l'identificateur pour l'allocation
+\item \verb?get_by_addr? : [TODO]
+\item \verb?defined? : [TODO]
+\end{itemize}
+
+
+\subsection{Arbre syntaxique}
+
