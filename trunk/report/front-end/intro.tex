@@ -2,6 +2,15 @@
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
 
+Notre compilateur \verb?ECC? (Enseirb-Matmeca C Compiler) se compose de deux parties :
+
+\begin{itemize}
+\item : La partie front end, dont nous avons la charge, va s'occuper de transformer le langage d'entrée en langage deux adresses VectorC2a (appelé representation intermediaire) afin de permettre à la partie backend de générer plus facilement du langage machine.
+\item : La partie back end, va quant à elle, s'occuper de générer le langage machine (ici de l'ASM x86) à partir de la RI produite par la partie front end.
+
+\end{itemize}
 
 
+Plus précisement, la partie front end va effectuer des traitements tels que l'analyse lexicale, syntaxique du langage d'entrée, la construction de l'arbre syntaxique et de la table des symboles, la verification des types (analyse semantique), et enfin la génération de code deux adresses.
+Ce rapport va expliciter nos choix d'implementation, nos reflexions ainsi que les problèmes que nous avons pu rencontrer durant le développement de cette partie.
 		
