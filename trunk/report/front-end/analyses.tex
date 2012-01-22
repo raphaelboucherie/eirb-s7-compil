@@ -1,5 +1,5 @@
 \newpage
-\section{Analyses du langage d'entrée}
+\section{Analyse du langage d'entrée}
 \subsection{Analyse lexicale}
 
 L'analyse lexicale du langage d'entrée est assurée par le lexeur \verb?Lex?. Il est capapble de reconnaitre les mots du langage d'entrée (lexèmes) et de les fournir à l'analyseur syntaxique qui va controler leurs agencements les uns par rapport aux autres.
@@ -15,7 +15,9 @@ La syntaxe des différents lexèmes reconnus est déclarée sous forme de règle
 \subsection{Table des symboles}
 
 La table des symboles regroupent tous les identificateurs recontrés lors de l'analyse syntaxique. 
-Une entrée dans la table des symboles contient un ensemble d'informations :
+Cette table permet, en combinaison avec l'arbre syntaxique, d'effectuer une validation de type faisant partie de l'analyse semantique, afin de détecter les incompatibilités de type lors des opérations arithmétiques, d'affectation, ... 
+
+Une entrée dans la table des symboles (\verb?symbolTableIdentifierList?) contient un ensemble d'informations :
 
 \begin{itemize}
 \item \verb?nom? : Le nom de l'identificateur
@@ -26,6 +28,12 @@ Une entrée dans la table des symboles contient un ensemble d'informations :
 \item \verb?defined? : [TODO]
 \end{itemize}
 
+~~\\
+La table des symboles n'est autre qu'une liste chainée de structure (\verb?symbolTableIdentifierList?) comme celle decrite ci-dessus et possède un certain nombre de fonctions liées à la recherche et à la manipulation de structures dans une liste chainée.
+
+~~\\
+Il existe une table des symboles par bloc d'instruction analysé dans le langage d'entrée. Chaque bloc possède donc sa propre table des symboles et herite des symboles situés dans la table des symboles du bloc parent. Il existe donc une relation arborescente d'heritage entre les tables des symboles, ainsi une table des symbole fait partie d'un arbre de tables (\verb?symbolTableTreeNode?). Techniquement, cela se réalise par un pointeur vers la liste parente dans la structure de liste chainée.
 
 \subsection{Arbre syntaxique}
 
+L'arbre syntaxique contient les opérandes et opérateurs des différentes expressions du langage d'entrée. Cet arbre permet à la fois de verifier la sémantique et la logique du langage d'entrée, mais également de générer la representation intermediaire par un parcours adéquat.
