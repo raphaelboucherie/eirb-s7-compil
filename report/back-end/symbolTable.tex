@@ -31,6 +31,7 @@ Le champ identifierList correspond aux symboles en eux-même. Il s'agit d'une li
 functionName et parameterSize sont des champs qui décrivent la fonction, c'est à dire son nom, et la taille de ses paramètres.
 code permet de gérer l'affichage du code asm.
 currentOffset correspond au FramePointer et permet de définir le début de la fonction dans la pile, et donc sa visibilité.
+Le champ code est relativement important pour comprendre comment nous gérons la génération du code. Chaque table correspond à un bloc d'instructions. Parfois, nous le verrons plus tard dans ce rapport, il est nécessaire de connaître l'ensemble des instructions avant d'écrire le code. Dans un premier temps, les instructions générées sont donc stockées dans le champ code. Cela nous permet de les imprimer seulement au moment où toutes les informations nécessaires sont connues.
 
 
 La structure qui suit décrit un étage de l'arbre. Il s'agit d'une liste de tables des symboles situés à la même distance de la racine.
