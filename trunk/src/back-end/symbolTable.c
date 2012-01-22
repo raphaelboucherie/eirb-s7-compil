@@ -30,7 +30,7 @@ struct symbolTableTreeNode* createTreeNode(struct symbolTableTreeNode* father)
   node->identifierList = NULL;
   node->functionName = NULL;
   node->code = NULL;
-  node->currentOffset = 0;
+  node->currentOffset = 4;
   node->parameterSize=0;
     
   if(father != NULL) 
@@ -91,19 +91,22 @@ int addArrayIdentifier(char* identifier, int size, int type,
 {
   assert(!getIdentifierInList(identifier,symbolTableCurrentNode->identifierList) && 
 	 "conflit avec un symbole déja présent dans la table"); 
-  assert(type & 0x1000); // type_ARRAY
+  assert(type & 0b1000); // type_ARRAY
   fprintf(stderr,"Ajout de l'identifier : %s\n", identifier);
   int offset;
   int totalSize = 1;
-  offset = getOffset(size, symbolTableCurrentNode);
+  int i = 0;
+  for (i=0;i<nbDimension;i++)
+    totalSize*= dimensionSizes[i];
+  offset = getOffset(totalSize, symbolTableCurrentNode);
   struct symbolTableIdentifierList* identifierData = 
     createIdentifierList(identifier,type,offset,size);
   
-  int i = 0;
+  
   for (i=0;i<nbDimension;i++)
     {
       addArrayDimension(identifierData,dimensionSizes[i]);
-      totalSize*= dimensionSizes[i];
+  
     }
   
   
@@ -119,7 +122,7 @@ void addIdentifier (char* identifier, int size, int type,
 {
   assert(!getIdentifierInList(identifier,symbolTableCurrentNode->identifierList) && 
 	 "conflit avec un symbole déja présent dans la table"); 
-  assert(type != 0x10000 && // 0x10000 = type_FUNCTION
+  assert(type != 0b10000 && // 0b10000 = type_FUNCTION
 	 "L'ajout de fonction dans la table ne doit pas utiliser cette fonction");
   fprintf(stderr,"Ajout de l'identifier : %s\n", identifier);
   int offset;
@@ -139,8 +142,9 @@ void addParameter(char * identifier, int size, int type, struct symbolTableTreeN
 
 int getOffset(int size, struct symbolTableTreeNode* node)
 {
+  int offset = node->currentOffset;
   node->currentOffset+=(size*4);
-  return node->currentOffset;
+  return offset;
 }
 
 int searchOffset(char* identifier,
