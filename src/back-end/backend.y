@@ -93,7 +93,6 @@ primary_expression
 
 | IDENTIFIER '(' ')' 
 {
-  //TODO : search for identifier
   fprintf(LOG, "Appel d'une fonction");
   fprintf(LOG, "%s \n", $1);
   symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tcall\t", $1);
@@ -151,7 +150,7 @@ postfix_expression
 | postfix_expression '[' expression ']' 
 { // Access to a value in an array
   char str[256];
-  char str2[256];
+  char* str2 = malloc(sizeof(char)*256); 
   char* dbg1 = $1;
   char* dbg3 = $3;
   sprintf(str,"%s@%s",$1,strtok($3,"$"));
@@ -348,7 +347,9 @@ char* reg1 = postfixExpressionToRegister($1,
 expression
 : unary_expression assignment_operator unary_expression 
 { // Assignment operation
-  fprintf(LOG,"expression, assignement operator = %d\n", $2);
+  char* dbg1 = $1;
+  char* dbg3 = $3;
+  fprintf(LOG,"expression, assignement operator = %d\n$1 = %s\n$3 = %s\n", $2, $1, $3);
   struct symbolTableIdentifierList* id1;
   struct symbolTableIdentifierList* id3;
   if (isIdentifier($1))
@@ -381,28 +382,51 @@ expression
   assert(id3 != NULL);
   if ($2 == operator_MUL)
     {
-      if (id1->type & type_ARRAY)
+      if (id1->type & type_ARRAY || $1[0] == '#')
 	{
-	  if (id3->type & type_ARRAY) // array *= array
+	  if (id3->type & type_ARRAY || $3[0] == '#') // array *= array
 	    {
+	      yyerror("array *= array");
 	      /*
 	       * t1[i] = t1[i] * t3[i];
+	       * loop:
+	       * movl $0, %ecx
+	       * cmpl %ecx, $array1Size 
+	       * jeq exit
+	       *  
+	       *
+	       *
 	       */
+	      fprintf(stderr,"%s *= %s\n", $1, $3);	      
+	      int array1Size = getArraySize($1, symbolTableCurrentNode, symbolTableRoot);
+	      int array3Size = getArraySize($3, symbolTableCurrentNode, symbolTableRoot);
+	      fprintf(LOG,"size1 = %d - size2 = %d\n", array1Size, array3Size);
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"");
+
+	      /*
+	      int array1StartOffset = ;
+	      int array3StartOffset = ; */
+
+	      
 	      yyerror("Not implemented yet !");
 	    }
 	  else // array *= var
 	    {
+	      yyerror("array *= var");
 	      yyerror("Not implemented yet !");
 	    }
 	}
       else
 	{
-	  if (id3->type & type_ARRAY) // var *= array
+	  if (id3->type & type_ARRAY || $3[0] == '#') // var *= array
 	    {
+	      yyerror("var *= array");
 	      yyerror("Not implemented yet !");
 	    }
 	  else // var *= var 
 	    {
+	      yyerror("var *= var");
 	      char* reg1 = NULL, *reg3 = NULL;
 	      if (!getAndCheckExpressions(&reg1,&reg3,id1,id3,$1,$3,
 					  symbolTableCurrentNode, symbolTableRoot))
@@ -424,9 +448,9 @@ expression
     }
   else if ($2 == operator_ADD)
     {
-      if (id1->type & type_ARRAY)
+      if (id1->type & type_ARRAY || $1[0] == '#')
 	{
-	  if (id3->type & type_ARRAY) // array += array
+	  if (id3->type & type_ARRAY || $3[0] == '#') // array += array
 	    {
 	      	      yyerror("Not implemented yet !");
 	    }
@@ -437,7 +461,7 @@ expression
 	}
       else
 	{
-	  if (id3->type & type_ARRAY) // var += array
+	  if (id3->type & type_ARRAY || $3[0] == '#') // var += array
 	    {
 	      yyerror("Not implemented yet !");
 	    }
@@ -463,9 +487,9 @@ expression
     }
   else if ($2 == operator_SUB)
     {
-      if (id1->type & type_ARRAY)
+      if (id1->type & type_ARRAY || $1[0] == '#')
 	{
-	  if (id3->type & type_ARRAY) // array -= array
+	  if (id3->type & type_ARRAY || $3[0] == '#') // array -= array
 	    {
 	      	      yyerror("Not implemented yet !");
 	    }
@@ -476,7 +500,7 @@ expression
 	}
       else
 	{
-	  if (id3->type & type_ARRAY) // var -= array
+	  if (id3->type & type_ARRAY || $3[0] == '#') // var -= array
 	    {
 	      yyerror("Not implemented yet !");
 	    }
@@ -502,20 +526,30 @@ expression
     }
   else
     {
-      if (id1->type & type_ARRAY)
+      if (id1->type & type_ARRAY || $1[0] == '#')
 	{
-	  if (id3->type & type_ARRAY) // array = array
+	  if (id3->type & type_ARRAY || $3[0] == '#') // array = array
 	    {
 	      	      yyerror("Not implemented yet !");
 	    }
 	  else // array = var
 	    {
+	      char* reg1 = NULL, *reg3 = NULL;
+	      if (!getAndCheckExpressions(&reg1,&reg3,id1,id3,$1,$3,
+					  symbolTableCurrentNode, symbolTableRoot))
+		{
+		  yyerror("First operand of operator cant be a constant"); 
+		  exit(0);
+		}
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"%s %s, %s \n",
+			  "\tmovl\t", reg3, reg1);
 	      yyerror("Not implemented yet !");
 	    }
 	}
       else
 	{
-	  if (id3->type & type_ARRAY) // var = array
+	  if (id3->type & type_ARRAY || $3[0] == '#') // var = array
 	    {
 	      yyerror("Not implemented yet !");
 	    }
@@ -536,7 +570,13 @@ expression
     }
   fprintf(LOG,"end of expression\n");
 }
-| unary_expression {$$=$1;} // TODO
+| unary_expression 
+{
+  if ($1[0] == '$' || $1[0] == '-' || $1[0] == '%')
+    $$ = $1;
+  else
+    $$=regOffset($1, searchOffset($1, symbolTableCurrentNode, symbolTableRoot));
+} // TODO
 ;
 
 assignment_operator
@@ -904,7 +944,7 @@ compound_statement
   fprintf(LOG,"Ajout du code du corps : %s\n", symbolTableCurrentNode->code->str);
   asmCode = addStringList(asmCode, symbolTableCurrentNode->code);
 //  fprintf(stderr,"Ajout du code de fin\n");
-//  asmCode = addString(asmCode,"\t%s\n\t%s\n","leave","ret");
+  asmCode = addString(asmCode,"\t%s\n\t%s\n","leave","ret");
 
   // End of the instructions
   // Current symbol table comes back to father's

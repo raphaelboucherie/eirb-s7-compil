@@ -55,7 +55,7 @@ int getAndCheckExpressions(char** reg1, char** reg3,
 			   struct symbolTableTreeNode* symbolTableCurrentNode,
 			   struct symbolTableTreeNode* symbolTableRoot)
 {
-  if (!(id1->type & 0x1)) // type_UNDEFINED
+  if (!(id1->type & 0b1)) // type_UNDEFINED
     *reg1 = regOffset("%ebp", id1->offset);
   else if (expr1[0] == '%') // register 
     *reg1 = expr1;
@@ -65,7 +65,7 @@ int getAndCheckExpressions(char** reg1, char** reg3,
       int positions[256];
       int i = 0;
       char* position = strtok(NULL,"@#");
-      // get all the in from @@@id@i1@@i2@@i3
+      // get all the in from ###id@i1@@i2@@i3
       do
 	{
 	  positions[i] = atoi(position);
@@ -76,6 +76,11 @@ int getAndCheckExpressions(char** reg1, char** reg3,
       struct symbolTableIdentifierList* idArray =
 	getIdentifier(identifier,symbolTableCurrentNode,symbolTableRoot);
       assert(idArray != NULL);
+      if (i < idArray->nbArrayDimension)
+	{
+	  positions[i] = 0;
+	  i++;
+	}
       int offsetSize[256];
       // calcul de l'offset dans le(s) tableau(x)
       int j;
@@ -98,19 +103,85 @@ int getAndCheckExpressions(char** reg1, char** reg3,
     }
   else
     return 0;
-  if (!(id3->type & 0x1)) // type_UNDEFINED
+  if (!(id3->type & 0b1)) // type_UNDEFINED
     *reg3 = regOffset("%ebp", id3->offset);
+  else if (expr3[0] == '#') // Array[i]
+    {
+      char* identifier = strtok(expr3,"@#");
+      int positions[256];
+      int i = 0;
+      char* position = strtok(NULL,"@#");
+      // get all the in from @@@id@i1@@i2@@i3
+      do
+	{
+	  positions[i] = atoi(position);
+	  i++;
+	  position = strtok(NULL,"@#");
+	}
+      while(position != NULL);
+      struct symbolTableIdentifierList* idArray =
+	getIdentifier(identifier,symbolTableCurrentNode,symbolTableRoot);
+      assert(idArray != NULL);
+      if (i < idArray->nbArrayDimension)
+	{
+	  positions[i] = 0;
+	  i++;
+	}
+
+      int offsetSize[256];
+      // calcul de l'offset dans le(s) tableau(x)
+      int j;
+      for (j=0;j<i;j++)
+	{
+	  // offset = position * sizeOfDimension n 
+	  int k = 0;
+	  offsetSize[j] = positions[j]; 
+	  for (k=j+1;k<i;k++)
+	    offsetSize[j]*=idArray->dimensionSizes[k]; 
+	}
+      int totalOffset = 0;
+      for (j=0;j<i;j++)
+	totalOffset+= offsetSize[j];
+      // L'offset total est la somme de ces offset + l'offset de base du tableau
+      totalOffset *= 4; // float and int take 4 Bytes in memory
+      totalOffset += idArray->offset;       
+      *reg3 = regOffset("%ebp", totalOffset);
+      fprintf(stderr,"Calculating array offset : %d\n", totalOffset);
+    }
   else
     *reg3 = expr3;
   return 1;
 }
-			   
+		
+int getArraySize(char* array, struct symbolTableTreeNode* symbolTableCurrentNode, 
+		 struct symbolTableTreeNode* symbolTableRoot)	   
+{
+  int i = 0;
+  char* temp = strdup(array);
+  char* identifier = strtok(temp,"@#");
+  if(temp[0]=='#')
+    {
+      char* position = strtok(NULL,"@#");
+      // get all the in from @@@id@i1@@i2@@i3
+      do
+	{
+	  i++;
+	  position = strtok(NULL,"@#");
+	}
+      while(position != NULL);
+    }
+  struct symbolTableIdentifierList* idArray =
+    getIdentifier(identifier,symbolTableCurrentNode,symbolTableRoot);
+  assert(idArray != NULL);
+  return idArray->dimensionSizes[i];
+}
 
 char* ASM_INIT()
 {
   //  return "BITS 32\nSECTION .data\nSECTION .text\n\tGLOBAL _start\n\n_start:\n";
   return "\t.text\n";//.globl main\n\t.type	main, @function\nmain:\n\tpushl\t %ebp\n\tmovl\t %esp, %ebp\n\tsubl\t $16, %esp\n";
 }
+
 char* ASM_CLOSE()
 {
   return "";//mov eax, 1\nint 0x80\n";

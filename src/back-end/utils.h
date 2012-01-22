@@ -21,4 +21,6 @@ int getAndCheckExpressions(char** reg1, char** reg3,
 			   char* expr1, char* expr3,
 			   struct symbolTableTreeNode* symbolTableCurrentNode,
 			   struct symbolTableTreeNode* symbolTableRoot);
+int getArraySize(char* array, struct symbolTableTreeNode* symbolTableCurrentNode, 
+		 struct symbolTableTreeNode* symbolTableRoot);	   
 #endif // UTILS_H
