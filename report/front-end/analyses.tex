@@ -36,4 +36,26 @@ Il existe une table des symboles par bloc d'instruction analysé dans le langage
 
 \subsection{Arbre syntaxique}
 
-L'arbre syntaxique contient les opérandes et opérateurs des différentes expressions du langage d'entrée. Cet arbre permet à la fois de verifier la sémantique et la logique du langage d'entrée, mais également de générer la representation intermediaire par un parcours adéquat.
+L'arbre syntaxique contient les opérandes et opérateurs des différentes expressions du langage d'entrée. Cet arbre permet à la fois de verifier la sémantique et la logique du langage d'entrée, mais également de générer la representation intermediaire par un parcours adéquat dans l'arbre.
+
+~~\\
+~~\\
+Exemple d'arbre syntaxique généré à partir de l'expression : \verb?c = a + b * c?
+\begin{center}
+	\ovalbox{
+		\begin{tikzpicture}
+		    \tikzstyle{every node}=[circle,draw]
+		    \node {=}
+		        child {
+		            node {+}
+		            child { node {*} 
+		             child {node{c}}
+                     child {node{d}}
+		            }
+		            child { node {a} }
+		        }
+		        child { node {d} }
+		    ;
+		\end{tikzpicture}
+	}
+\end{center}
