@@ -416,11 +416,20 @@ expression
 		  sseMultStep(array1StartOffset + 4*i, array3StartOffset + 4*i,
 			      symbolTableCurrentNode);
 		}
+	      for(i=0;i<array1Size%4;i++)
+		{
+		  symbolTableCurrentNode->code = 
+		    addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", 
+			      array3StartOffset+(nbIter*4*4)+(i*4), "%ebx", "%ebp");
+		  symbolTableCurrentNode->code = 
+		    addString(symbolTableCurrentNode->code,"\tmull\t %s, -%d(%s)\n", 
+			      "%ebx", array1StartOffset+(nbIter*4*4)+(i*4), "%ebp");
+		}
 	    }
 	  else // array *= var
 	    {
 	      yyerror("array *= var");
-
+	      
 	    }
 	}
       else
@@ -458,7 +467,8 @@ expression
 	{
 	  if (id3->type & type_ARRAY || $3[0] == '#') // array += array
 	    {
-	      	      yyerror("Not implemented yet !");
+	      yyerror("array += array");
+	      yyerror("Not implemented yet !");
 	    }
 	  else // array += var
 	    {
@@ -581,7 +591,7 @@ expression
   if ($1[0] == '$' || $1[0] == '-' || $1[0] == '%')
     $$ = $1;
   else
-    $$=regOffset($1, searchOffset($1, symbolTableCurrentNode, symbolTableRoot));
+    $$=regOffset("%ebp", searchOffset($1, symbolTableCurrentNode, symbolTableRoot));
 } // TODO
 ;
 
