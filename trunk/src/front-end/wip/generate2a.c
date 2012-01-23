@@ -6,7 +6,44 @@ char* scalar_product_name = "res_ps";
 char* scalar_product_name_tmp = NULL;
 char instruction[4096] = "";
 //Node* symtable_tmp = NULL;
+char* reverse_operator(char* comp){
+	char* operand;
+	char reverse[1024];
+	char* tmp1;
+	char* tmp2;
+	if((operand = strstr(comp, "==")) != NULL){
+		tmp1 = strtok(comp, " ");
+		tmp2 = strstr(operand, " ");
+		sprintf(reverse, "%s != %s", tmp1, tmp2);
+	}
+	else if((operand = strstr(comp, "!=")) != NULL){
+		tmp1 = strtok(comp, " ");
+		tmp2 = strstr(operand, " ");
+		sprintf(reverse, "%s == %s", tmp1, tmp2);
+	}
+	else if((operand = strstr(comp, "<"))!= NULL){
+		tmp1 = strtok(comp, " ");
+		tmp2 = strstr(operand, " ");
+		sprintf(reverse, "%s >= %s", tmp1, tmp2);
+	}
+	else if((operand = strstr(comp, ">"))!= NULL){
+		tmp1 = strtok(comp, " ");
+		tmp2 = strstr(operand, " ");
+		sprintf(reverse, "%s <= %s", tmp1, tmp2);
+	}
+	else if((operand = strstr(comp, "<="))!= NULL){
+		tmp1 = strtok(comp, " ");
+		tmp2 = strstr(operand, " ");
+		sprintf(reverse, "%s > %s", tmp1, tmp2);
+	}
+	else if((operand = strstr(comp, ">="))!= NULL){
+		tmp1 = strtok(comp, " ");
+		tmp2 = strstr(operand, " ");
+		sprintf(reverse, "%s < %s", tmp1, tmp2);
+	}
+	return reverse;
 
+}
 char* tree_to_2a_code(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbolTableTreeNode* symtable_root, struct string* list){
 	if(tree_length(tn->left) > tree_length(tn->right)){
 		if(tn->left != NULL){

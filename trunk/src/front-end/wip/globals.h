@@ -15,7 +15,7 @@
 #define TYPE_CONSTANT	 8
 
 /* Macro de Logging */
-#define DEBUG 0 
+#define DEBUG 0
 #define LOG(out, format, args...) if(DEBUG) fprintf(out, format, args)
 
 static struct symbolTableTreeNode* symbol_table_root = NULL;
@@ -24,6 +24,7 @@ static struct symbolTableTreeNode* symbol_table_current = NULL;
 static struct pile* stack_for = NULL;
 static struct pile* stack_while = NULL;
 static struct string* list_tmp;
+static struct string* list_if_tmp;
 
 /* struct pile* stack_return_value_tmp = NULL; */
 
