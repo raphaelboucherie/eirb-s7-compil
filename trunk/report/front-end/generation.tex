@@ -11,7 +11,7 @@ Voici un tableau exposant des morceaux de code du langage d'entrée et leur corr
   \textbf{Affectation} & int i; & int i; \tabularnewline
     & i=0; & i=0; \tabularnewline
   \hline
-   \textbf{Expression arithmetique} & c = a + b * f; & int tmp1; \tabularnewline
+  \textbf{Expression arithmetique} & c = a + b * f; & int tmp1; \tabularnewline
    & & tmp1 = b; \tabularnewline
    & & tmp1 *= f; \tabularnewline
    & & tmp1 += a; \tabularnewline
@@ -20,7 +20,7 @@ Voici un tableau exposant des morceaux de code du langage d'entrée et leur corr
   \textbf{Structure conditionnelle} & \raggedleft $if(i==10)\{$ & $if(i==10)\{$ \tabularnewline
   & $\ \ \ printf("Toto");$ & \raggedleft $\ \ \ printf("Toto");$ \tabularnewline
   & $\} else \{$ & \raggedleft $\}$ \tabularnewline
-  & $\ \ \ printf("Titi");$ & \raggedleft $if((i==10)== 0)\{$ \tabularnewline
+  & $\ \ \ printf("Titi");$ & \raggedleft $if(i!=10)\{$ \tabularnewline
   & $\} $ & \raggedleft $\ \ \ printf("Titi");$ \tabularnewline
   & & \raggedleft $\}$ \tabularnewline
   \hline
@@ -33,4 +33,14 @@ Voici un tableau exposant des morceaux de code du langage d'entrée et leur corr
   & & \raggedleft $\ \ \}$ \tabularnewline
   \hline
 \end{tabular}
+
+~~\\
+La génération de la représentation intermediaire se réalise en parcourant l'arbre syntaxique comme suit :
+[TODO]
+
+~~\\
+La génération du code 2 adresses passe par la génération de variables temporaires (ajoutées dans la table des symboles) et déclarées en début de bloc. 
+[TODO]
+
+
 

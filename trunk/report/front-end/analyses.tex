@@ -50,7 +50,7 @@ Exemple d'arbre syntaxique généré à partir de l'expression : \verb?c = a + b
 		\begin{tikzpicture}
 		    \tikzstyle{every node}=[circle,draw]
 		    \node {=}
-   		        child { node {c} }
+   		        child { node{c} }
 		        child {
 		            node {+}
 		            child { 	
@@ -68,13 +68,30 @@ Exemple d'arbre syntaxique généré à partir de l'expression : \verb?c = a + b
 \newpage
 \subsection{Verification des types}
 
-La verification des types permet de controler la cohérence du langage d'entrée. Celle-ci est réalisée grâce à un parcours d'arbre couplé à une consultation de la table des symboles.
-On commence par évaluer les types de chacunes des opérandes dans l'arbre puis on remonte ces types jusqu'aux opérateur afin de controler la compatibilité des opérandes dans l'expression. La verification des types renvoie le type de retour de l'expression, ou \verb?UNDEF? si la verification échoue.
+On évalue en premier lieu, les sous-expressions situées le plus en profondeur dans l'arbre syntaxique.
 
-\underline{Remarque : } On évalue en premier lieu, les sous-expressions situées le plus en profondeur dans l'arbre syntaxique.
+La verification des types permet de controler la cohérence du langage d'entrée. Celle-ci est réalisée grâce à un parcours de l'arbre syntaxique couplé à une consultation de la table des symboles.
+On commence par évaluer les types de chacunes des opérandes dans l'arbre (et de verifier si elles ont été préalablement déclarées) puis on remonte ces types jusqu'aux opérateur afin de controler la compatibilité des opérandes dans l'expression. La verification des types renvoie le type de retour de l'expression, ou \verb?UNDEF? si la verification échoue.\\
+
+\begin{center}
+	\ovalbox{
+		\begin{tikzpicture}[scale=1.5]
+		    \tikzstyle{every node}=[circle,draw]
+		   \node {= (float)}
+   		        child { node{c:float)}}
+		        child {
+		            node {+:float}
+		            child { 	
+		            			node {*:float} 
+		            		 	child {node{b:float}}
+			                    child {node{c:float}}
+		            }
+		            child { node {a:float}}
+		        }
+		    ;
+		\end{tikzpicture}
+	}
+\end{center}
 
 L'algorithme (non-exhaustif) de verification des types que nous utilisons se situe en annexe \ref{algo_verif_types}.
 ~~\\
-
-
-
