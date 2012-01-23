@@ -12,20 +12,20 @@ int check_type ();
 
 %option yylineno
 %%
-"/*"		{ comment(); }
-"//".*          { count(); }
+"/*"		  { comment(); }
+"//".*    { count(); }
 "float"		{ count(); return(FLOAT); }
-"if"		{ count(); return(IF); }
+"if"		  { count(); return(IF); }
 "else"		{ count(); return(ELSE); }
-"int"		{ count(); return(INT); }
+"int"		  { count(); return(INT); }
 "return"	{ count(); return(RETURN); }
 "void"		{ count(); return(VOID); }
 "while"		{ count(); return(WHILE); }
-"for"		{ count(); return(FOR); }
+"for"		  { count(); return(FOR); }
 
 {L}({L}|{D})*	{ count(); yylval.str=strdup(yytext); return(IDENTIFIER); }
 
-{D}+    	{ count(); yylval.str=strdup(yytext); return(CONSTANT); }
+{D}+    { count(); yylval.str=strdup(yytext); return(CONSTANT); }
 
 "+="		{ count(); return(ADD_ASSIGN); }
 "-="		{ count(); return(SUB_ASSIGN); }
@@ -36,24 +36,24 @@ int check_type ();
 ">="		{ count(); return(GE_OP); }
 "=="		{ count(); return(EQ_OP); }
 "!="		{ count(); return(NE_OP); }
-";"		{ count(); return(';'); }
-"{"      	{ count(); return('{'); }
-"}"      	{ count(); return('}'); }
-","		{ count(); return(','); }
-":"		{ count(); return(':'); }
-"="		{ count(); return('='); }
-"("		{ count(); return('('); }
-")"		{ count(); return(')'); }
-"["     	{ count(); return('['); }
-"]"     	{ count(); return(']'); }
-"."		{ count(); return('.'); }
-"!"		{ count(); return('!'); }
-"-"		{ count(); return('-'); }
-"+"		{ count(); return('+'); }
-"*"		{ count(); return('*'); }
-"<"		{ count(); return('<'); }
-">"		{ count(); return('>'); }
-"|"		{ count(); return('|'); }
+";"		  { count(); return(';'); }
+"{"     { count(); return('{'); }
+"}"     { count(); return('}'); }
+","		  { count(); return(','); }
+":"		  { count(); return(':'); }
+"="		  { count(); return('='); }
+"("		  { count(); return('('); }
+")"		  { count(); return(')'); }
+"["     { count(); return('['); }
+"]"     { count(); return(']'); }
+"."		  { count(); return('.'); }
+"!"		  { count(); return('!'); }
+"-"		  { count(); return('-'); }
+"+"		  { count(); return('+'); }
+"*"		  { count(); return('*'); }
+"<"		  { count(); return('<'); }
+">"		  { count(); return('>'); }
+"|"		  { count(); return('|'); }
 
 [ \t\v\n\f]	{ count(); }
 .		{ /* ignore bad characters */ }
