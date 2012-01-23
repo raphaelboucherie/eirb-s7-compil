@@ -1,0 +1,31 @@
+\section{Les tableaux}
+
+Les tableaux font parti des structures basiques proposées par le langage C. Leur implémentation est donc importante pour un compilateur. 
+
+\subsection{Gestion d'un vecteur en asm}
+
+Un vecteur peut etre vu comme une succession de variables, c'est pourquoi nous allouons nos vecteurs sur la pile de la meme manière qu'une variable. Au niveau de yacc, on distingue deux types de vecteurs : les vecteur simples et les vecteurs à plusieurs dimensions. Les premiers sont désignés uniquement par leur identifiant qui nous permet de les retrouver à partir de la table de symboles. Les vecteurs à plusieurs dimensions sont également enregistrés dans la table de symboles mais sont transmis à travers l'arbre syntaxique via une chaine de caractère ayant la syntaxe suivante : \\
+\verb?###identifiant@position1@position2@position3? \\
+Cette syntaxe nous permet donc de gérer des expressions comme \verb?t[2][3]?. Un ensemble de fonctions permet ensuite de récuperer les informations importantes comme l'offset de départ du vecteur demandé ou encore sa taille.
+
+\subsection{Opérations sur les vecteurs}
+
+Il nous a été demandé de gérer plusieurs opérations sur les vecteurs qui n'existent pas en C. Ces opérations sont découpées en 3 types :
+\begin{itemize}
+\item Vecteur Opération Vecteur : Ces fonctions appliquent l'opérateur sur les deux cases de m\^eme niveau dans les tableaux et stockent le résultat dans le premier.
+\item Vecteur Opération Variable : Ces fonctions appliquent l'opérateur sur chaque case du tableau avec la valeur contenue dans la variable. Le résultat est stocké dans le vecteur.
+\item Variable Opération Vecteur : Ces fonctions appliquent l'opérateur sur chaque case du tableau successivement et met le résultat dans la variable.
+\end{itemize}
+
+Le tableau suivant récapitule l'effet des opérations : \\
+\begin{tabular}[h]{|c|c|c|c|c|c|}
+\hline Position/variable & A & B & A*=B & A+=v & v-=A \\ 
+\hline 0 & 1 & 4 & 4 & 3 & 1 \\ 
+\hline 1 & 2 & 3 & 6 & 4 & 2 \\ 
+\hline 2 & 3 & 2 & 6 & 5 & 3 \\ 
+\hline 3 & 4 & 1 & 4 & 6 & 4 \\ 
+\hline v & • & • & • & 2 & -8 \\ 
+\hline 
+\end{tabular} 
+
+Dans le premier cas, il est possible d'utiliser les registres SSE pour accélerer l'exécution. En effet, ces registres peuvent stocker 128 bits de données, soit 4 cases d'un tableau à la fois, et ils sont accompagnés d'opérations permettant d'additionner, soustraire ou encore multiplier deux registres SSE. L'idée est donc d'effectuer en une opération le travail de 4 opérations ( voire plus pour la multiplication ) sur des registres 32 bits. Nous avons cependant rencontré des difficultés dans cette implémentation d\^ues principalement au chargement des tableaux dans les registres SSE. En effet il faut "load" à l'aide de l'opération movups ( ou movaps si les données sont alignées sur 16 bits) les cases du tableau dans le registre avant d'effectuer les opérations. Hélas ce load nous donne des valeurs abhérentes, ou au mieux, dans le désordre. La documentation présente sur internet au sujet des registres SSE n'abordant pas ce point nous n'avons pu produire un code satisfaisant. La structure du code est néanmoins présente et il serait rapide de le modifier pour mettre en place cette fonctionalité.	 
