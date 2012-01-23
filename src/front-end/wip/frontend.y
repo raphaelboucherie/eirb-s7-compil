@@ -650,6 +650,8 @@ selection_statement /* TODO Refaire le traitement des if else ! */
 		PRINT("%s", "if(");
 		PRINT("%s", list_tmp->str);
 		PRINT("%s", "){\n");
+		list_if_tmp = addString2(list_if_tmp, list_tmp->str);
+		list_tmp = createStringList();
 	}
 statement
 	{
@@ -657,7 +659,8 @@ statement
 	}
 | ELSE 
 	{
-		PRINT("%s", "else{\n");
+		PRINT("%s%s%s", "if(", reverse_operator(list_if_tmp->str), "){\n");
+		list_if_tmp = list_if_tmp->next;
 	}
 statement
 	{
@@ -809,7 +812,8 @@ void globalInit()
 	stack_for = createPile(100);
 	stack_while = createPile(100);
 	//stack_tmp = createPile(100);
-	list_tmp =createStringList();
+	list_tmp = createStringList();
+	list_if_tmp = createStringList();
 }
 
 int main (int argc, char *argv[]) {

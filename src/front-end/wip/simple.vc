@@ -15,8 +15,13 @@ int main(int i, int j)
 		int	bla;
 		bla++;
 	}
-	if(i+3 == j+24){
-		i = 0 + b + a*i;
+	if(i+3 != j+24){
+		if(j > i){
+			i = 0 + b + a*i;
+		}
+		else{
+			k = 0;
+		}
 	}
 	else{
 		i = 42;
