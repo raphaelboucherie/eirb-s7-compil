@@ -420,10 +420,12 @@ expression
 		{
 		  symbolTableCurrentNode->code = 
 		    addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", 
-			      array3StartOffset+(nbIter*4*4)+(i*4), "%ebx", "%ebp");
+			      array3StartOffset+(nbIter*4*4)+(i*4), "%ebp", "%eax");
 		  symbolTableCurrentNode->code = 
-		    addString(symbolTableCurrentNode->code,"\tmull\t %s, -%d(%s)\n", 
-			      "%ebx", array1StartOffset+(nbIter*4*4)+(i*4), "%ebp");
+		    addString(symbolTableCurrentNode->code,"\tmull\t -%d(%s)\n", array1StartOffset+(nbIter*4*4)+(i*4), "%ebp");
+		  symbolTableCurrentNode->code = 
+		    addString(symbolTableCurrentNode->code,"\tmovl\t %s, -%d(%s)\n", "%eax", array1StartOffset+(nbIter*4*4)+(i*4), "%ebp");
+
 		}
 	    }
 	  else // array *= var
