@@ -43,10 +43,10 @@ char* tree_to_2a_code(TreeNode* tn, struct symbolTableTreeNode* symtable, struct
 		sprintf(instruction, "%s += %s;\n", addr_left_tmp, tn->right->content);
 		list = addStringEnd(list, instruction);
 //		printf("instuc : %s, list %p\n", instruction, list);
-		while(list != NULL){
+			while(list != NULL){
 //			printf("COUCOU : %s\n", list->str);
 			list = list->next;
-		 }
+			}
 
 		sprintf(addr_left,"%s",addr_left_tmp);
 		set_tree_node_content(addr_left, tn);
@@ -78,7 +78,7 @@ char* tree_to_2a_code(TreeNode* tn, struct symbolTableTreeNode* symtable, struct
 		sprintf(addr_left_tmp,"tmp_%s", addr_left);	 
 		while(getIdentifier(addr_left_tmp, symtable, symtable_root)  !=  NULL)
 			sprintf(addr_left_tmp, "tmp_%s", addr_left_tmp);
-
+		
 	/*	sprintf(code_2a,"%s %s = %s;\n", code_2a, addr_left_tmp,  tn->left->content);
 		sprintf(code_2a,"%s %s *= %s;\n", code_2a, addr_left_tmp,  tn->right->content);
 */
