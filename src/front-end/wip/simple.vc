@@ -1,0 +1,12 @@
+int main(int i, int j)
+{
+	int k;
+	for(i = 0; i < j + k; i++){
+			k++;
+	}
+	while(i < j + 42){
+		int	bla;
+		bla++;
+	}
+}
+
