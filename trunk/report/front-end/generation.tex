@@ -34,13 +34,40 @@ Voici un tableau exposant des morceaux de code du langage d'entrée et leur corr
   \hline
 \end{tabular}
 
-~~\\
-La génération de la représentation intermediaire se réalise en parcourant l'arbre syntaxique comme suit :
-[TODO]
+\subsection{Problématiques de génération}
+\subsubsection{Variables temporaires et modification de l'arbre syntaxique}
 
-~~\\
-La génération du code 2 adresses passe par la génération de variables temporaires (ajoutées dans la table des symboles) et déclarées en début de bloc. 
-[TODO]
+A chaque opérateur rencontré dans l'arbre syntaxique qui n'est pas un opérateur d'affectation, on génère une variable temporaire qui prend la valeur du fils gauche et qui effectue l'operation 2 adresses associée à l'opérateur en question. On doit remonter le résultat de l'opération temporaire dans le noeud de l'opérateur.
 
+\begin{center}
+	\ovalbox{
+		\begin{tikzpicture}[scale=4]
+		    \tikzstyle{every node}=[circle,draw]
+		    \node {= $(c = tmp\_a;)$}
+   		        child { node{c} }
+		        child {
+		            node {+ $(tmp\_a=a; tmp\_a+= tmp\_b;)$}
+		            child { 	
+		            			node {* $(tmp\_b = b;$  $tmp\_b*=c;)$} 
+		            		 	child {node{b}}
+			                    child {node{c}}
+		            }
+		            child { node {a} }
+		        }
+		    ;
+		\end{tikzpicture}
+	}
+\end{center}
 
+\subsubsection{Reverse Operator}
+
+La grammaire du back end ne supportant pas les structures conditionnelles du type \verb?if(...) else(...)? il est donc nécessaire de générer une structure du type \verb?if(a) if(!a)?. Une première solution consiste à générer un bloc du type verb?if(i==2) if((i==2)==0)? mais cette syntaxe n'est pas supportée par le back end.
+
+Il est donc nécessaire de transformer, dans l'expression, l'operateur par son opposé.
+
+\underline{Exemple : } \verb?if(i==0) if(i!=0)? $\longrightarrow$ $==$ est remplacé par $!=$
+
+\subsubsection{Remontée des variables temporaires}
+
+La grammaire du back end limite la declaration des variables au début de chaque bloc d'instructions. Il est donc nécessaire de faire remonter les variables temporaires générées dans l'arbre syntaxique de sorte que le code lié aux declarations de variables soit généré avant le code lié aux instructions opérationnelles du bloc.
 
