@@ -420,7 +420,7 @@ expression
 	  else // array *= var
 	    {
 	      yyerror("array *= var");
-	      yyerror("Not implemented yet !");
+
 	    }
 	}
       else
