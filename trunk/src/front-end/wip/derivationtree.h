@@ -7,6 +7,7 @@ typedef struct TreeNode{
 		char* content;
 		struct TreeNode* left;
 		struct TreeNode* right;
+		struct TreeNode* next;
 } TreeNode;
 int max(int i , int j);
 int tree_length(TreeNode* tn);
@@ -20,4 +21,5 @@ TreeNode* get_left(const TreeNode* tn);
 void print_tree_node(const TreeNode* tn, int spaces);
 void free_tree_node(TreeNode* tn);
 void add_to_left(TreeNode* newNode, TreeNode* tn);
+TreeNode* add_end_list_tree_node(TreeNode* start, TreeNode* new);
 #endif /* __DERIVATION_TREE_H__ */

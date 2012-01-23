@@ -26,7 +26,8 @@
 
 
 	/* Macro de PRINT */
-	#define PRINT(format, args...) printf(format, args)
+	static FILE* out;
+	#define PRINT(format, args...) fprintf(out, format, args)
 
 	extern int yylineno;
 	int yylex();
@@ -81,7 +82,6 @@
 primary_expression
 : IDENTIFIER												
 	{
-		//PRINT("%s", $<ch>1);
 		if(getIdentifier($<ch>1, symbol_table_current, symbol_table_root) == NULL){
 			yyerror("Identificateur introuvable ! \n");
 			exit(1);
@@ -91,7 +91,6 @@ primary_expression
 	}
 | CONSTANT
 	{	
-		//PRINT("%s", $1); 
 		$<ch>$ = $<str>1;
 		if(getIdentifier($<ch>1, symbol_table_root, symbol_table_root) == NULL)
 			addIdentifier($<ch>1, TYPE_CONSTANT, 0, 1, 0, symbol_table_root);
@@ -132,8 +131,7 @@ postfix_expression
 | postfix_expression '[' 
   
  expression ']' 
-	{	/* A Voir ? */
-		//LOG(stderr,"%s", "]");
+	{
 	  struct string* l = list_tmp;
 	  while(l!=NULL)
 	    {
@@ -297,64 +295,22 @@ expression
 		set_left(dt, var);
 		set_right(dt, (TreeNode*) $<tn>3);
 		
-		/*printf("\n----- TREE ------ \n"); 
-		print_tree_node(dt, 0); 
-		printf("\n----- END TREE ------ \n");
-		*/
-		//printf("\n----- TYPE VALIDATION ------ \n"); 
-		/*int ret = check_type(dt, symbol_table_current, symbol_table_root);
+		int ret = check_type(dt, symbol_table_current, symbol_table_root);
 		if(ret == TYPE_UNDEF){
-			printf("Expression type : UNDEF\n"); yyerror("Uncompatible types !"); exit(1); break;
-		}else{
-			switch(ret){
-				case TYPE_INT: printf("Expression type : INT\n"); break;
-				case TYPE_FLOAT: printf("Expression type : FLOAT\n"); break;
-				default : printf("Expression type : %d\n", ret);
-			}
-		}*/
-		//printf("\n----- END TYPE VALIDATION ------ \n"); 				
-		//printf("tree lenght : %d\n", tree_length(dt));
-		char code_2a[4096] = "";
+			printf("Expression type : UNDEF\n"); yyerror("Uncompatible types !"); exit(1);
+		}
 		list_tmp = createStringList();
 		tree_to_2a_code(dt, symbol_table_current, symbol_table_root, list_tmp);
-		struct symbolTableIdentifierList* id = symbol_table_current->identifierList;
 		while(list_tmp != NULL){
 			PRINT("%s", list_tmp->str);
 			list_tmp = list_tmp->next;
 		}
 		list_tmp = createStringList();
-		LOG(stderr,"%s\n", "------------------- CODE 2 ADRESSES CORRESPONDANT -----------------------");
-//		printf("%s", code_2a);
-		/*while(list_tmp!=NULL)
-		  {
-		    PRINT("%s", list_tmp->str);
-		    list_tmp= list_tmp->next;
-		  }*/
-		LOG(stderr,"%s\n", "------------------- FIN CODE 2 ADRESSES CORRESPONDANT -----------------------");
-		//free_tree_node(dt); 
 	}
 | comparison_expression
 	{
 		
-		/*
-		printf("\n----- TREE ------ \n"); 
-		print_tree_node($<tn>1, 0); 
-
-		printf("\n----- END TREE ------ \n");
-		*/
-		char code_2a[4096] = "";
-		//list_tmp = createStringList();
 		tree_to_2a_code($<tn>1, symbol_table_current, symbol_table_root, list_tmp);
-		LOG(stderr,"%s\n", "------------------- CODE 2 ADRESSES CORRESPONDANT -----------------------");
-//		printf("%s", code_2a);
-		/*while(list_tmp!=NULL)
-		  {
-		    PRINT("%s", list_tmp->str);
-		    list_tmp= list_tmp->next;
-		  }*/
-		LOG(stderr,"%s\n", "------------------- FIN CODE 2 ADRESSES CORRESPONDANT -----------------------");
-	//	free_tree_node($<tn>1); 
-
 		$<ch>$ = $<ch>1;
 		
 	}		
@@ -387,20 +343,6 @@ declaration
 		else{
 			type = TYPE_UNDEF;
 		}
-		/*Identifier* _ids = $<id>2;
-		
-		//Parcours de la liste d'identifieurs (permettant de recuperer la taille d'un potentiel tableau multidimensionnel...)
-		do{
-			Node newNode;
-			newNode.name = _ids->name;
-			newNode.type = type;
-			newNode.size = _ids->size;
-			newNode.dimension = _ids->dimension;
-			symTable = add_start_to_symtable(newNode, symTable);
-			Identifier* tmp = _ids;
-			_ids = _ids->next;
-			free_identifier(tmp);
-		}while(_ids != NULL);*/
 		
 		/* On parcours la liste des variables et on leur associe le type type_name */
 		struct symbolTableIdentifierList* list = (struct symbolTableIdentifierList*) $<id>2;
@@ -468,12 +410,6 @@ declarator
 | declarator '[' CONSTANT ']'			
 	{
 		PRINT("[%s]", $3); 
-		/*if($<id>1 != NULL){
-			Identifier* _id = $<id>1;
-			_id->size *= atoi($3);
-			_id->dimension++;
-			$<id>$ = _id;
-		}*/
 
 		/* Cas d'un tableau */
 		struct symbolTableIdentifierList* id = (struct symbolTableIdentifierList*) $<id>1;
@@ -491,10 +427,6 @@ declarator
 | declarator '[' ']'											
 	{
 		PRINT("%s", "[]"); 
-		/* if($<id>1 != NULL){
-			Identifier* _id = $<id>1;
-			$<id>$ = _id;
-		} */
 		/* Idem que le cas précédent mais on ne peut pas set la taille */
 		struct symbolTableIdentifierList* id = (struct symbolTableIdentifierList*) $<id>1;
 		if(id->name != NULL){
@@ -520,7 +452,6 @@ declarator
 parameter_list ')' 
 	{
 		PRINT("%s", ")");
-		/* TODO Probleme lors de l'écriture de l'entête puis de la définition de la fonction */
 		/* On récupère l'identifieur de la fonction et on modifie son nombre de paramètres */
 		struct symbolTableIdentifierList* id = (struct symbolTableIdentifierList*) $<id>1;
 		if(id->name != NULL){
@@ -529,14 +460,12 @@ parameter_list ')'
 				stid->type = TYPE_FCTN_UNDEF;
 				stid->size = $<num>4;
 			}
-			//symbol_table_current = symbol_table_current->father;
 			$<id>$ = (void*) stid;
 		}		
 	}		
 /* Cas des fonctions sans paramètres */
 | declarator '(' ')'											
 	{
-		/* TODO Probleme lors de l'écriture de l'entête puis de la définition de la fonction */
 		PRINT("%s", "()");
 		/* Idem que le cas précédent mais la size est à 0 */
 		struct symbolTableIdentifierList* id = (struct symbolTableIdentifierList*) $<id>1;
@@ -558,16 +487,11 @@ parameter_list
 
 parameter_declaration
 : type_name
-/*{		struct symbolTableTreeNode* tn = createTreeNode(symbol_table_current);
-		symbol_table_current = tn;
-}*/	
 declarator 											
 	{	
 		/* Récupération du type d'un paramètre */
-		// TODO à revoir pour la gestion d'erreur 
 		int type;
 		if(strcmp($<ch>1, "void") == 0){
-			//type = TYPE_VOID;	
 			yyerror("Function parameter type must be int or array ! \n"); exit(1);
 		}
 		else if(strcmp($<ch>1, "int") == 0){
@@ -579,22 +503,12 @@ declarator
 		else{
 			type = TYPE_UNDEF;
 		}
-		/*Identifier* _id = $<id>2;
-		Node newNode;
-		newNode.name = _id->name;
-		newNode.type = type;
-		newNode.size = _id->size;
-		newNode.dimension = _id->dimension;
-		symTable = add_start_to_symtable(newNode, symTable);
-		free_identifier(_id);
-		*/
 		/* On récupère la liste des paramètres et on lui assigne le type qu'on a trouvé */
 		struct symbolTableIdentifierList* list = (struct symbolTableIdentifierList*) $<id>2;
 		while(list != NULL){
 			if(list->type == TYPE_UNDEF){
 				list->type = type;
 			}
-			/* TODO Générer une erreur */
 			list = list->next;
 		}
 		
@@ -615,7 +529,6 @@ compound_statement
 | '{' 
 	{	/* Ouverture d'un nouveau bloc */
 		struct symbolTableTreeNode* tn = createTreeNode(symbol_table_current);
-		//addSon(symbol_table_current, tn);
 		symbol_table_current = tn;
 	}
 	declaration_list statement_list '}' 
@@ -641,7 +554,7 @@ expression_statement
 ;
 
 /*Fonctionnement GCC : Les blocs if et else sont gérés séparément. Quand un bloc else est évalué, il est rattaché au bloc if le plus proche*/
-selection_statement /* TODO Refaire le traitement des if else ! */
+selection_statement 
 : IF  '('  expression ')' 
 	{
 		while(list_tmp->next != NULL){
@@ -671,7 +584,6 @@ statement
 	{
 		sprintf(label, "%s_%d", ".for", for_label); 
 		push(label, stack_for); 
-		/* LOG(stderr,"%s:\n", label); */
 		for_label++; 
 		
 	} 
@@ -680,8 +592,6 @@ statement
 	expression  
 	')' 
 	{
-	  //	PRINT("%s\n", list_tmp->str);
-	  //	list_tmp = list_tmp->next;
 		PRINT("%s :\n", label);
 		while(list_tmp->next->next != NULL){
 			PRINT("%s", list_tmp->str);
@@ -692,7 +602,6 @@ statement
 	} 
 	statement 
 	{	
-		//PRINT("%s\n", list_tmp->str);
 		PRINT("goto %s}\n", pop(stack_for));
 		list_tmp = createStringList();
 	}
@@ -812,7 +721,6 @@ void globalInit()
 
 	stack_for = createPile(100);
 	stack_while = createPile(100);
-	//stack_tmp = createPile(100);
 	list_tmp = createStringList();
 	list_if_tmp = createStringList();
 }
@@ -820,8 +728,21 @@ void globalInit()
 int main (int argc, char *argv[]) {
     FILE *input = NULL;
     
-    if(argc==2) {
+    if(argc==3) {
 		input = fopen (argv[1], "r");
+		out = fopen(argv[2], "w");
+		file_name = strdup (argv[1]);
+		if (input) {
+	    	yyin = input;
+		}
+		else {
+	    	fprintf (stderr, "Could not open %s\n", argv[1]);
+	    	return 1;
+		}
+    }
+    else if(argc == 2){
+		input = fopen (argv[1], "r");
+	   	out = stdout;
 		file_name = strdup (argv[1]);
 		if (input) {
 	    	yyin = input;
@@ -842,10 +763,5 @@ int main (int argc, char *argv[]) {
 	dumpSymbolTable(symbol_table_root, 0);
     free (file_name);
     
-    /*SymTable Memory Free
-    if(symTable != NULL){
-	    displaySymTable(symTable);
-	    free_symtable(symTable);    
-    }*/
     return 0;
 }

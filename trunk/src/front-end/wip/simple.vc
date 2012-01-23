@@ -5,7 +5,7 @@ int main(int i, int je)
 	int k;
 	int a, b;
 	a = 2;
-	v=u[i+je];
+	v=u;
 	for(i = 0; i < je + k; i++){
 			k++;
 			a = b + i;
