@@ -1,3 +1,29 @@
 \newpage
 \section{Génération de RI}
 \subsection{Structure de la représentation intermediaire}
+
+Voici un tableau exposant des morceaux de code du langage d'entrée et leur correspondances en code 2 adresses : \\
+
+\begin{tabular}{|l|l|l|}
+  \hline
+  type instruction & langage d'entrée & code 2 adresses \\
+  \hline
+  \textbf{Affectation} & int i; & int i; \tabularnewline
+    & i=0; & i=0; \tabularnewline
+  \hline
+   \textbf{Expression arithmetique} & c = a + b * f; & int tmp1; \tabularnewline
+   & & tmp1 = b; \tabularnewline
+   & & tmp1 *= f; \tabularnewline
+   & & tmp1 += a; \tabularnewline
+   & & c = tmp1; \tabularnewline
+  \hline
+  \textbf{Boucle itérative} & \raggedleft $for(i=0; i<10; i++)\{$ & $i = 0;$ \tabularnewline
+  & $\ \ \ d += 3;$ & \raggedleft $.for\_tmp\ :$ \tabularnewline
+  & $\}$ & \raggedleft $\ \ if(i<10)\{$ \tabularnewline
+  & & \raggedleft $\ \ \ \ \ d += 3;$ \tabularnewline
+  & & \raggedleft $\ \ \ \ \ i++;$ \tabularnewline
+  & & \raggedleft $\ \ \ \ \ goto\ .for\_tmp;$  \tabularnewline
+  & & \raggedleft $\ \ \}$ \tabularnewline
+  \hline
+\end{tabular}
+
