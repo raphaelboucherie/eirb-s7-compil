@@ -1,22 +1,22 @@
-int main(int i, int j)
+int main(int i, int je)
 {
 	float u[45][23];
 	float v[23];
 	int k;
 	int a, b;
 	a = 2;
-	v=u[i+j];
-	for(i = 0; i < j + k; i++){
+	v=u[i+je];
+	for(i = 0; i < je + k; i++){
 			k++;
 			a = b + i;
 			
 	}
-	while(i < j + 42){
-		int	bla;
+	while(i < je + 42){
+		int bla;
 		bla++;
 	}
-	if(i+3 != j+24){
-		if(j > i){
+	if(i+3 != je+24){
+		if(je > i){
 			i = 0 + b + a*i;
 		}
 		else{
