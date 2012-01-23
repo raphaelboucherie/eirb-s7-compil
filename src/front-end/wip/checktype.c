@@ -53,7 +53,6 @@ int check_type(TreeNode* tn, struct symbolTableTreeNode* symtable, struct symbol
 		i++;
 	if(i != NB_OP){
 		/* C'est un opérateur */
-		printf("Operator : %s, type_left = %d, type_right = %d\n", operator[i], type_left, type_right);
 		switch(i){
 			case 2 : /* <= */
 				if((type_left == TYPE_INT || type_left == TYPE_FCTN_INT) && (type_right == TYPE_INT || type_right == TYPE_FCTN_INT)){

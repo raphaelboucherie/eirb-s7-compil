@@ -3,6 +3,7 @@
 
 #include "symbolTable.h"
 #include "stringList.h"
+#include "derivationtree.h"
 
 #define TYPE_UNDEF 		 0
 #define TYPE_VOID 		 1
@@ -25,7 +26,6 @@ static struct pile* stack_for = NULL;
 static struct pile* stack_while = NULL;
 static struct string* list_tmp;
 static struct string* list_if_tmp;
-
-/* struct pile* stack_return_value_tmp = NULL; */
+TreeNode* syntax_tree;
 
 #endif /* __GLOBALS_H__ */

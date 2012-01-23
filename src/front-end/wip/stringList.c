@@ -19,7 +19,6 @@ struct string* addStringEnd(struct string* current, char* str)
 	struct string* list =NULL;
 	list = current;
 	new->str = strdup(str);
-//	printf("new String : %s\n", new->str);
 	new->next = NULL;
 	assert(new != NULL);
 	if(list != NULL && list->str != NULL){
@@ -55,7 +54,6 @@ struct string* addStringList(struct string* current, struct string* new)
 	while (temp->next != NULL)
 	{
 		assert(temp != current);
-		//printf("%s NEXT : %p\n", temp->str, temp->next);
 		temp = temp->next;
 	}
 	temp->next = current;

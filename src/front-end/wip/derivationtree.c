@@ -34,6 +34,7 @@ TreeNode* create_tree_node(char* content){
 		newTreeNode->content = strdup(content);
 		newTreeNode->left = NULL;
 		newTreeNode->right = NULL;
+		newTreeNode->next = NULL;
 		return newTreeNode;
 	}
 	perror("Allocation error\n");
@@ -84,4 +85,19 @@ void add_to_left(TreeNode* newNode, TreeNode* tn){
 		tn = tn->left;
 
 	tn->left = newNode;
+}
+
+TreeNode* add_end_list_tree_node(TreeNode* start, TreeNode* new){
+	TreeNode* s = start;
+	if(s != NULL){
+		while(s->next != NULL){
+			s = s->next;
+		}
+		s->next = new;
+		return start;
+	}
+	else{
+		return new;
+	}
+
 }
