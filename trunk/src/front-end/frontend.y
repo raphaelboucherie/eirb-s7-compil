@@ -284,7 +284,7 @@ expression
 		*/
 		//printf("\n----- TYPE VALIDATION ------ \n"); 
 		/*int ret = check_type(dt, symbol_table_current, symbol_table_root);
-		if(ret == TYPE_UNDEF){
+/*		if(ret == TYPE_UNDEF){
 			printf("Expression type : UNDEF\n"); yyerror("Uncompatible types !"); exit(1); break;
 		}else{
 			switch(ret){
@@ -298,7 +298,7 @@ expression
 		char code_2a[4096] = "";
 		tree_to_2a_code(dt, symbol_table_current, symbol_table_root, code_2a, stack_tmp);
 		LOG(stderr,"%s\n", "------------------- CODE 2 ADRESSES CORRESPONDANT -----------------------");
-		printf("%s", code_2a);
+		printf("%s", code_2a); 
 		LOG(stderr,"%s\n", "------------------- FIN CODE 2 ADRESSES CORRESPONDANT -----------------------");
 		free_tree_node(dt); 
 	}
@@ -324,7 +324,7 @@ expression
 ;
 
 assignment_operator
-: '='					{LOG(stderr,"%s", "="); $<ch>$ = "=";}
+: '='				{LOG(stderr,"%s", "="); $<ch>$ = "=";}
 | MUL_ASSIGN			{LOG(stderr,"%s", "*="); $<ch>$ = "*=";}
 | ADD_ASSIGN			{LOG(stderr,"%s", "+="); $<ch>$ = "+=";}
 | SUB_ASSIGN			{LOG(stderr,"%s", "-="); $<ch>$ = "-=";}
@@ -763,7 +763,7 @@ int main (int argc, char *argv[]) {
 	globalInit();
 	/* Début du parsing */
     yyparse ();
-	dumpSymbolTable(symbol_table_root, 0);
+    dumpSymbolTable(symbol_table_root, 0);
     free (file_name);
     
     /*SymTable Memory Free
