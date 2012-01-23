@@ -23,4 +23,6 @@ int getAndCheckExpressions(char** reg1, char** reg3,
 			   struct symbolTableTreeNode* symbolTableRoot);
 int getArraySize(char* array, struct symbolTableTreeNode* symbolTableCurrentNode, 
 		 struct symbolTableTreeNode* symbolTableRoot);	   
+int getArrayOffset(char* array, struct symbolTableTreeNode* symbolTableCurrentNode, 
+		   struct symbolTableTreeNode* symbolTableRoot);
 #endif // UTILS_H
