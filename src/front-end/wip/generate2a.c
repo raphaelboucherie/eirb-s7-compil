@@ -93,7 +93,7 @@ char* tree_to_2a_code(TreeNode* tn, struct symbolTableTreeNode* symtable, struct
 	}
 	else if(!strcmp(tn->content, "=")){
 //		sprintf(code_2a,"%s %s = %s",code_2a, addr_left, addr_right);
-		sprintf(instruction, "%s = %s", addr_left, addr_right);
+		sprintf(instruction, "%s = %s;\n", addr_left, addr_right);
 		list = addStringEnd(list, instruction);
 
 

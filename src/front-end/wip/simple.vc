@@ -4,7 +4,7 @@ int main(int i, int j)
 	float v[23];
 	int k;
 	int a, b;
-
+	a = 2;
 	v=u[i+j];
 	for(i = 0; i < j + k; i++){
 			k++;
@@ -14,6 +14,12 @@ int main(int i, int j)
 	while(i < j + 42){
 		int	bla;
 		bla++;
+	}
+	if(i+3 == j+24){
+		i = 0 + b + a*i;
+	}
+	else{
+		i = 42;
 	}
 }
 

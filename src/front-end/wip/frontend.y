@@ -315,7 +315,13 @@ expression
 		//printf("\n----- END TYPE VALIDATION ------ \n"); 				
 		//printf("tree lenght : %d\n", tree_length(dt));
 		char code_2a[4096] = "";
+		list_tmp = createStringList();
 		tree_to_2a_code(dt, symbol_table_current, symbol_table_root, list_tmp);
+		while(list_tmp != NULL){
+			PRINT("%s", list_tmp->str);
+			list_tmp = list_tmp->next;
+		}
+		list_tmp = createStringList();
 		LOG(stderr,"%s\n", "------------------- CODE 2 ADRESSES CORRESPONDANT -----------------------");
 //		printf("%s", code_2a);
 		/*while(list_tmp!=NULL)
@@ -336,6 +342,7 @@ expression
 		printf("\n----- END TREE ------ \n");
 		*/
 		char code_2a[4096] = "";
+		//list_tmp = createStringList();
 		tree_to_2a_code($<tn>1, symbol_table_current, symbol_table_root, list_tmp);
 		LOG(stderr,"%s\n", "------------------- CODE 2 ADRESSES CORRESPONDANT -----------------------");
 //		printf("%s", code_2a);
@@ -345,7 +352,7 @@ expression
 		    list_tmp= list_tmp->next;
 		  }*/
 		LOG(stderr,"%s\n", "------------------- FIN CODE 2 ADRESSES CORRESPONDANT -----------------------");
-		free_tree_node($<tn>1); 
+	//	free_tree_node($<tn>1); 
 
 		$<ch>$ = $<ch>1;
 		
@@ -629,18 +636,33 @@ statement_list
 
 expression_statement
 : ';'				
-  //	{PRINT("%s", ";");}
-| expression ';'			
-{
-
-  //PRINT("%s", ";");
-}
+| expression ';'
 ;
 
 /*Fonctionnement GCC : Les blocs if et else sont gérés séparément. Quand un bloc else est évalué, il est rattaché au bloc if le plus proche*/
 selection_statement /* TODO Refaire le traitement des if else ! */
-: IF {PRINT("%s", "if(");} '('  expression ')' {PRINT("%s", ")");}  statement 
-| IF {PRINT("%s", "if(");} '(' expression ')' {PRINT("%s", ")");} statement  ELSE {PRINT("%s", "else");} statement
+: IF  '('  expression ')' 
+	{
+		while(list_tmp->next != NULL){
+			PRINT("%s", list_tmp->str);
+			list_tmp = list_tmp->next;
+		}
+		PRINT("%s", "if(");
+		PRINT("%s", list_tmp->str);
+		PRINT("%s", "){\n");
+	}
+statement
+	{
+		PRINT("%s\n", "}");
+	}
+| ELSE 
+	{
+		PRINT("%s", "else{\n");
+	}
+statement
+	{
+		PRINT("%s\n", "}");
+	}
 | FOR '(' 
 	{
 		sprintf(label, "%s_%d", ".for", for_label); 
@@ -654,9 +676,9 @@ selection_statement /* TODO Refaire le traitement des if else ! */
 	expression  
 	')' 
 	{
-	  		PRINT("%s\n", list_tmp->str);
-	  	list_tmp = list_tmp->next;
-		PRINT("%s:\n", label);
+	  //	PRINT("%s\n", list_tmp->str);
+	  //	list_tmp = list_tmp->next;
+		PRINT("%s :\n", label);
 		while(list_tmp->next->next != NULL){
 			PRINT("%s", list_tmp->str);
 			list_tmp = list_tmp->next;
@@ -666,7 +688,7 @@ selection_statement /* TODO Refaire le traitement des if else ! */
 	} 
 	statement 
 	{	
-		PRINT("%s\n", list_tmp->str);
+		//PRINT("%s\n", list_tmp->str);
 		PRINT("goto %s}\n", pop(stack_for));
 		list_tmp = createStringList();
 	}
@@ -677,7 +699,7 @@ iteration_statement
 	{
 		sprintf(label, "%s_%d", ".while", while_label); 
 		push(label, stack_while); 
-		PRINT("%s:\n", label); 
+		PRINT("%s :\n", label); 
 		while_label++;	
 	} 
 expression 
@@ -693,7 +715,7 @@ expression
 	}
 statement 
 	{
-		PRINT("goto %s;\n}\n", pop(stack_while));
+		PRINT("%s %s;\n}\n","goto",  pop(stack_while));
 		list_tmp = createStringList();
 	}
 ;
