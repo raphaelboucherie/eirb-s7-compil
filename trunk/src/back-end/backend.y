@@ -844,7 +844,7 @@ type_name
 ;
 
 declarator
-: IDENTIFIER //*
+: IDENTIFIER 
 {
 	struct declarator_list *di = malloc(sizeof(struct declarator_list));
 	di->name = strdup($1);
@@ -852,19 +852,19 @@ declarator
 	di->type=0;
 	di->next = NULL;
 	$$=(void*)di;
-} //*/
+} 
 | '(' declarator ')' 
-{ //*
+{
 	struct declarator_list *di = malloc(sizeof(struct declarator_list));
 	struct declarator_list *di2 = (struct declarator_list*)$2;
 	di->name = strdup(di2->name);
 	di->size = di2->size;
 	di->type = di2->type;
 	di->next = NULL;
-	$$=(void*)di;  //*/
+	$$=(void*)di;  
 } 
 | declarator '[' CONSTANT ']'
-{ //*
+{ 
 	struct declarator_list *di = (struct declarator_list*)$1;
 	if (di->type == type_ARRAY)
 	{
@@ -878,7 +878,7 @@ declarator
 		di->nbArrayDimension++;
 	}
 	di->next = NULL;
-	$$=(void*)di; //*/  
+	$$=(void*)di; 
 } 
 | declarator '[' ']' {}
 | declarator '(' parameter_list ')'
@@ -887,7 +887,7 @@ declarator
 	struct declarator_list *di = malloc(sizeof(struct declarator_list));
 	struct declarator_list *di2 = (struct declarator_list*)$1;
 	di->name=strdup(di2->name);
-	di->size = 0; //*/
+	di->size = 0;
 	di->type = type_FUNCTION;
 	di->next = NULL;
 	fprintf(LOG, "declarator ( param )");
@@ -924,7 +924,7 @@ declarator
 	di->size = 0;
 	di->next = NULL;
 	di->type = type_FUNCTION;
-	fprintf(LOG, "declarator ()"); //*/
+	fprintf(LOG, "declarator ()");
 	$$=(void*)di; // Function is already added in symbolTable
 
 	// If the function has not been declared before
