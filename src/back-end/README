@@ -1,0 +1,9 @@
+Fonctionement du backend : 
+
+Compilation du code : Make
+
+Génération du code assembleur : Make asm FILE="chemin vers le fichier C"
+
+Génération de l'executable depuis un fichier C : Make program FILE="chemin vers le fichier C"
+
+
