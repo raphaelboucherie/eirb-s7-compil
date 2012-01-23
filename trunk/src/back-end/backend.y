@@ -204,7 +204,7 @@ unary_expression
 	$$=$2;
 }
 | unary_operator unary_expression 
-{//TODO Prise en compte de l'unary operator
+{
 	if ($1[0] == '-')
 	{
 		fprintf(LOG," - operator on %s\n", $2);
@@ -767,7 +767,7 @@ expression
 		$$ = $1;
 	else
 		$$=regOffset("%ebp", searchOffset($1, symbolTableCurrentNode, symbolTableRoot));
-} // TODO
+} 
 ;
 
 assignment_operator
@@ -1004,23 +1004,10 @@ compound_statement
 : '{' '}' {$$=0;}
 | '{' statement_list '}' {$$=0;} 
 | '{' 
-{ /*// Nouveau statement, on crée une liste de symbole pour ce statement
-		yyerror("Compound_statement");
-		struct symbolTableTreeNode* newNode =
-		createTreeNode(symbolTableCurrentNode);
-		fprintf(stderr,"Création d'un nouveau fils : %p\n", newNode);
-		struct symbolTableTreeNodeList *nodeList = 
-		createTreeNodeList(newNode);
-		nodeList->next = symbolTableCurrentNode->sons;
-		symbolTableCurrentNode->sons = nodeList;
-	// cette liste est la nouvelle liste active
-	symbolTableCurrentNode = newNode;
-	 */
-}
 declaration_list statement_list '}' 
 {
 	// Statement's end, give the symbol list to father
-	$$=$3;
+	$$=$2;
 }
 ;
 
@@ -1128,7 +1115,6 @@ compound_statement
 	// Function's body
 	fprintf(LOG,"Ajout du code du corps : %s\n", symbolTableCurrentNode->code->str);
 	asmCode = addStringList(asmCode, symbolTableCurrentNode->code);
-	//  fprintf(stderr,"Ajout du code de fin\n");
 	asmCode = addString(asmCode,"\t%s\n\t%s\n","leave","ret");
 
 	// End of the instructions
@@ -1136,8 +1122,6 @@ compound_statement
 	symbolTableCurrentNode = symbolTableCurrentNode->father;
 	assert(symbolTableCurrentNode != NULL);
 
-
-	//asmCode = addString(asmCode,"\n.globl %s\n\t.type\t %s, @function\n%s:\n\tenter\t $%d, $0\n",functionName,functionName,functionName,stackSize); // USE ENTER
 
 
 	fprintf(LOG,"End of declaration of function : %s\n", functionName);
@@ -1210,5 +1194,4 @@ void globalFree()
 {
 	freePile(labelPile);
 	fclose(LOG);
-	// TOTO free ROOT !
 }
