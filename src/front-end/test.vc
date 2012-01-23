@@ -12,7 +12,6 @@ int main(int c)
 		
 	r = 2 + v;
 	r = 2 - v;
-	r = v * 2 - b;
 	r = v | u;
 
 	if(b == 5){
