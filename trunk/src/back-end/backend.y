@@ -376,6 +376,9 @@ expression
 	fprintf(LOG,"expression, operand retrieved\n");
 	assert(id1 != NULL);
 	assert(id3 != NULL);
+
+
+	// Operator Management
 	if ($2 == operator_MUL)
 	{
 		if (id1->type & type_ARRAY || $1[0] == '#')
@@ -429,14 +432,29 @@ expression
 				int array1StartOffset = getArrayOffset($1,symbolTableCurrentNode, symbolTableRoot);
 
 				int i;
-				for(i=0;i<array1Size;i++)
+				if($3[0] == '$')
 				{
-					symbolTableCurrentNode->code = 
-						addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", array1StartOffset+i*4, "%ebp", "%eax");
-					symbolTableCurrentNode->code = 
-						addString(symbolTableCurrentNode->code,"\tmull\t -%d(%s)\n", id3->offset,  "%ebp");
-					symbolTableCurrentNode->code = 
-						addString(symbolTableCurrentNode->code,"\tmovl\t %s, -%d(%s)\n", "%eax",  array1StartOffset+i*4, "%ebp");
+					fprintf(LOG, "LA %s\n", $3);
+					for(i=0;i<array1Size;i++)
+					{
+						symbolTableCurrentNode->code = 
+							addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", array1StartOffset+i*4, "%ebp", "%eax");
+						symbolTableCurrentNode->code = 
+							addString(symbolTableCurrentNode->code,"\tmull\t %s\n", $3);
+						symbolTableCurrentNode->code = 
+							addString(symbolTableCurrentNode->code,"\tmovl\t %s, -%d(%s)\n", "%eax",  array1StartOffset+i*4, "%ebp");
+					}
+				}
+				else {
+					for(i=0;i<array1Size;i++)
+					{
+						symbolTableCurrentNode->code = 
+							addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", array1StartOffset+i*4, "%ebp", "%eax");
+						symbolTableCurrentNode->code = 
+							addString(symbolTableCurrentNode->code,"\tmull\t -%d(%s)\n", id3->offset,  "%ebp");
+						symbolTableCurrentNode->code = 
+							addString(symbolTableCurrentNode->code,"\tmovl\t %s, -%d(%s)\n", "%eax",  array1StartOffset+i*4, "%ebp");
+					}
 				}
 			}
 		}
@@ -520,11 +538,19 @@ expression
 				int array1StartOffset = getArrayOffset($1, symbolTableCurrentNode, symbolTableRoot);
 				int i;
 
-				symbolTableCurrentNode->code = 
-					addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", id3->offset, "%ebp", "%ebx");
-				for(i=0; i < array1Size; i++) {
+				if($3[0] == '$') {
+					for(i=0; i < array1Size; i++) {
+						symbolTableCurrentNode->code = 
+							addString(symbolTableCurrentNode->code,"\taddl\t %s, -%d(%s)\n", $3, array1StartOffset+(i*4), "%ebp");
+					}
+				}
+				else {
 					symbolTableCurrentNode->code = 
+						addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", id3->offset, "%ebp", "%ebx");
+					for(i=0; i < array1Size; i++) {
+						symbolTableCurrentNode->code = 
 						addString(symbolTableCurrentNode->code,"\taddl\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(i*4), "%ebp");
+					}
 				}
 			}
 		}
@@ -606,11 +632,19 @@ expression
 				int array1StartOffset = getArrayOffset($1, symbolTableCurrentNode, symbolTableRoot);
 				int i;
 
-				symbolTableCurrentNode->code = 
-					addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", id3->offset, "%ebp", "%ebx");
-				for(i=0; i < array1Size; i++) {
+				if($3[0] == '$') {
+					for(i=0; i < array1Size; i++) {
+						symbolTableCurrentNode->code = 
+							addString(symbolTableCurrentNode->code,"\tsubl\t %s, -%d(%s)\n", $3, array1StartOffset+(i*4), "%ebp");
+					}
+				}
+				else {
 					symbolTableCurrentNode->code = 
-						addString(symbolTableCurrentNode->code,"\tsubl\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(i*4), "%ebp");
+						addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", id3->offset, "%ebp", "%ebx");
+					for(i=0; i < array1Size; i++) {
+						symbolTableCurrentNode->code = 
+							addString(symbolTableCurrentNode->code,"\tsubl\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(i*4), "%ebp");
+					}
 				}
 			}
 		}
