@@ -1,0 +1,11 @@
+int foo(){
+	int c;
+	int a;
+	int b;
+	int z;
+	c = a + b < 2;
+	if(c == 3){
+	}
+	else{
+	}
+}
