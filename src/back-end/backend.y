@@ -657,6 +657,25 @@ expression
 		{
 			if (id3->type & type_ARRAY || $3[0] == '#') // array = array
 			{
+				int array1Size = getArraySize($1, symbolTableCurrentNode, symbolTableRoot);
+				int array3Size = getArraySize($3, symbolTableCurrentNode, symbolTableRoot);
+
+				if(array1Size < array3Size) {
+					yyerror("Size mismatch");
+					exit(0);
+				}
+
+				int array1StartOffset = getArrayOffset($1, symbolTableCurrentNode, symbolTableRoot);
+				int array3StartOffset = getArrayOffset($3, symbolTableCurrentNode, symbolTableRoot);
+				int i;
+
+				for(i=0; i<array3Size; i++) {
+					symbolTableCurrentNode->code = 
+						addString(symbolTableCurrentNode->code, "\tmovl\t -%d(%s), %s\n", array3StartOffset+i*4, "%ebp", "%eax");
+					symbolTableCurrentNode->code = 
+						addString(symbolTableCurrentNode->code, "\tmovl\t %s, -%d(%s)\n", "%eax", array1StartOffset+i*4, "%ebp");
+				}
+
 				yyerror("Not implemented yet !");
 			}
 			else // array = var
