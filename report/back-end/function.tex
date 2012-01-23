@@ -1,5 +1,6 @@
 \section{Les fonctions}
 
+\vspace{0.5cm}
 En assembleur, les fonctions ne sont qu'un label. Cependant, elles ont besoin d'un traitement particulier, pour gérer la pile et les paramètres par exemple.
 Deux parties sont à distinguer : l'appel et la définition.
 
@@ -7,8 +8,10 @@ Deux parties sont à distinguer : l'appel et la définition.
 
 Les fonctions sont appelées via l'instruction "call".
 Si la fonction a besoin d'arguments, ils lui sont passés par la pile avec des instructions "pushl"
+
 Le retour de la fonction est par convention stocké dans le registre \%eax. Il faut donc récupérer ce résultat à la fin de l'exécution de la fonction à l'aide d'une instruction "movl".
 
+\vspace{0.5cm}
 Par exemple, pour une fonction à deux paramètres, le code produit sera similaire à celui-ci:
 
 \begin{verbatim}
@@ -31,8 +34,10 @@ function_definition
 
 La table des symboles est créée lors de la déclaration de la fonction. La définition d'une fonction passant par la règle "declarator", si celle ci n'a pas été déclarée précédemment, la table y est créée. Ainsi, on est sûr de n'avoir qu'une seule et unique table pour la fonction. Lors de la déclaration, les paramètres sont ajoutés dans la table.
 
+\vspace{0.5cm}
 Suite à la règle "declarator", on peut donc récupérer la table propre à la fonction définie. Nous avons pour cela implémenté une fonction getFunctionNode qui va chercher la table des symboles de la fonction correspondante.
 
+\vspace{0.5cm}
 La corps de la fonction est ensuite traitée par la règle "compound\_statement", dont le résultat est stocké dans le code de la table des symboles courante.
 
 Une fois le corps traité, les informations nécessaires à l'initialisation de la pile sont connues. 
