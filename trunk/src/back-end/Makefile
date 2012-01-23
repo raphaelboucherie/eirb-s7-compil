@@ -14,7 +14,7 @@ asm:backend
 frontend:frontend.c scanner_frontend.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-backend:backend.c scanner_backend.c utils.c label.c pile.c symbolTable.c stringList.c
+backend:backend.c scanner_backend.c utils.c label.c pile.c symbolTable.c stringList.c sse.c
 	clear && $(CC) $(CFLAGS) -o $@ $^
 
 frontend.c:frontend.y

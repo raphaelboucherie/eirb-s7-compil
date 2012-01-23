@@ -8,6 +8,7 @@
 #include "label.h"
 #include "pile.h"
 #include "symbolTable.h"
+#include "sse.h"
 #include "globals.h"
 
 
@@ -401,15 +402,20 @@ expression
 	      int array1Size = getArraySize($1, symbolTableCurrentNode, symbolTableRoot);
 	      int array3Size = getArraySize($3, symbolTableCurrentNode, symbolTableRoot);
 	      fprintf(LOG,"size1 = %d - size2 = %d\n", array1Size, array3Size);
-	      symbolTableCurrentNode->code = 
-		addString(symbolTableCurrentNode->code,"");
 
-	      /*
-	      int array1StartOffset = ;
-	      int array3StartOffset = ; */
 
 	      
-	      yyerror("Not implemented yet !");
+	      int array1StartOffset = getArrayOffset($1,symbolTableCurrentNode, symbolTableRoot);
+	      int array3StartOffset = getArrayOffset($3,symbolTableCurrentNode, symbolTableRoot);
+	      fprintf(LOG,"startOffset1 = %d - startOffset1 = %d\n", array1StartOffset, array3StartOffset);
+	      
+	      int i;
+	      int nbIter = (int)(array1Size/4);
+	      for(i=0;i<nbIter;i++)
+		{
+		  sseMultStep(array1StartOffset + 4*i, array3StartOffset + 4*i,
+			      symbolTableCurrentNode);
+		}
 	    }
 	  else // array *= var
 	    {

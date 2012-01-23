@@ -176,6 +176,53 @@ int getArraySize(char* array, struct symbolTableTreeNode* symbolTableCurrentNode
   return idArray->dimensionSizes[i];
 }
 
+int getArrayOffset(char* array, struct symbolTableTreeNode* symbolTableCurrentNode, 
+		   struct symbolTableTreeNode* symbolTableRoot)
+{
+  if(array[0] != '#')
+      return searchOffset(array,symbolTableCurrentNode,symbolTableRoot);      
+  char* temp = strdup(array);
+  char* identifier = strtok(temp,"@#");
+  int positions[256];
+  int i = 0;
+  char* position = strtok(NULL,"@#");
+  // get all the in from @@@id@i1@@i2@@i3
+  do
+    {
+      positions[i] = atoi(position);
+      i++;
+      position = strtok(NULL,"@#");
+    }
+  while(position != NULL);
+  struct symbolTableIdentifierList* idArray =
+    getIdentifier(identifier,symbolTableCurrentNode,symbolTableRoot);
+  assert(idArray != NULL);
+  if (i < idArray->nbArrayDimension)
+    {
+      positions[i] = 0;
+      i++;
+    }
+
+  int offsetSize[256];
+  // calcul de l'offset dans le(s) tableau(x)
+  int j;
+  for (j=0;j<i;j++)
+    {
+      // offset = position * sizeOfDimension n 
+      int k = 0;
+      offsetSize[j] = positions[j]; 
+      for (k=j+1;k<i;k++)
+	offsetSize[j]*=idArray->dimensionSizes[k]; 
+    }
+  int totalOffset = 0;
+  for (j=0;j<i;j++)
+    totalOffset+= offsetSize[j];
+  // L'offset total est la somme de ces offset + l'offset de base du tableau
+  totalOffset *= 4; // float and int take 4 Bytes in memory
+  totalOffset += idArray->offset;
+  return totalOffset;
+}
+
 char* ASM_INIT()
 {
   //  return "BITS 32\nSECTION .data\nSECTION .text\n\tGLOBAL _start\n\n_start:\n";
