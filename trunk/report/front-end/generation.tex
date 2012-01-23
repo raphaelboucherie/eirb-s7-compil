@@ -63,13 +63,11 @@ A chaque opérateur rencontré dans l'arbre syntaxique qui n'est pas un opérate
 
 La grammaire du back end ne supportant pas les structures conditionnelles du type \verb?if(...) else(...)? il est donc nécessaire de générer une structure du type \verb?if(a) if(!a)?. Une première solution consiste à générer un bloc du type verb?if(i==2) if((i==2)==0)? mais cette syntaxe n'est pas supportée par le back end.
 
-Il est donc nécessaire de transformer, dans l'expression, l'operateur par son opposé.
+Il est donc nécessaire de transformer, dans l'expression, l'operateur par son opposé grace à la fonction reverse operator.
 
 \underline{Exemple : } \verb?if(i==0) if(i!=0)? $\longrightarrow$ $==$ est remplacé par $!=$
 
 \subsubsection{Remontée des variables temporaires}
 
 La grammaire du back end limite la declaration des variables au début de chaque bloc d'instructions. Il est donc nécessaire de faire remonter les variables temporaires générées dans l'arbre syntaxique de sorte que le code lié aux declarations de variables soit généré avant le code lié aux instructions opérationnelles du bloc.
-
-
 
