@@ -14,11 +14,12 @@
 
 
 #define PRINT(format, args ...) {printf(format, args);}
-#define LOG stderr 
+  //#define LOG stderr 
 
   int yylex ();
   int yyerror ();
-
+  
+  FILE* LOG;
 
   void globalInit();
   void globalFree();
@@ -82,11 +83,6 @@
 primary_expression
 : IDENTIFIER 
 {
-  /* Previous version
-  int o = searchOffset($1,symbolTableCurrentNode,symbolTableRoot);
-  $$=regOffset("%ebp",o); //*/
-
-  // New version use identifier name until print
   $$ = $1;
 } 
 
@@ -122,7 +118,6 @@ primary_expression
   symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s %s\n", "\tcall\t", $1);
   argumentSize = getFunctionNode(symbolTableRoot,$1)->parameterSize;
   argumentSize *= 2;
- // symbolTableCurrentNode->code = addString(symbolTableCurrentNode->code,"%s $%d, %s\n", "\taddl\t", argumentSize, "%ebp"); 
   // Function return value are always stored in eax
   $$="%eax";
 }
@@ -212,7 +207,7 @@ unary_expression
 {//TODO Prise en compte de l'unary operator
   if ($1[0] == '-')
     {
-      fprintf(stderr," - operator on %s\n", $2);
+      fprintf(LOG," - operator on %s\n", $2);
       char* reg2 = NULL;
       if (isIdentifier($2))
 	{
@@ -226,7 +221,7 @@ unary_expression
 	}
       if (reg2 != NULL)
 	{
-	  fprintf(stderr," -op on register : %s\n", reg2);
+	  fprintf(LOG," -op on register : %s\n", reg2);
 	  symbolTableCurrentNode->code =
 	    addString(symbolTableCurrentNode->code, "%s [%s*-1], %s\n",
 		      "\tleal\t", reg2 , reg2);
@@ -234,7 +229,7 @@ unary_expression
 	}
       else
 	{
-	  fprintf(stderr," -op on constant : %s\n", $2);
+	  fprintf(LOG," -op on constant : %s\n", $2);
 	  char* constant = malloc(sizeof(char) * strlen($1) + 1);
 	  char* temp = strdup($2);
 	  sprintf(constant,"$-%s", strtok(temp,"$"));
@@ -387,7 +382,6 @@ expression
 	{
 	  if (id3->type & type_ARRAY || $3[0] == '#') // array *= array
 	    {
-	      yyerror("array *= array");
 	      /*
 	       * t1[i] = t1[i] * t3[i];
 	       * loop:
@@ -398,7 +392,7 @@ expression
 	       *
 	       *
 	       */
-	      fprintf(stderr,"%s *= %s\n", $1, $3);	      
+	      fprintf(LOG,"%s *= %s\n", $1, $3);	      
 	      int array1Size = getArraySize($1, symbolTableCurrentNode, symbolTableRoot);
 	      int array3Size = getArraySize($3, symbolTableCurrentNode, symbolTableRoot);
 	      fprintf(LOG,"size1 = %d - size2 = %d\n", array1Size, array3Size);
@@ -430,7 +424,6 @@ expression
 	    }
 	  else // array *= var
 	    {
-	      yyerror("array *= var");
 	      int array1Size = getArraySize($1, symbolTableCurrentNode, symbolTableRoot);
 
 	      int array1StartOffset = getArrayOffset($1,symbolTableCurrentNode, symbolTableRoot);
@@ -451,8 +444,6 @@ expression
 	{
 	  if (id3->type & type_ARRAY || $3[0] == '#') // var *= array
 	    {
-	      yyerror("var *= array");
-
 	      int array3Size = getArraySize($3, symbolTableCurrentNode, symbolTableRoot);
      	      int array3StartOffset = getArrayOffset($3,symbolTableCurrentNode, symbolTableRoot);
 
@@ -470,7 +461,6 @@ expression
 	    }
 	  else // var *= var 
 	    {
-	      yyerror("var *= var");
 	      char* reg1 = NULL, *reg3 = NULL;
 	      if (!getAndCheckExpressions(&reg1,&reg3,id1,id3,$1,$3,
 					  symbolTableCurrentNode, symbolTableRoot))
@@ -536,7 +526,7 @@ expression
 	{
 	  if (id3->type & type_ARRAY || $3[0] == '#') // array -= array
 	    {
-	      	      yyerror("Not implemented yet !");
+	      yyerror("Not implemented yet !");
 	    }
 	  else // array -= var
 	    {
@@ -596,7 +586,8 @@ expression
 	{
 	  if (id3->type & type_ARRAY || $3[0] == '#') // var = array
 	    {
-	      yyerror("Not implemented yet !");
+	      yyerror("Wrong operand type : array");
+	      return 0;
 	    }
 	  else // var = var 
 	    { 
@@ -705,7 +696,6 @@ declarator
   di->size=1;
   di->type=0;
   di->next = NULL;
-  yyerror("identifier");
   $$=(void*)di;
 } //*/
 | '(' declarator ')' 
@@ -735,12 +725,7 @@ declarator
     di->next = NULL;
     $$=(void*)di; //*/  
 } 
-| declarator '[' ']' { /*
-struct declarator_info *di = malloc(sizeof(struct declarator_info));
-di->value=$<dinfo.value>1;
-di->size = 0;
-$$=*di;  //*/
-}
+| declarator '[' ']' {}
 | declarator '(' parameter_list ')'
 { //* Creation de la table de symbole de la fonction + ajout des parametres a la table
 
@@ -1005,7 +990,7 @@ compound_statement
 ;
 
 %%
-#include <stdio.h>
+
 
 extern char yytext[];
 extern int column;
@@ -1059,6 +1044,7 @@ int main (int argc, char *argv[]) {
 
 void globalInit()
 {
+  LOG = fopen("log","w");
   labelPile = createPile(100);
   symbolTableRoot = createTreeNode(NULL); // la racine n'a pas de père (father = NULL)
   symbolTableRoot->functionName = "_root";
@@ -1068,5 +1054,6 @@ void globalInit()
 void globalFree()
 {
   freePile(labelPile);
+  fclose(LOG);
   // TOTO free ROOT !
 }
