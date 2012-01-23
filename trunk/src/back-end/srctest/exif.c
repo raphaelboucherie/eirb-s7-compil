@@ -5,7 +5,7 @@ int main()
   a= 42;
   b= 35;
 	if (a < b)
-		a = b;
+		a = 3;
 	if (a == b)
 		b *= 2;
 		b += a;

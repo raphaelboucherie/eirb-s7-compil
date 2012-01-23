@@ -1003,21 +1003,7 @@ labeled_statement
 compound_statement
 : '{' '}' {$$=0;}
 | '{' statement_list '}' {$$=0;} 
-| '{' 
-{ /*// Nouveau statement, on crée une liste de symbole pour ce statement
-		yyerror("Compound_statement");
-		struct symbolTableTreeNode* newNode =
-		createTreeNode(symbolTableCurrentNode);
-		fprintf(stderr,"Création d'un nouveau fils : %p\n", newNode);
-		struct symbolTableTreeNodeList *nodeList = 
-		createTreeNodeList(newNode);
-		nodeList->next = symbolTableCurrentNode->sons;
-		symbolTableCurrentNode->sons = nodeList;
-	// cette liste est la nouvelle liste active
-	symbolTableCurrentNode = newNode;
-	 */
-}
-declaration_list statement_list '}' 
+| '{' declaration_list statement_list '}' 
 {
 	// Statement's end, give the symbol list to father
 	$$=$3;
