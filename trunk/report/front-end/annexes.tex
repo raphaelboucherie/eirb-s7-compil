@@ -1,0 +1,62 @@
+\newpage
+\section{Annexes}
+
+\subsection{Algorithme de verification des types}
+
+\begin{algorithm}
+\label{algo_verif_types}
+\caption{check\_type(tree, symTable) : Algorithme de verification des types}
+\label{algo_verif_types}
+\begin{algorithmic}
+\REQUIRE $tree\ (syntaxic\_tree)$, $symTable (symbols\_table)$
+\ENSURE $type\ (type\ de\ retour\ de\ l'expression\ ou\ UNDEF\ si\ l'expression\ est\ invalide)$
+\COMMENT{$On\ evalue\ d'abord\ les\ expressions\ situees\ au\ plus\ profond\ de\ l'arbre$}
+\IF {$tree.left.type = TYPE\_UNDEF$\\ \textbf{or} $tree.right.type = TYPE\_UNDEF$}
+\RETURN $TYPE\_UNDEF$
+\ENDIF	
+\IF {$tree\_length(tree.left) < tree\_length(tree.right)$}
+\IF {$tree.right \neq NULL$}
+\STATE $type\_right = check\_type(tree.right,\ symtable)$
+\ENDIF
+\IF {$tree.left \neq NULL$}
+\STATE $type\_left = check\_type(tree.left,\ symtable)$
+\ENDIF
+\ELSE
+\IF {$tree.left \neq NULL$}
+\STATE $type\_left = check\_type(tree.left,\ symtable)$
+\ENDIF
+\IF {$tree.right \neq NULL$}
+\STATE $type\_right = check\_type(tree.right,\ symtable)$
+\ENDIF
+\ENDIF
+\STATE $ $
+\COMMENT{$On\ controle\ la\ compatibilite\ des\ operandes$}
+\IF {$is\_operator(tree.content)$} 
+\IF {$tree.content = OP\_PLUS$} 
+\IF {$tree.left.type = TYPE\_FLOAT$\\ \textbf{and} $tree.right.type = TYPE\_FLOAT$} 
+\RETURN $TYPE\_FLOAT$
+\ENDIF
+\COMMENT{$...$}
+\ELSE
+\RETURN $TYPE\_UNDEF$
+\ENDIF
+\IF {$tree.content = OP\_MINUS$} 
+\IF {$tree.left.type = TYPE\_INT$\\ \textbf{and} $tree.right.type = TYPE\_INT$} 
+\RETURN $TYPE\_INT$
+\ENDIF
+\COMMENT{$...$}
+\ELSE
+\RETURN $TYPE\_UNDEF$
+\ENDIF
+\COMMENT{$...$}
+\STATE $ $
+\COMMENT{$On\ controle\ l'existence\ \ l'operande\ dans\ la\ table\ des\ symboles$}
+\ELSIF {$is\_operand(tree.content)$}
+\IF {$is\_in\_table(tree.content, symTable)$} 
+\RETURN $tree.content.type$
+\ELSE
+\PRINT ERROR 
+\ENDIF
+\ENDIF
+\end{algorithmic}
+\end{algorithm}
