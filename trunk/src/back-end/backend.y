@@ -511,7 +511,7 @@ expression
 						addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", 
 								array3StartOffset+(nbIter*4*4)+(i*4), "%ebp", "%ebx");
 					symbolTableCurrentNode->code = 
-						addString(symbolTableCurrentNode->code,"\tadd\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(nbIter*4*4)+(i*4), "%ebp");
+						addString(symbolTableCurrentNode->code,"\taddl\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(nbIter*4*4)+(i*4), "%ebp");
 				}
 			}
 			else // array += var
@@ -524,7 +524,7 @@ expression
 					addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", id3->offset, "%ebp", "%ebx");
 				for(i=0; i < array1Size; i++) {
 					symbolTableCurrentNode->code = 
-						addString(symbolTableCurrentNode->code,"\tadd\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(i*4), "%ebp");
+						addString(symbolTableCurrentNode->code,"\taddl\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(i*4), "%ebp");
 				}
 			}
 		}
@@ -540,7 +540,7 @@ expression
 					addString(symbolTableCurrentNode->code,"\tmovl\t $0, %s\n", "%ebx");
 				for(i=0; i < array3Size; i++) {
 					symbolTableCurrentNode->code = 
-						addString(symbolTableCurrentNode->code,"\tadd\t -%d(%s), %s\n", array3StartOffset+(i*4), "%ebp", "%ebx");
+						addString(symbolTableCurrentNode->code,"\taddl\t -%d(%s), %s\n", array3StartOffset+(i*4), "%ebp", "%ebx");
 				}
 				symbolTableCurrentNode->code = 
 					addString(symbolTableCurrentNode->code,"\tmovl\t %s, -%d(%s)\n", "%ebx", id1->offset, "%ebp");
@@ -571,18 +571,65 @@ expression
 		{
 			if (id3->type & type_ARRAY || $3[0] == '#') // array -= array
 			{
+				yyerror("array -= array");
+				fprintf(stderr,"%s *= %s\n", $1, $3);	      
+				int array1Size = getArraySize($1, symbolTableCurrentNode, symbolTableRoot);
+				int array3Size = getArraySize($3, symbolTableCurrentNode, symbolTableRoot);
+				fprintf(LOG,"size1 = %d - size2 = %d\n", array1Size, array3Size);
+
+
+
+				int array1StartOffset = getArrayOffset($1,symbolTableCurrentNode, symbolTableRoot);
+				int array3StartOffset = getArrayOffset($3,symbolTableCurrentNode, symbolTableRoot);
+				fprintf(LOG,"startOffset1 = %d - startOffset1 = %d\n", array1StartOffset, array3StartOffset);
+
+				int i;
+				int nbIter = (int)(array1Size/4);
+				for(i=0;i<nbIter;i++)
+				{
+					sseSubStep(array1StartOffset + 4*i, array3StartOffset + 4*i,
+							symbolTableCurrentNode);
+				}
+				for(i=0;i<array1Size%4;i++)
+				{
+					symbolTableCurrentNode->code = 
+						addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", 
+								array3StartOffset+(nbIter*4*4)+(i*4), "%ebp", "%ebx");
+					symbolTableCurrentNode->code = 
+						addString(symbolTableCurrentNode->code,"\tsubl\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(nbIter*4*4)+(i*4), "%ebp");
+				}
 				yyerror("Not implemented yet !");
 			}
 			else // array -= var
 			{
-				yyerror("Not implemented yet !");
+				int array1Size = getArraySize($1, symbolTableCurrentNode, symbolTableRoot);
+				int array1StartOffset = getArrayOffset($1, symbolTableCurrentNode, symbolTableRoot);
+				int i;
+
+				symbolTableCurrentNode->code = 
+					addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", id3->offset, "%ebp", "%ebx");
+				for(i=0; i < array1Size; i++) {
+					symbolTableCurrentNode->code = 
+						addString(symbolTableCurrentNode->code,"\tsubl\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(i*4), "%ebp");
+				}
 			}
 		}
 		else
 		{
 			if (id3->type & type_ARRAY || $3[0] == '#') // var -= array
 			{
-				yyerror("Not implemented yet !");
+				int array3Size = getArraySize($3, symbolTableCurrentNode, symbolTableRoot);
+				int array3StartOffset = getArrayOffset($3, symbolTableCurrentNode, symbolTableRoot);
+				int i;
+
+				symbolTableCurrentNode->code = 
+					addString(symbolTableCurrentNode->code,"\tmovl\t $0, %s\n", "%ebx");
+				for(i=0; i < array3Size; i++) {
+					symbolTableCurrentNode->code = 
+						addString(symbolTableCurrentNode->code,"\tsubl\t -%d(%s), %s\n", array3StartOffset+(i*4), "%ebp", "%ebx");
+				}
+				symbolTableCurrentNode->code = 
+					addString(symbolTableCurrentNode->code,"\tmovl\t %s, -%d(%s)\n", "%ebx", id1->offset, "%ebp");
 			}
 			else // var -= var 
 			{
