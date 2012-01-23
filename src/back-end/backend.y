@@ -431,7 +431,20 @@ expression
 	  else // array *= var
 	    {
 	      yyerror("array *= var");
-	      
+	      int array1Size = getArraySize($1, symbolTableCurrentNode, symbolTableRoot);
+
+	      int array1StartOffset = getArrayOffset($1,symbolTableCurrentNode, symbolTableRoot);
+
+	      int i;
+	      for(i=0;i<array1Size;i++)
+		{
+		  symbolTableCurrentNode->code = 
+		    addString(symbolTableCurrentNode->code,"\tmovl\t -%d(%s), %s\n", array1StartOffset+i*4, "%ebp", "%eax");
+		  symbolTableCurrentNode->code = 
+		    addString(symbolTableCurrentNode->code,"\tmull\t -%d(%s)\n", id3->offset,  "%ebp");
+		  symbolTableCurrentNode->code = 
+		    addString(symbolTableCurrentNode->code,"\tmovl\t %s, -%d(%s)\n", "%eax",  array1StartOffset+i*4, "%ebp");
+		}
 	    }
 	}
       else
