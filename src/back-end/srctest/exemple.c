@@ -1,10 +1,11 @@
+void foo();
+
 int bar(int a, int b)
 {
 	int c;
 	c+=a;
-	if ( c < b )
-		return 1;
-	return 0;
+	c+=b;
+	return c;
 }
 
 void foo()
@@ -17,8 +18,8 @@ void foo()
 int main()
 {
 	int a;
-	a= 42;
 	foo();
+	a = bar(4,5);
 	a= 35;
 	return 1;
 }
