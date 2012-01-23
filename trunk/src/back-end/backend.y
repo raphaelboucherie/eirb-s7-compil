@@ -204,7 +204,7 @@ unary_expression
 	$$=$2;
 }
 | unary_operator unary_expression 
-{//TODO Prise en compte de l'unary operator
+{
 	if ($1[0] == '-')
 	{
 		fprintf(LOG," - operator on %s\n", $2);
@@ -475,7 +475,6 @@ expression
 				}
 				symbolTableCurrentNode->code = 
 					addString(symbolTableCurrentNode->code,"\tmovl\t %s, -%d(%s)\n", "%eax", id1->offset, "%ebp");
-				yyerror("Not implemented yet !");
 			}
 			else // var *= var 
 			{
@@ -624,7 +623,6 @@ expression
 					symbolTableCurrentNode->code = 
 						addString(symbolTableCurrentNode->code,"\tsubl\t %s, -%d(%s)\n", "%ebx", array1StartOffset+(nbIter*4*4)+(i*4), "%ebp");
 				}
-				yyerror("Not implemented yet !");
 			}
 			else // array -= var
 			{
@@ -710,7 +708,6 @@ expression
 						addString(symbolTableCurrentNode->code, "\tmovl\t %s, -%d(%s)\n", "%eax", array1StartOffset+i*4, "%ebp");
 				}
 
-				yyerror("Not implemented yet !");
 			}
 			else // array = var
 			{
@@ -724,7 +721,6 @@ expression
 				symbolTableCurrentNode->code = 
 					addString(symbolTableCurrentNode->code,"%s %s, %s \n",
 							"\tmovl\t", reg3, reg1);
-				yyerror("Not implemented yet !");
 			}
 		}
 		else
@@ -767,7 +763,7 @@ expression
 		$$ = $1;
 	else
 		$$=regOffset("%ebp", searchOffset($1, symbolTableCurrentNode, symbolTableRoot));
-} // TODO
+} 
 ;
 
 assignment_operator
