@@ -1,15 +1,12 @@
 \newpage
 \section{Annexes}
-
 \subsection{Algorithme de verification des types}
-
 \begin{algorithm}
 \label{algo_verif_types}
 \caption{check\_type(tree, symTable) : Algorithme de verification des types}
 \label{algo_verif_types}
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \REQUIRE $tree\ (syntaxic\_tree)$, $symTable (symbols\_table)$
-\ENSURE $type\ (type\ de\ retour\ de\ l'expression\ ou\ UNDEF\ si\ l'expression\ est\ invalide)$
 \COMMENT{$On\ evalue\ d'abord\ les\ expressions\ situees\ au\ plus\ profond\ de\ l'arbre$}
 \IF {$tree.left.type = TYPE\_UNDEF$\\ \textbf{or} $tree.right.type = TYPE\_UNDEF$}
 \RETURN $TYPE\_UNDEF$
@@ -49,7 +46,6 @@
 \RETURN $TYPE\_UNDEF$
 \ENDIF
 \COMMENT{$...$}
-\STATE $ $
 \COMMENT{$On\ controle\ l'existence\ de\ l'operande\ dans\ la\ table\ des\ symboles$}
 \ELSIF {$is\_operand(tree.content)$}
 \IF {$is\_in\_table(tree.content, symTable)$} 
