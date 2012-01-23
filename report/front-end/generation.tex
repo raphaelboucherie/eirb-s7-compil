@@ -6,7 +6,7 @@ Voici un tableau exposant des morceaux de code du langage d'entrée et leur corr
 
 \begin{tabular}{|l|l|l|}
   \hline
-  type instruction & langage d'entrée & code 2 adresses \\
+  \textbf{Type instruction} & \textbf{Langage d'entrée} & \textbf{Code 2 adresses} \\
   \hline
   \textbf{Affectation} & int i; & int i; \tabularnewline
     & i=0; & i=0; \tabularnewline
@@ -17,8 +17,15 @@ Voici un tableau exposant des morceaux de code du langage d'entrée et leur corr
    & & tmp1 += a; \tabularnewline
    & & c = tmp1; \tabularnewline
   \hline
+  \textbf{Structure conditionnelle} & \raggedleft $if(i==10)\{$ & $if(i==10)\{$ \tabularnewline
+  & $\ \ \ printf("Toto");$ & \raggedleft $\ \ \ printf("Toto");$ \tabularnewline
+  & $\} else \{$ & \raggedleft $\}$ \tabularnewline
+  & $\ \ \ printf("Titi");$ & \raggedleft $if((i==10)== 0)\{$ \tabularnewline
+  & $\} $ & \raggedleft $\ \ \ printf("Titi");$ \tabularnewline
+  & & \raggedleft $\}$ \tabularnewline
+  \hline
   \textbf{Boucle itérative} & \raggedleft $for(i=0; i<10; i++)\{$ & $i = 0;$ \tabularnewline
-  & $\ \ \ d += 3;$ & \raggedleft $.for\_tmp\ :$ \tabularnewline
+  \textbf{(for ou while)} & $\ \ \ d += 3;$ & \raggedleft $.for\_tmp\ :$ \tabularnewline
   & $\}$ & \raggedleft $\ \ if(i<10)\{$ \tabularnewline
   & & \raggedleft $\ \ \ \ \ d += 3;$ \tabularnewline
   & & \raggedleft $\ \ \ \ \ i++;$ \tabularnewline
