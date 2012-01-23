@@ -129,9 +129,28 @@ postfix_expression
 	{
 		$$ = $<tn>1;
 	}
-| postfix_expression '[' {PRINT("%s", "[");} expression ']' 
+| postfix_expression '[' 
+  
+ expression ']' 
 	{	/* A Voir ? */
-		LOG(stderr,"%s", "]");
+		//LOG(stderr,"%s", "]");
+	  struct string* l = list_tmp;
+	  while(l!=NULL)
+	    {
+	      PRINT("%s",l->str);
+	      l= l->next;
+	    }
+
+		  TreeNode* tn =(TreeNode*) $<tn>1;
+		  TreeNode* t = (TreeNode*) $<tn>3;
+		  
+		  char* tmp;
+		  while(list_tmp->next != NULL)
+		    list_tmp = list_tmp->next;
+		  tmp = strtok(list_tmp->str, " ");
+		  sprintf(tn->content,"%s[%s]", tn->content, tmp);
+		  list_tmp = createStringList();
+		  $<tn>$=(void*) tn;
 	} 
 ;
 
@@ -299,8 +318,13 @@ expression
 		tree_to_2a_code(dt, symbol_table_current, symbol_table_root, list_tmp);
 		LOG(stderr,"%s\n", "------------------- CODE 2 ADRESSES CORRESPONDANT -----------------------");
 //		printf("%s", code_2a);
+		/*while(list_tmp!=NULL)
+		  {
+		    PRINT("%s", list_tmp->str);
+		    list_tmp= list_tmp->next;
+		  }*/
 		LOG(stderr,"%s\n", "------------------- FIN CODE 2 ADRESSES CORRESPONDANT -----------------------");
-		free_tree_node(dt); 
+		//free_tree_node(dt); 
 	}
 | comparison_expression
 	{
@@ -315,6 +339,11 @@ expression
 		tree_to_2a_code($<tn>1, symbol_table_current, symbol_table_root, list_tmp);
 		LOG(stderr,"%s\n", "------------------- CODE 2 ADRESSES CORRESPONDANT -----------------------");
 //		printf("%s", code_2a);
+		/*while(list_tmp!=NULL)
+		  {
+		    PRINT("%s", list_tmp->str);
+		    list_tmp= list_tmp->next;
+		  }*/
 		LOG(stderr,"%s\n", "------------------- FIN CODE 2 ADRESSES CORRESPONDANT -----------------------");
 		free_tree_node($<tn>1); 
 
@@ -345,8 +374,7 @@ declaration
 		else if(strcmp($<ch>1, "int") == 0){
 			type = TYPE_INT;	
 		}
-		else if(strcmp($<ch>1, "float") == 0){
-			type = TYPE_FLOAT;
+		else if(strcmp($<ch>1, "float") == 0){			type = TYPE_FLOAT;
 		}
 		else{
 			type = TYPE_UNDEF;
@@ -600,8 +628,13 @@ statement_list
 ;
 
 expression_statement
-: ';'					{PRINT("%s", ";");}
-| expression ';'			{PRINT("%s", ";");}
+: ';'				
+  //	{PRINT("%s", ";");}
+| expression ';'			
+{
+
+  //PRINT("%s", ";");
+}
 ;
 
 /*Fonctionnement GCC : Les blocs if et else sont gérés séparément. Quand un bloc else est évalué, il est rattaché au bloc if le plus proche*/
@@ -614,14 +647,15 @@ selection_statement /* TODO Refaire le traitement des if else ! */
 		push(label, stack_for); 
 		/* LOG(stderr,"%s:\n", label); */
 		for_label++; 
+		
 	} 
 	expression_statement 
 	expression_statement 
 	expression  
 	')' 
 	{
-		PRINT("%s\n", list_tmp->str);
-		list_tmp = list_tmp->next;
+	  		PRINT("%s\n", list_tmp->str);
+	  	list_tmp = list_tmp->next;
 		PRINT("%s:\n", label);
 		while(list_tmp->next->next != NULL){
 			PRINT("%s", list_tmp->str);
@@ -634,6 +668,7 @@ selection_statement /* TODO Refaire le traitement des if else ! */
 	{	
 		PRINT("%s\n", list_tmp->str);
 		PRINT("goto %s}\n", pop(stack_for));
+		list_tmp = createStringList();
 	}
 ;
 
@@ -645,7 +680,7 @@ iteration_statement
 		PRINT("%s:\n", label); 
 		while_label++;	
 	} 
-	expression 
+expression 
 	')' 
 	{
 		while(list_tmp->next != NULL){
@@ -656,9 +691,10 @@ iteration_statement
 		PRINT("%s", list_tmp->str);
 		PRINT("%s", "){\n");
 	}
-	statement 
+statement 
 	{
 		PRINT("goto %s;\n}\n", pop(stack_while));
+		list_tmp = createStringList();
 	}
 ;
 
@@ -751,7 +787,7 @@ void globalInit()
 	stack_for = createPile(100);
 	stack_while = createPile(100);
 	//stack_tmp = createPile(100);
-	list_tmp = malloc(sizeof(struct string));
+	list_tmp =createStringList();
 }
 
 int main (int argc, char *argv[]) {

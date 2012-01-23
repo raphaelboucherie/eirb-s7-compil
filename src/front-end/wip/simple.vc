@@ -1,8 +1,15 @@
 int main(int i, int j)
 {
+	float u[45][23];
+	float v[23];
 	int k;
+	int a, b;
+
+	v=u[i+j];
 	for(i = 0; i < j + k; i++){
 			k++;
+			a = b + i;
+			
 	}
 	while(i < j + 42){
 		int	bla;

@@ -1,4 +1,10 @@
 #include "stringList.h"
+struct string* createStringList(){
+  struct string* s= malloc(sizeof(struct string));
+  s->str = NULL;
+  s->next = NULL;
+  return s;
+}
 
 struct string* addString2(struct string* current, char* str)
 {
@@ -10,24 +16,28 @@ struct string* addString2(struct string* current, char* str)
 struct string* addStringEnd(struct string* current, char* str)
 {
 	struct string* new = malloc(sizeof(struct string));
-	struct string* list = current;
+	struct string* list =NULL;
+	list = current;
 	new->str = strdup(str);
 //	printf("new String : %s\n", new->str);
 	new->next = NULL;
 	assert(new != NULL);
-	if(list->str != NULL){
+	if(list != NULL && list->str != NULL){
 		while(list->next != NULL){
 			list = list->next;
 		}
 		list->next = new;
 		return current;
 	}
-	else{
+	else if(list!= NULL) {
 		list->str = new->str;
 		return list;
 	}
-
+	else{
+	  return new;
+	}
 }
+
 
 struct string* addString(struct string* current, char* str, ...)
 {
