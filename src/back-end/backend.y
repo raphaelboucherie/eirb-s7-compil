@@ -452,6 +452,20 @@ expression
 	  if (id3->type & type_ARRAY || $3[0] == '#') // var *= array
 	    {
 	      yyerror("var *= array");
+
+	      int array3Size = getArraySize($3, symbolTableCurrentNode, symbolTableRoot);
+     	      int array3StartOffset = getArrayOffset($3,symbolTableCurrentNode, symbolTableRoot);
+
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"\tmovl\t $1, %s\n", "%eax");
+	      int i;
+	      for (i=0;i<array3Size;i++)
+		{
+		  symbolTableCurrentNode->code = 
+		    addString(symbolTableCurrentNode->code,"\tmull\t -%d(%s)\n", array3StartOffset + 4*i, "%ebp", "%eax");
+		}
+	      symbolTableCurrentNode->code = 
+		addString(symbolTableCurrentNode->code,"\tmovl\t %s, -%d(%s)\n", "%eax", id1->offset, "%ebp");
 	      yyerror("Not implemented yet !");
 	    }
 	  else // var *= var 
