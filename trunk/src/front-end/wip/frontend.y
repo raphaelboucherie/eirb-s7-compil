@@ -317,6 +317,7 @@ expression
 		char code_2a[4096] = "";
 		list_tmp = createStringList();
 		tree_to_2a_code(dt, symbol_table_current, symbol_table_root, list_tmp);
+		struct symbolTableIdentifierList* id = symbol_table_current->identifierList;
 		while(list_tmp != NULL){
 			PRINT("%s", list_tmp->str);
 			list_tmp = list_tmp->next;
