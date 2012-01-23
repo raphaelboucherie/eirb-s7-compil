@@ -29,7 +29,7 @@ function_definition
 
 \end{verbatim}
 
-La table des symboles est créée lors de la déclaration de la fonction. La définition d'une fonction passant par la règle "declarator", si celle ci n'a pas été déclarée précedemment, la table y est créée. Ainsi, on est sûr de n'avoir qu'une seule et unique table pour la fonction. Lors de la déclaration, les paramètres sont ajoutés dans la table.
+La table des symboles est créée lors de la déclaration de la fonction. La définition d'une fonction passant par la règle "declarator", si celle ci n'a pas été déclarée précédemment, la table y est créée. Ainsi, on est sûr de n'avoir qu'une seule et unique table pour la fonction. Lors de la déclaration, les paramètres sont ajoutés dans la table.
 
 Suite à la règle "declarator", on peut donc récupérer la table propre à la fonction définie. Nous avons pour cela implémenté une fonction getFunctionNode qui va chercher la table des symboles de la fonction correspondante.
 
