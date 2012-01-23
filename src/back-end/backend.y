@@ -743,9 +743,19 @@ expression
 					yyerror("First operand of operator cant be a constant"); 
 					exit(0);
 				}
+				if($3[0] == '$') {
 				symbolTableCurrentNode->code = 
 					addString(symbolTableCurrentNode->code,"%s %s, %s \n",
 							"\tmovl\t", reg3, reg1);
+				}
+				else {
+				symbolTableCurrentNode->code = 
+					addString(symbolTableCurrentNode->code,"%s %s, %s \n",
+							"\tmovl\t", reg3, "%ebx");
+				symbolTableCurrentNode->code = 
+					addString(symbolTableCurrentNode->code,"%s %s, %s \n",
+							"\tmovl\t", "%ebx", reg1);
+				}
 			}
 		}
 	}
