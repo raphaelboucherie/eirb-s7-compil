@@ -725,9 +725,9 @@ extern FILE *yyin;
 char *file_name = NULL;
 
 int yyerror (char *s) {
-    fflush (stdout);
-    fprintf (stderr, "%s:%d:%d: %s\n", file_name, yylineno, column, s);
-    return 0;
+  fflush (stdout);
+  fprintf (stderr, "%s:%d:%d: %s\n", file_name, yylineno, column, s);
+  return 0;
 }
 
 void globalInit()
